@@ -1,14 +1,17 @@
 package com.worksmobile.Assignment.Domain;
 
+import org.springframework.web.multipart.MultipartFile;
+
 public class BoardDTO {
 	private int id;
 	private String subject;
 	private String content;
 	private String created;
-	private String fileName;
+	private MultipartFile attachment;
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int id) {
 		this.id = id;
 	}
@@ -30,14 +33,12 @@ public class BoardDTO {
 	public void setCreated(String created) {
 		this.created = created;
 	}
-	public String getFileName() {
-		return fileName;
+	public MultipartFile getAttachment() {
+		return attachment;
 	}
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
+	public void setAttachment(MultipartFile attachment) {
+		this.attachment = attachment;
 	}
 
-	
-	
 
 }
