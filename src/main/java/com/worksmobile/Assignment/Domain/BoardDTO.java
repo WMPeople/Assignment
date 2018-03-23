@@ -5,67 +5,39 @@ public class BoardDTO {
 	private String subject;
 	private String content;
 	private String created;
-	private String modified;
-	/**
-	 * @return the id
-	 */
+	private String fileName;
 	public int getId() {
 		return id;
 	}
-	/**
-	 * @param id the id to set
-	 */
 	public void setId(int id) {
 		this.id = id;
 	}
-	/**
-	 * @return the subject
-	 */
 	public String getSubject() {
 		return subject;
 	}
-	/**
-	 * @param subject the subject to set
-	 */
 	public void setSubject(String subject) {
 		this.subject = subject;
 	}
-	/**
-	 * @return the content
-	 */
 	public String getContent() {
 		return content;
 	}
-	/**
-	 * @param content the content to set
-	 */
 	public void setContent(String content) {
 		this.content = content;
 	}
-	/**
-	 * @return the created
-	 */
 	public String getCreated() {
 		return created;
 	}
-	/**
-	 * @param created the created to set
-	 */
 	public void setCreated(String created) {
 		this.created = created;
 	}
-	/**
-	 * @return the modified
-	 */
-	public String getModified() {
-		return modified;
+	public String getFileName() {
+		return fileName;
 	}
-	/**
-	 * @param modified the modified to set
-	 */
-	public void setModified(String modified) {
-		this.modified = modified;
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
 	}
+
+	
 	
 
 }
