@@ -14,4 +14,6 @@ public interface BoardMapper {
 
 	public int boardUpdate(BoardDTO board) throws Exception;
 
+	public BoardDTO getArticle(int id);
+
 }
