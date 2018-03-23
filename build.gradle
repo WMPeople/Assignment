@@ -41,5 +41,6 @@ dependencies {
 	compile("org.springframework.boot:spring-boot-devtools")
 	// 모니터링 지원
 	compile("org.springframework.boot:spring-boot-starter-actuator")
-	
+	// getter and setter annotation
+	compileOnly "org.projectlombok:lombok:1.16.16"	
 }

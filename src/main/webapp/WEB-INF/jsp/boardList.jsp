@@ -5,14 +5,14 @@
 <!DOCTYPE html>
 <html lang="ko">
 
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script src="/js/jquery-1.10.2.js"></script>
+<script src="/js/jquery-ui-1.11.0.js"></script>
 <head>
 <meta http-equiv="Content-Type" content= "text/html; charset=UTF-8">
 <!-- BootStrap CDN -->
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="/css/jquery-ui-1.11.0.css">
+<link rel="stylesheet" href="/css/bootstrap.min.3.3.2.css">
+<link rel="stylesheet" href="/css/bootstrap-theme.min.3.3.2.css">
 <title>게시물 목록</title>
 </head>
 <body>
@@ -31,7 +31,7 @@
             <td>${board.id}</td>
             <td>${board.subject}</td>
             <td>${board.created}</td>
-            <td>${board.modified}</td>
+            <td>${board.attachment}</td>
             <td> <button class="btn btn-primary"  onclick="location.href='/boardDelete?id=${board.id}'">삭제</button> </td>
         	<td> <button class="btn btn-primary"  onclick="location.href='/boardUpdate?id=${board.id}'">내용변경</button> </td>
         </tr>

@@ -25,21 +25,21 @@ public class DBConnectionTest {
 	private SqlSessionFactory sqlSession;
 	
 	@Autowired
-    private DataSource ds; //�ۼ�
+    private DataSource ds;
  
     @Test
     public void contextLoads() {
     }
  
     @Test
-    public void testConnection() throws Exception{ //�ۼ�
+    public void testConnection() throws Exception{
         System.out.println("ds : "+ds);
         
-        Connection con = ds.getConnection(); //ds(DataSource)���� Connection�� ����
+        Connection con = ds.getConnection();
         
-        System.out.println("con : "+con); //Ȯ�� ��
+        System.out.println("con : "+con);
         
-        con.close(); //close
+        con.close();
     }
     
     @Test
