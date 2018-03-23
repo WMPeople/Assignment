@@ -5,7 +5,7 @@
  
 <mapper namespace="com.worksmobile.Assignment.Mapper.BoardMapper">
     <select id="boardList" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
-        SELECT id,subject,content,created,modified
+        SELECT board_id,subject,content,created,attachment
         FROM board;
     </select>
     

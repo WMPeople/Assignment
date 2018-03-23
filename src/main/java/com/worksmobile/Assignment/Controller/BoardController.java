@@ -36,7 +36,6 @@ public class BoardController {
     @RequestMapping("/boardList")
     public ModelAndView boardList() throws Exception{
         List<BoardDTO> boardList = boardMapper.boardList();
-        System.out.println("test");
         return new ModelAndView("boardList","list",boardList);
     }
     
@@ -57,7 +56,6 @@ public class BoardController {
     		System.out.println(board.getId());
     		return boardMapper.boardCreate(board);
 		} catch (Exception e) {
-			// TODO: handle exception
 			System.out.println("에러");
 		}
     	return 0 ;
