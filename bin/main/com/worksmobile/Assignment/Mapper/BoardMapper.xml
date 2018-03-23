@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+ 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="com.worksmobile.Assignment.Mapper.BoardMapper">
+    <select id="boardList" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
+        SELECT id,subject,content,created,modified
+        FROM board;
+    </select>
+    
+     <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO"
+     useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO board
+        (subject,content,created,modified)
+        VALUES (#{subject},#{content},CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
+    </insert>
+    
+    <delete id="boardDelete" parameterType="String">
+        DELETE FROM board 
+        WHERE id = #{id};
+    </delete>
+    
+    <update id="boardUpdate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
+        UPDATE board 
+        set 
+        subject = #{subject},
+        content = #{content},
+        modified = CURRENT_TIMESTAMP
+        where id = #{id};
+    </update>
+    
+</mapper>
