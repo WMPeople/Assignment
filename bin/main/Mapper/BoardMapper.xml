@@ -16,7 +16,6 @@
     </select>
     
     
-
     <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO"
      useGeneratedKeys="true" keyProperty="id">
         INSERT INTO board
@@ -29,8 +28,6 @@
         WHERE board_id = #{board_id};
        
     </delete>
-    
-
     
     <update id="boardUpdate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
         UPDATE board 
