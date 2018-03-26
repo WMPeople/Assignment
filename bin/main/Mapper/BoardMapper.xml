@@ -8,18 +8,7 @@
         SELECT board_id,subject,content,created,fileName,fileSize
         FROM board;
     </select>
-    
-<!--      <resultMap type="Domain.BoardDTO" id="viewDetailMap"> -->
-<!--          <result column="board_id" property="board_id"/> -->
-<!--          <result column="subject" property="subject"/> -->
-<!--          <result column="content" property="content"/> -->
-<!--          <result column="created" property="created"/> -->
-<!--          <result column="attachment" property="attachment" jdbcType="BLOB" javaType="[B" /> -->
-    
-<!--     </resultMap>﻿  -->
-    
- 
-	    
+        
     <select id="viewDetail" parameterType="int" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
     	select board_id,subject,content,created,fileName,fileSize,attachment
     	from board
