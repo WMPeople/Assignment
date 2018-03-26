@@ -8,13 +8,12 @@
         SELECT board_id,subject,content,created,fileName,fileSize
         FROM board;
     </select>
-        
+    
     <select id="viewDetail" parameterType="int" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
     	select board_id,subject,content,created,fileName,fileSize,attachment
     	from board
     	where board_id = #{board_id};
     </select>
-    
     
     <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO"
      useGeneratedKeys="true" keyProperty="id">
@@ -26,7 +25,6 @@
     <delete id="boardDelete" parameterType="int">
         DELETE FROM board 
         WHERE board_id = #{board_id};
-       
     </delete>
     
     <update id="boardUpdate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
@@ -35,9 +33,9 @@
         subject = #{subject},
         content = #{content},
         created = CURRENT_TIMESTAMP,
-        attachment = #{attachment,jdbcType=BLOB},
-        fileName =#{fileName},
-        fileSize =#{fileSize}
+<!--         attachment = #{attachment,jdbcType=BLOB}, -->
+<!--         fileName =#{fileName}, -->
+<!--         fileSize =#{fileSize} -->
         where board_id = #{board_id};
     </update>
     
