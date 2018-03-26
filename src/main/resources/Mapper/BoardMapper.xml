@@ -4,37 +4,46 @@
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
  
 <mapper namespace="com.worksmobile.Assignment.Mapper.BoardMapper">
-    <select id="boardList" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
-        SELECT board_id,subject,content,created,attachment
+	<select id="boardList" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
+        SELECT board_id,subject,content,created,fileName,fileSize
         FROM board;
     </select>
     
-     <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO"
+    <select id="viewDetail" parameterType="int" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
+    	select board_id,subject,content,created,fileName,fileSize,attachment
+    	from board
+    	where board_id = #{board_id};
+    </select>
+    
+    <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO"
      useGeneratedKeys="true" keyProperty="id">
         INSERT INTO board
-        (subject,content,created)
-        VALUES (#{subject},#{content},CURRENT_TIMESTAMP);
+        (subject,content,created,attachment,fileName,fileSize)
+        VALUES (#{subject},#{content},CURRENT_TIMESTAMP,#{attachment,jdbcType=BLOB},#{fileName},#{fileSize});
     </insert>
     
     <delete id="boardDelete" parameterType="int">
         DELETE FROM board 
         WHERE board_id = #{board_id};
     </delete>
-
+    
     <update id="boardUpdate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
         UPDATE board 
-        SET 
+        set 
         subject = #{subject},
         content = #{content},
-        created = CURRENT_TIMESTAMP
-		<!-- ,attachment = #{attachment} -->
-        WHERE board_id = #{board_id};
+        created = CURRENT_TIMESTAMP,
+<!--         attachment = #{attachment,jdbcType=BLOB}, -->
+<!--         fileName =#{fileName}, -->
+<!--         fileSize =#{fileSize} -->
+        where board_id = #{board_id};
     </update>
-
-    <select id="getArticle" parameterType="int" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
-        SELECT board_id,subject,content,created,attachment
+    
+    <select id="boardFileDownload" parameterType="int" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
+        SELECT attachment,fileName,fileSize
         FROM board
-        WHERE board_id = #{board_id};
+        where board_id = #{board_id};
     </select>
-
+    
+    
 </mapper>

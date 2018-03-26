@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
@@ -17,26 +17,28 @@
 </head>
 <body>
     <h3>게시물 목록</h3> 
-    <button class="btn btn-primary" style="float : right;" onclick="location.href='/boardCreate'">글쓰기</button>  
+    <button class="btn btn-primary" style="float : right;" onclick="location.href='/Assignment/boardCreate'">글쓰기</button>
+   
     <table class="table">
         <tr>
             <th>게시물번호</th>
             <th>제목</th>
-            <th>생성시간</th>
             <th>최종수정시간</th>
+            <th>삭제</th>
             
         </tr>
         <c:forEach var="board" items="${list}">
         <tr>
-            <td>${board.id}</td>
-            <td>${board.subject}</td>
+            <td>${board.board_id}</td>
+            <td><a href="/Assignment/boardDetail?board_id=${board.board_id}">${board.subject}</a></td>
             <td>${board.created}</td>
-            <td>${board.attachment}</td>
-            <td> <button class="btn btn-primary"  onclick="location.href='/boardDelete?id=${board.id}'">삭제</button> </td>
-        	<td> <button class="btn btn-primary"  onclick="location.href='/boardUpdate?id=${board.id}'">내용변경</button> </td>
+			<td> <button class="btn btn-primary" onclick="location.href='/Assignment/boardDelete?board_id=${board.board_id}'">삭제</button> </td> 
+
         </tr>
         </c:forEach>
     </table>
 
 </body>
 </html>
+
+

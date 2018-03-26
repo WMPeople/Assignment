@@ -26,28 +26,24 @@ public class VersionManagementService {
 	}
 	
 	// DB : 이력 id(그냥 num), 게시글 id, 버전, 
-	public void recoverVersion(int boardHistoryId, int recoverArticleId)
+	public void recoverVersion(int boardHistoryId, int version, int branchId)
 	{
 		BoardDTO recoverArticleDTO = null;
 		BoardHistoryDTO boardHistoryDTO = null;
-		boardHistoryDTO = boardHistoryMapper.getHistoryByHistoryId(boardHistoryId);
+		boardHistoryDTO = boardHistoryMapper.getHistoryBySpecificOne(boardHistoryId, version, branchId);
 		if(boardHistoryDTO == null)
 		{
 			throw new RuntimeException("게시글 이력이 존재하지 않습니다.");
 		}
-		else if(null == (recoverArticleDTO = boardMapper.getArticle(recoverArticleId)))
-		{
-			throw new RuntimeException("복원할 게시글이 존재하지 않습니다.");
-		}
 		
-		boardHistoryDTO.setBoard_id(recoverArticleId);
+		//boardHistoryDTO.setBoard_id(recoverArticleId);
 		boardHistoryDTO.setStatus("RecoveredFrom" + boardHistoryId);
 	}
 
 	public void updateVersion(int boardHistoryId, int beforeArticleId, BoardDTO article)
 	{
 		BoardHistoryDTO boardHistoryDTO = null;
-		boardHistoryDTO = boardHistoryMapper.getHistoryByHistoryId(boardHistoryId);
+		//boardHistoryDTO = boardHistoryMapper.getHistoryByHistoryId(boardHistoryId);
 		if(boardHistoryDTO == null)
 		{
 			throw new RuntimeException("게시글 이력이 존재하지 않습니다.");

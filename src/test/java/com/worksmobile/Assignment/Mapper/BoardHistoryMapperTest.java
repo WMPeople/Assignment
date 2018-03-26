@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.worksmobile.Assignment.AssignmentApplication;
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
+import com.worksmobile.Assignment.Domain.BranchDTO;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = AssignmentApplication.class)
@@ -31,8 +32,11 @@ public class BoardHistoryMapperTest {
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
 	
-	private static final int defaultBoardId = 1;
-	private static final int defaultHistoryId = 0;
+	@Autowired
+	BranchMapper branchMapper;
+	
+	public static final int defaultBoardId = 1;
+	public static final int defaultHistoryId = 0;
 	private static BoardHistoryDTO defaultHistoryDTO;
 	
 	public BoardHistoryMapperTest() {
@@ -176,6 +180,8 @@ public class BoardHistoryMapperTest {
     		boardHistoryMapper.createHistory(defaultHistoryDTO);
     	}
     	recnetVersionMapper.deleteRecentVersion(defaultHistoryId);
+    	BranchDTO branchDTO = branchMapper.getBranch(boardHistoryDTO.getBranch_id());
+    	branchMapper.deleteBranch(branchDTO);
     	
     	int deletedColCnt = boardHistoryMapper.deleteHistoryBySpecificOne(boardHistoryDTO.getBoard_history_id(),
     			boardHistoryDTO.getVersion(), boardHistoryDTO.getBranch_id());
