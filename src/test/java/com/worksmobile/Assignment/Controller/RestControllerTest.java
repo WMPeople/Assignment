@@ -37,7 +37,7 @@ public class RestControllerTest {
 	@Autowired
 	private BoardMapper articleMapper;
 	
-	private static final String DEFAULT_TEST_ID = "test";
+	private static final int DEFAULT_TEST_ID = 1;
     private static BoardDTO DEFUALT_article_VO;
     
     public RestControllerTest() throws JsonProcessingException {
@@ -67,7 +67,7 @@ public class RestControllerTest {
 	
 	@Test
 	public void testGetArticle() throws Exception{
-		BoardDTO article = articleMapper.getArticle(0);
+		BoardDTO article = articleMapper.getArticle(DEFAULT_TEST_ID);
 		String jsonString = this.jsonStringFromObject(article);
 		
 		MvcResult result = mockMvc.perform(
@@ -106,14 +106,14 @@ public class RestControllerTest {
 		if(article == null)
 		{
 			article = new BoardDTO();
-			article.setId(0);
+			article.setBoard_id(0);
 			article.setSubject("origin subject");
 			article.setContent("origin contnet");
 			articleMapper.boardCreate(article);
 		}
 		
 		BoardDTO newArticle = new BoardDTO();
-		newArticle.setId(0);
+		newArticle.setBoard_id(0);
 		newArticle.setSubject("updated subject");
 		newArticle.setSubject("updated content");
 		
@@ -138,14 +138,14 @@ public class RestControllerTest {
 		if(article == null)
 		{
 			article = new BoardDTO();
-			article.setId(0);
+			article.setBoard_id(0);
 			article.setSubject("origin subject");
 			article.setContent("origin contnet");
 			articleMapper.boardCreate(article);
 		}
 		
 		BoardDTO newArticle = new BoardDTO();
-		newArticle.setId(0);
+		newArticle.setBoard_id(0);
 		newArticle.setSubject("updated subject");
 		newArticle.setSubject("updated content");
 		String jsonString = this.jsonStringFromObject(newArticle);

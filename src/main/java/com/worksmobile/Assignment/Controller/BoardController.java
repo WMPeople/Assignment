@@ -23,37 +23,37 @@ public class BoardController {
     private BoardMapper boardMapper;
     
     @RequestMapping("/")
-    public ModelAndView  start() throws Exception {
+    public ModelAndView  start() {
     	return boardList();
     }
  
     @RequestMapping("/test")
-    public ModelAndView  test() throws Exception {
+    public ModelAndView  test() {
     	return new ModelAndView("test", "test","test");
     }
     
     //게시판 조회
     @RequestMapping("/boardList")
-    public ModelAndView boardList() throws Exception{
+    public ModelAndView boardList() {
         List<BoardDTO> boardList = boardMapper.boardList();
         return new ModelAndView("boardList","list",boardList);
     }
     
     //게시판 생성
     @RequestMapping(value="/boardCreate",method=RequestMethod.GET)
-    public ModelAndView writeForm() throws Exception{
+    public ModelAndView writeForm() {
         
         return new ModelAndView("userCreate");
     }
 
     @RequestMapping(path = "/boardCreate",method=RequestMethod.POST)
-    public int boardCreate(BoardDTO board) throws Exception {
+    public int boardCreate(BoardDTO board) {
     	try {
     		//에러 핸들링 전용
 //    		HashMap<String, Object> map = new HashMap<>();
 //    		map.put("abcaa", "ddeeed");
 //    		return map;	
-    		System.out.println(board.getId());
+    		System.out.println(board.getBoard_id());
     		return boardMapper.boardCreate(board);
 		} catch (Exception e) {
 			System.out.println("에러");
@@ -63,7 +63,7 @@ public class BoardController {
     
     //게시판 삭제
     @RequestMapping("/boardDelete")
-    public ModelAndView boardDelete(int id) throws Exception {
+    public ModelAndView boardDelete(int id) {
     	try {
     		System.out.println(id);
     		boardMapper.boardDelete(id);
@@ -76,18 +76,18 @@ public class BoardController {
     
     //게시판 수정
     @RequestMapping(value="/boardUpdate",method=RequestMethod.GET)
-    public ModelAndView updateForm(String id) throws Exception{
+    public ModelAndView updateForm(String id) {
         return new ModelAndView("boardUpdate","id",id);
     }
     
     @RequestMapping(path = "/boardUpdate",method=RequestMethod.POST)
-    public ModelAndView boardUpdate(BoardDTO board) throws Exception {
+    public ModelAndView boardUpdate(BoardDTO board) {
     	try {
     		//에러 핸들링 전용
 //    		HashMap<String, Object> map = new HashMap<>();
 //    		map.put("abcaa", "ddeeed");
 //    		return map;	
-    		System.out.println(board.getId()+"업데이트 예정");
+    		System.out.println(board.getBoard_id()+"업데이트 예정");
     		boardMapper.boardUpdate(board);
 		} catch (Exception e) {
 			System.out.println("error");

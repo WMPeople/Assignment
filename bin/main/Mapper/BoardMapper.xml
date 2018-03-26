@@ -12,22 +12,29 @@
      <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO"
      useGeneratedKeys="true" keyProperty="id">
         INSERT INTO board
-        (subject,content,created,modified)
-        VALUES (#{subject},#{content},CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
+        (subject,content,created)
+        VALUES (#{subject},#{content},CURRENT_TIMESTAMP);
     </insert>
     
-    <delete id="boardDelete" parameterType="String">
+    <delete id="boardDelete" parameterType="int">
         DELETE FROM board 
-        WHERE id = #{id};
+        WHERE board_id = #{board_id};
     </delete>
-    
+
     <update id="boardUpdate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
         UPDATE board 
-        set 
+        SET 
         subject = #{subject},
         content = #{content},
-        modified = CURRENT_TIMESTAMP
-        where id = #{id};
+        created = CURRENT_TIMESTAMP
+		<!-- ,attachment = #{attachment} -->
+        WHERE board_id = #{board_id};
     </update>
-    
+
+    <select id="getArticle" parameterType="int" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
+        SELECT board_id,subject,content,created,attachment
+        FROM board
+        WHERE board_id = #{board_id};
+    </select>
+
 </mapper>

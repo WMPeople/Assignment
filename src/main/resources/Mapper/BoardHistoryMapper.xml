@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+ 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="com.worksmobile.Assignment.Mapper.BoardHistoryMapper">
+    <select id="getHistoryByBoardId" parameterType = "int"
+    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+        SELECT board_history_id, version, branch_id, created, status, board_id
+        FROM board_history
+        WHERE board_id = #{board_id};
+    </select>
+    
+    <select id="getHistoryByHistoryId" parameterType = "int"
+    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+    	SELECT board_history_id, version, branch_id, created, status, board_id
+    	FROM board_history
+    	WHERE board_history_id = #{board_history_id};
+    </select>
+    
+    <select id="getHistoryBySpecificOne" parameterType = "com.worksmobile.Assignment.Domain.BoardHistoryDTO"
+    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+		SELECT board_history_id, version, branch_id, created, status, board_id
+    	FROM board_history
+    	WHERE board_history_id = #{board_history_id} AND version = #{version} AND branch_id = #{branch_id};
+    </select>
+    
+    <delete id="deleteHistoryByHistoryId" parameterType="int">
+        DELETE FROM board_history
+        WHERE board_history_id = #{board_history_id};
+    </delete>
+
+    <delete id="deleteHistoryBySpecificOne">
+        DELETE FROM board_history
+        WHERE board_history_id = #{board_history_id} AND version = #{version} AND branch_id = #{branch_id};
+    </delete>
+
+     <insert id="createHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO"
+     useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO board_history(board_history_id, version, branch_id, created, status, board_id)
+        VALUES(#{board_history_id}, #{version}, #{branch_id}, CURRENT_TIMESTAMP, #{status}, #{board_id});
+    </insert>
+
+    <update id="updateHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+       UPDATE board_history
+       SET
+          status = #{status}
+       WHERE
+          board_history_id = #{board_history_id} AND version = #{version} AND branch_id = #{branch_id};
+    </update>
+
+</mapper>

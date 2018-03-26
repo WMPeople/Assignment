@@ -6,13 +6,13 @@ import com.worksmobile.Assignment.Domain.BoardDTO;
 
 @Mapper
 public interface BoardMapper {
-	public List<BoardDTO> boardList() throws Exception;
+	public List<BoardDTO> boardList();
 
-	public int boardCreate(BoardDTO board) throws Exception;
+	public int boardCreate(BoardDTO board);
 
-	public int boardDelete(int id) throws Exception;
+	public int boardDelete(int id);
 
-	public int boardUpdate(BoardDTO board) throws Exception;
+	public int boardUpdate(BoardDTO board);
 
 	public BoardDTO getArticle(int id);
 

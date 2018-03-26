@@ -47,13 +47,13 @@ public class RestController {
 	
 	@RequestMapping(value = "/api/articles/{id}", method = RequestMethod.PATCH)
 	@ResponseBody
-	public BoardDTO patch(@PathVariable(value = "id") String id, @RequestBody BoardDTO user) {
+	public BoardDTO patch(@PathVariable(value = "id") int id, @RequestBody BoardDTO user) {
 		return user;
 	}
 	
 	@RequestMapping(value = "/api/articles/{id}", method = RequestMethod.PUT)
 	@ResponseBody
-	public BoardDTO update(@PathVariable(value = "id") String id, @RequestBody BoardDTO user) {
+	public BoardDTO update(@PathVariable(value = "id") int id, @RequestBody BoardDTO user) {
 		return user;
 	}
 	
