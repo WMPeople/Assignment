@@ -32,7 +32,7 @@
         set 
         subject = #{subject},
         content = #{content},
-        created = CURRENT_TIMESTAMP,
+        created = CURRENT_TIMESTAMP
 <!--         attachment = #{attachment,jdbcType=BLOB}, -->
 <!--         fileName =#{fileName}, -->
 <!--         fileSize =#{fileSize} -->
