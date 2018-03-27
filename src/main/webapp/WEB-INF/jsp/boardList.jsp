@@ -18,6 +18,7 @@
 <body>
     <h3>게시물 목록</h3> 
     <button class="btn btn-primary" style="float : right;" onclick="location.href='/Assignment/boardCreate'">글쓰기</button>
+      <button class="btn btn-primary" style="float : right;" onclick="location.href='/Assignment/boardTemp'">비교테스트</button>
    
     <table class="table">
         <tr>
@@ -30,14 +31,34 @@
         <c:forEach var="board" items="${list}">
         <tr>
             <td>${board.board_id}</td>
-            <td><a href="/Assignment/boardDetail?board_id=${board.board_id}">${board.subject}</a></td>
+<%--             <td><a href="/Assignment/boardDetail?board_id=${board.board_id}">${board.subject}</a></td> --%>
+            <td><a href="${path}/Assignment/boards?board_id=${board.board_id}">${board.subject}</a></td>
+            
             <td>${board.created}</td>
-			<td> <button class="btn btn-primary" onclick="location.href='/Assignment/boardDelete?board_id=${board.board_id}'">삭제</button> </td> 
+			<td> <button class="btn btn-primary" id="btnDelete2" onclick="btnDelete('${board.board_id}');">삭제</button> </td> 
 
         </tr>
         </c:forEach>
     </table>
+<script>
+$(document).ready(function(){
+    /* 게시글 관련 */
+    // 1. 게시글 수정
+	
+    
+ });
+function btnDelete(board_id){
+    $.ajax({
+        type: "DELETE",
+        url: "${path}/Assignment/boards/"+board_id,
+        success: function(result){
+           alert("삭제완료")
+           location.reload();
+        }
+    })
+}
 
+</script>
 </body>
 </html>
 
