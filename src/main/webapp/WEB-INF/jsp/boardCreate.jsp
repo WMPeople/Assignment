@@ -1,5 +1,5 @@
-<%@ page language="java" contentType="text/html; charset=EUC-KR"
-    pageEncoding="EUC-KR"%>
+<%@ page language="java" contentType="text/html; charset=utf-8"
+    pageEncoding="utf-8"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
@@ -11,7 +11,7 @@
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=EUC-KR">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Insert title here</title>
 </head>
 <body>
@@ -20,17 +20,17 @@
  <form id="fileForm" action="fileUpload" method="post" enctype="multipart/form-data">
 <div id="articleEditor" >
 	<div class="board_write">
-		<h2 class="tit">±Û¾²±â</h2>
+		<h2 class="tit">ê¸€ì“°ê¸°</h2>
 		<ul class="option _info">
 			<li class="opt_sbj">
-				<h3 class="tx">Á¦¸ñ</h3>
+				<h3 class="tx">ì œëª©</h3>
 				<span class="wrap_sbj">
 					<input type="text" name="subject" id="subject" class="itxt subject _title"  value="">
 				</span>
 			</li>
 
 			<li class="opt_file">
-				<h3 class="tx">ÆÄÀÏÃ·ºÎ</h3>
+				<h3 class="tx">íŒŒì¼ì²¨ë¶€</h3>
 				<div class="_file_btn" style="width: 500; overflow: hidden; position: relative;">
 					<div class="browse-box _article_attach_btn_back" >
 						 <input type="file" id="fileUp" name="fileUp"/>
@@ -45,13 +45,13 @@
 
 		<div class="btn_area _btn_area">
 <!-- 			<p class="next"> -->
-<!-- 				<button type="button" class="btn _cancel">ÀÛ¼ºÃë¼Ò</button> -->
-<!-- 				<button type="button" class="btn _atc_delete">»èÁ¦</button> -->
+<!-- 				<button type="button" class="btn _cancel">ì‘ì„±ì·¨ì†Œ</button> -->
+<!-- 				<button type="button" class="btn _atc_delete">ì‚­ì œ</button> -->
 <!-- 			</p> -->
-<!-- 			<button type="button" class="btn _temp">ÀÓ½ÃÀúÀå</button> -->
-<!-- 			<button type="button" class="btn _preview">¹Ì¸®º¸±â</button> -->
+<!-- 			<button type="button" class="btn _temp">ì„ì‹œì €ì¥</button> -->
+<!-- 			<button type="button" class="btn _preview">ë¯¸ë¦¬ë³´ê¸°</button> -->
 
-			 <button type="button" id= "btnCreate"class="btn tx_point _save"><strong>È®ÀÎ</strong></button>
+			 <button type="button" id= "btnCreate"class="btn tx_point _save"><strong>í™•ì¸</strong></button>
 		</div>
 	</div>
 </div>
@@ -71,7 +71,7 @@ $(document).ready(function(){
             data: formData, fileUp,
             success: function(){
             	
-                alert("º¸µå »ı¼º ¿Ï·á");
+                alert("ë³´ë“œ ìƒì„± ì™„ë£Œ");
                 location.href = "/Assignment/boardList";
             }
         	,
