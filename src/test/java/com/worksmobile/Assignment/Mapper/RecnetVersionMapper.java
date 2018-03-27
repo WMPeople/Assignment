@@ -14,4 +14,6 @@ public interface RecnetVersionMapper {
 	public void createRecentVersion(RecentVersionDTO boardHistoryDTO);
 
 	public int updateRecentVersion(RecentVersionDTO boardHistoryDTO);
+	
+	public int getLastVersionHistoryId();
 }

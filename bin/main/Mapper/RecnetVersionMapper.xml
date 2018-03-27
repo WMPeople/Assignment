@@ -16,8 +16,7 @@
 		WHERE board_history_id = #{board_history_id};
     </delete>
 
-    <insert id="createRecentVersion" parameterType="com.worksmobile.Assignment.Domain.RecentVersionDTO"
-     useGeneratedKeys="true" keyProperty="id">
+    <insert id="createRecentVersion" parameterType="com.worksmobile.Assignment.Domain.RecentVersionDTO">
         INSERT INTO recent_version(board_history_id, version, branch_id)
 		VALUES(#{board_history_id}, #{version}, #{branch_id});
     </insert>
@@ -30,5 +29,12 @@
 		WHERE
 			board_history_id = #{board_history_id};
     </update>
+
+	<select id="getLastVersionHistoryId" resultType="int">
+		SELECT board_history_id
+		FROM recent_version
+		ORDER BY board_history_id DESC
+		LIMIT 1;
+	</select>
 
 </mapper>

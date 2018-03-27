@@ -8,6 +8,13 @@ public class RecentVersionDTO {
 	@Getter @Setter int version;
 	@Getter @Setter int branch_id;
 	
+	public RecentVersionDTO() { }
+	public RecentVersionDTO(BoardHistoryDTO boardHistoryDTO) {
+		board_history_id = boardHistoryDTO.getBoard_history_id();
+		version = boardHistoryDTO.getVersion();
+		branch_id = boardHistoryDTO.getBranch_id();
+	}
+	
 	@Override
 	public boolean equals(Object arg0) {
 		RecentVersionDTO dto = (RecentVersionDTO)arg0;

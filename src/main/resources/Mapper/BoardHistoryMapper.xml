@@ -35,8 +35,7 @@
         WHERE board_history_id = #{board_history_id} AND version = #{version} AND branch_id = #{branch_id};
     </delete>
 
-     <insert id="createHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO"
-     useGeneratedKeys="true" keyProperty="id">
+     <insert id="createHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
         INSERT INTO board_history(board_history_id, version, branch_id, created, status, board_id)
         VALUES(#{board_history_id}, #{version}, #{branch_id}, CURRENT_TIMESTAMP, #{status}, #{board_id});
     </insert>

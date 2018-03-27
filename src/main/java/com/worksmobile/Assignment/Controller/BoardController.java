@@ -28,45 +28,6 @@ import com.worksmobile.Assignment.Mapper.BoardMapper;
 
 @RestController
 public class BoardController {
-<<<<<<< .merge_file_a14816
-    
-    @Autowired
-    private BoardMapper boardMapper;
-    
-    @RequestMapping("/")
-    public ModelAndView  start() {
-    	return boardList();
-    }
- 
-    @RequestMapping("/test")
-    public ModelAndView  test() {
-    	return new ModelAndView("test", "test","test");
-    }
-    
-    //게시판 조회
-    @RequestMapping("/boardList")
-    public ModelAndView boardList() {
-        List<BoardDTO> boardList = boardMapper.boardList();
-        return new ModelAndView("boardList","list",boardList);
-    }
-    
-    //게시판 생성
-    @RequestMapping(value="/boardCreate",method=RequestMethod.GET)
-    public ModelAndView writeForm() {
-        
-        return new ModelAndView("userCreate");
-    }
-
-    @RequestMapping(path = "/boardCreate",method=RequestMethod.POST)
-    public int boardCreate(BoardDTO board) {
-    	try {
-    		//에러 핸들링 전용
-//    		HashMap<String, Object> map = new HashMap<>();
-//    		map.put("abcaa", "ddeeed");
-//    		return map;	
-    		System.out.println(board.getBoard_id());
-    		return boardMapper.boardCreate(board);
-=======
 
 	@Autowired
 	private BoardMapper boardMapper;
@@ -74,6 +35,11 @@ public class BoardController {
 	@RequestMapping("/")
 	public ModelAndView start() throws Exception {
 		return boardList();
+	}
+	@RequestMapping("/boardTemp")
+	public ModelAndView boardTemp() throws Exception {
+	
+		return new ModelAndView("boardTemp", "boardTemp", "asd");
 	}
 
 	// 게시판 조회
@@ -159,43 +125,10 @@ public class BoardController {
 				board.setFileSize(0);
 			}
 			return boardMapper.boardCreate(board);
->>>>>>> .merge_file_a16352
-		} catch (Exception e) {
-			System.out.println("에러");
-		}
-<<<<<<< .merge_file_a14816
-    	return 0 ;
-    }
-    
-    //게시판 삭제
-    @RequestMapping("/boardDelete")
-    public ModelAndView boardDelete(int id) {
-    	try {
-    		System.out.println(id);
-    		boardMapper.boardDelete(id);
 		} catch (Exception e) {
 			// TODO: handle exception
+			System.out.println("에러");
 		}
-    	// 에러 핸들링 예정
-    	return boardList();
-    }
-    
-    //게시판 수정
-    @RequestMapping(value="/boardUpdate",method=RequestMethod.GET)
-    public ModelAndView updateForm(String id) {
-        return new ModelAndView("boardUpdate","id",id);
-    }
-    
-    @RequestMapping(path = "/boardUpdate",method=RequestMethod.POST)
-    public ModelAndView boardUpdate(BoardDTO board) {
-    	try {
-    		//에러 핸들링 전용
-//    		HashMap<String, Object> map = new HashMap<>();
-//    		map.put("abcaa", "ddeeed");
-//    		return map;	
-    		System.out.println(board.getBoard_id()+"업데이트 예정");
-    		boardMapper.boardUpdate(board);
-=======
 		return 0;
 	}
 	
@@ -218,49 +151,59 @@ public class BoardController {
 		return new ModelAndView("boardUpdate");
 	}
 
+	// 업데이트 버그 수정
+//	@RequestMapping(path = "/boardUpdate2", method = RequestMethod.POST)
+//	public int boardUpdate(BoardDTO board, MultipartHttpServletRequest attachment) throws Exception {
+//		
+//		MultipartFile mFile = null;
+//		boolean isSuccess = false;
+//		Iterator<String> iter = attachment.getFileNames();
+//		while(iter.hasNext()) {
+//			String uploadFileName = iter.next();
+//			mFile = attachment.getFile(uploadFileName);
+//			String originalFileName = mFile.getOriginalFilename();
+//			String saveFileName = originalFileName;
+//			if(saveFileName != null && !saveFileName.equals("")) {
+//				try {
+//					isSuccess = true;				
+//				} catch (IllegalStateException e) {
+//					e.printStackTrace();
+//					isSuccess = false;}
+//			}
+//		}
+//		try {
+//			// 에러 핸들링 전용
+//			// HashMap<String, Object> map = new HashMap<>();
+//			// map.put("abcaa", "ddeeed");
+//			// return map;
+//			if(mFile!=null) {
+//				board.setAttachment(mFile.getBytes());
+//				board.setFileName(mFile.getOriginalFilename());
+//				board.setFileSize(mFile.getSize());
+//			}
+//			else {
+//				board.setAttachment(null);
+//				board.setFileName(null);
+//				board.setFileSize(0);
+//			}
+//			
+//			return boardMapper.boardUpdate(board);
+//		
+//		} catch (Exception e) {
+//			System.out.println("error");
+//			// TODO: handle exception
+//		}
+//		return 0;
+//	}
+	
 	@RequestMapping(path = "/boardUpdate2", method = RequestMethod.POST)
-	public int boardUpdate(BoardDTO board, MultipartHttpServletRequest attachment) throws Exception {
+	public int boardUpdate(BoardDTO board) throws Exception {
 		
-		MultipartFile mFile = null;
-		boolean isSuccess = false;
-		Iterator<String> iter = attachment.getFileNames();
-		while(iter.hasNext()) {
-			String uploadFileName = iter.next();
-			mFile = attachment.getFile(uploadFileName);
-			String originalFileName = mFile.getOriginalFilename();
-			String saveFileName = originalFileName;
-			if(saveFileName != null && !saveFileName.equals("")) {
-				try {
-					isSuccess = true;				
-				} catch (IllegalStateException e) {
-					e.printStackTrace();
-					isSuccess = false;}
-			}
-		}
-		try {
-			// 에러 핸들링 전용
-			// HashMap<String, Object> map = new HashMap<>();
-			// map.put("abcaa", "ddeeed");
-			// return map;
-			if(mFile!=null) {
-				board.setAttachment(mFile.getBytes());
-				board.setFileName(mFile.getOriginalFilename());
-				board.setFileSize(mFile.getSize());
-			}
-			else {
-				board.setAttachment(null);
-				board.setFileName(null);
-				board.setFileSize(0);
-			}
-			
+		
 			return boardMapper.boardUpdate(board);
 		
->>>>>>> .merge_file_a16352
-		} catch (Exception e) {
-			System.out.println("error");
-			// TODO: handle exception
-		}
-		return 0;
+		// TODO: handle exception
+
 	}
 	
 	//게시물 상세 조회

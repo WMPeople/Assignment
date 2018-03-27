@@ -66,8 +66,8 @@ public class RestControllerTest {
 	}
 	
 	@Test
-	public void testGetArticle() throws Exception{
-		BoardDTO article = articleMapper.getArticle(DEFAULT_TEST_ID);
+	public void testviewDetail() throws Exception{
+		BoardDTO article = articleMapper.viewDetail(DEFAULT_TEST_ID);
 		String jsonString = this.jsonStringFromObject(article);
 		
 		MvcResult result = mockMvc.perform(
@@ -102,7 +102,7 @@ public class RestControllerTest {
 	// 부분 업데이트
 	@Test
 	public void testPatch() throws Exception{
-		BoardDTO article = articleMapper.getArticle(0);
+		BoardDTO article = articleMapper.viewDetail(0);
 		if(article == null)
 		{
 			article = new BoardDTO();
@@ -134,7 +134,7 @@ public class RestControllerTest {
 	// TODO : 전체 리소스 변경때 사용 한다는데 patch와 차이점을 잘 모르겠음.
 	@Test
 	public void testUpdate() throws Exception{
-		BoardDTO article = articleMapper.getArticle(0);
+		BoardDTO article = articleMapper.viewDetail(0);
 		if(article == null)
 		{
 			article = new BoardDTO();

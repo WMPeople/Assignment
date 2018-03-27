@@ -1,0 +1,1 @@
+for /f "delims=" %%f in ('dir /s /b *.jsp ^| findstr /e .jsp') do "C:\Program Files (x86)\GnuWin32\bin\iconv.exe" -f EUC-KR -t UTF-8 "%%f"

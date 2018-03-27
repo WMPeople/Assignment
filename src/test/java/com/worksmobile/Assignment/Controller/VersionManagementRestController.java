@@ -12,53 +12,46 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
+import com.worksmobile.Assignment.Service.VersionManagementService;
 
 @org.springframework.web.bind.annotation.RestController
-public class RestController {
+public class VersionManagementRestController {
 
     @Autowired
     private BoardMapper boardMapper;
     
-    //게시판 조회
-    @RequestMapping(value = "/notApi/articles", method = RequestMethod.GET)
-    @ResponseBody
-    public ModelAndView boardList() throws Exception{
-        List<BoardDTO> boardList = boardMapper.boardList();
-        return new ModelAndView("boardList","list",boardList);
-    }
-    
-	@RequestMapping(value = "/api/articles", method = RequestMethod.GET)
+	@RequestMapping(value = "/api/board/version", method = RequestMethod.GET)
 	@ResponseBody
 	public List<BoardDTO> viewDetails() throws Exception {
 		return boardMapper.boardList();
 	}
 	
-	@RequestMapping(value = "/api/articles/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/api/board/version/{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public BoardDTO show(@PathVariable(value = "id") int id) throws Exception{
 		return boardMapper.viewDetail(id);
 	}
 	
-	@RequestMapping(value = "/api/articles", method = RequestMethod.POST)
+	@RequestMapping(value = "/api/board/version", method = RequestMethod.POST)
 	@ResponseBody
 	public BoardDTO create(@RequestBody BoardDTO user) {
 		return user;
 	}
 	
-	@RequestMapping(value = "/api/articles/{id}", method = RequestMethod.PATCH)
+	@RequestMapping(value = "/api/board/version/{id}", method = RequestMethod.PATCH)
 	@ResponseBody
 	public BoardDTO patch(@PathVariable(value = "id") int id, @RequestBody BoardDTO user) {
 		return user;
 	}
 	
-	@RequestMapping(value = "/api/articles/{id}", method = RequestMethod.PUT)
+	@RequestMapping(value = "/api/board/version/{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public BoardDTO update(@PathVariable(value = "id") int id, @RequestBody BoardDTO user) {
 		return user;
 	}
 	
 	// TODO : make Service and input destroy.
-	@RequestMapping(value = "/api/articles/{id}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/api/board/version/{id}", method = RequestMethod.DELETE)
 	@ResponseBody
 	public List<BoardDTO> destroy(@PathVariable(value = "id") int id) throws Exception {
 		int rtn = boardMapper.boardDelete(id);

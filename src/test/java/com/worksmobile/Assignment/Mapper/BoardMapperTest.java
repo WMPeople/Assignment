@@ -32,7 +32,7 @@ public class BoardMapperTest {
     @Ignore("미완성.")
     public void testMapper() throws Exception{
     	BoardDTO vo = null;
-    	vo = boardMapper.getArticle(defaultId);
+    	vo = boardMapper.viewDetail(defaultId);
     	
     	assertNotNull(vo);
     	assertEquals(defaultId, vo.getBoard_id());
@@ -45,7 +45,7 @@ public class BoardMapperTest {
     	beforeVO.setBoard_id(0);
     	beforeVO.setSubject("test1111");
     	beforeVO.setContent("beforeVAl");
-    	if(null != boardMapper.getArticle(beforeVO.getBoard_id()))
+    	if(null != boardMapper.viewDetail(beforeVO.getBoard_id()))
     	{
     		boardMapper.boardDelete(beforeVO.getBoard_id());
     	}
@@ -58,7 +58,7 @@ public class BoardMapperTest {
     	boardMapper.boardUpdate(afterVO);
     	
     	BoardDTO updatedVO = null;
-    	updatedVO = boardMapper.getArticle(afterVO.getBoard_id());
+    	updatedVO = boardMapper.viewDetail(afterVO.getBoard_id());
     	assertEquals(afterVO, updatedVO);
 	}
     
@@ -77,7 +77,7 @@ public class BoardMapperTest {
     	vo.setSubject("testInsert");
     	vo.setContent("testContent");
     	
-    	BoardDTO check = boardMapper.getArticle(vo.getBoard_id());
+    	BoardDTO check = boardMapper.viewDetail(vo.getBoard_id());
     	if(check != null)
     	{
     		boardMapper.boardDelete(vo.getBoard_id());
@@ -85,7 +85,7 @@ public class BoardMapperTest {
 		boardMapper.boardCreate(vo);
 			
 		BoardDTO insertedVO = null;
-		insertedVO = boardMapper.getArticle(vo.getBoard_id());
+		insertedVO = boardMapper.viewDetail(vo.getBoard_id());
 		assertEquals(vo, insertedVO);
 	}
     
@@ -99,7 +99,7 @@ public class BoardMapperTest {
     	boardMapper.boardDelete(vo.getBoard_id());
     	
     	BoardDTO deletedVO = null;
-    	deletedVO = boardMapper.getArticle(vo.getBoard_id());
+    	deletedVO = boardMapper.viewDetail(vo.getBoard_id());
     	assertNull(deletedVO);
 	}
 }
