@@ -36,6 +36,11 @@ public class BoardController {
 	public ModelAndView start() throws Exception {
 		return boardList();
 	}
+	@RequestMapping("/boardTemp")
+	public ModelAndView boardTemp() throws Exception {
+	
+		return new ModelAndView("boardTemp", "boardTemp", "asd");
+	}
 
 	// 게시판 조회
 	@RequestMapping("/boardList")
@@ -146,48 +151,59 @@ public class BoardController {
 		return new ModelAndView("boardUpdate");
 	}
 
+	// 업데이트 버그 수정
+//	@RequestMapping(path = "/boardUpdate2", method = RequestMethod.POST)
+//	public int boardUpdate(BoardDTO board, MultipartHttpServletRequest attachment) throws Exception {
+//		
+//		MultipartFile mFile = null;
+//		boolean isSuccess = false;
+//		Iterator<String> iter = attachment.getFileNames();
+//		while(iter.hasNext()) {
+//			String uploadFileName = iter.next();
+//			mFile = attachment.getFile(uploadFileName);
+//			String originalFileName = mFile.getOriginalFilename();
+//			String saveFileName = originalFileName;
+//			if(saveFileName != null && !saveFileName.equals("")) {
+//				try {
+//					isSuccess = true;				
+//				} catch (IllegalStateException e) {
+//					e.printStackTrace();
+//					isSuccess = false;}
+//			}
+//		}
+//		try {
+//			// 에러 핸들링 전용
+//			// HashMap<String, Object> map = new HashMap<>();
+//			// map.put("abcaa", "ddeeed");
+//			// return map;
+//			if(mFile!=null) {
+//				board.setAttachment(mFile.getBytes());
+//				board.setFileName(mFile.getOriginalFilename());
+//				board.setFileSize(mFile.getSize());
+//			}
+//			else {
+//				board.setAttachment(null);
+//				board.setFileName(null);
+//				board.setFileSize(0);
+//			}
+//			
+//			return boardMapper.boardUpdate(board);
+//		
+//		} catch (Exception e) {
+//			System.out.println("error");
+//			// TODO: handle exception
+//		}
+//		return 0;
+//	}
+	
 	@RequestMapping(path = "/boardUpdate2", method = RequestMethod.POST)
-	public int boardUpdate(BoardDTO board, MultipartHttpServletRequest attachment) throws Exception {
+	public int boardUpdate(BoardDTO board) throws Exception {
 		
-		MultipartFile mFile = null;
-		boolean isSuccess = false;
-		Iterator<String> iter = attachment.getFileNames();
-		while(iter.hasNext()) {
-			String uploadFileName = iter.next();
-			mFile = attachment.getFile(uploadFileName);
-			String originalFileName = mFile.getOriginalFilename();
-			String saveFileName = originalFileName;
-			if(saveFileName != null && !saveFileName.equals("")) {
-				try {
-					isSuccess = true;				
-				} catch (IllegalStateException e) {
-					e.printStackTrace();
-					isSuccess = false;}
-			}
-		}
-		try {
-			// 에러 핸들링 전용
-			// HashMap<String, Object> map = new HashMap<>();
-			// map.put("abcaa", "ddeeed");
-			// return map;
-			if(mFile!=null) {
-				board.setAttachment(mFile.getBytes());
-				board.setFileName(mFile.getOriginalFilename());
-				board.setFileSize(mFile.getSize());
-			}
-			else {
-				board.setAttachment(null);
-				board.setFileName(null);
-				board.setFileSize(0);
-			}
-			
+		
 			return boardMapper.boardUpdate(board);
 		
-		} catch (Exception e) {
-			System.out.println("error");
-			// TODO: handle exception
-		}
-		return 0;
+		// TODO: handle exception
+
 	}
 	
 	//게시물 상세 조회
