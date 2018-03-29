@@ -102,4 +102,9 @@ public class BoardMapperTest {
     	deletedVO = boardMapper.viewDetail(vo.getBoard_id());
     	assertNull(deletedVO);
 	}
+    
+    @Test
+    public void testGetLastBoardId(){
+    	
+    }
 }

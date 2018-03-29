@@ -6,25 +6,20 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
+import com.worksmobile.Assignment.Domain.NodePtrDTO;
 
 @Mapper
 public interface BoardHistoryMapper {
 
-	public List<BoardHistoryDTO> getHistoryByBoardId(int board_id);
-
-	public List<BoardHistoryDTO> getHistoryByHistoryId(int board_history_id);
-
-	public BoardHistoryDTO getHistoryBySpecificOne(@Param("board_history_id")int board_history_id, 
-													@Param("version")int version,
-													@Param("branch_id")int branch_id);
+	public BoardHistoryDTO getHistory(NodePtrDTO nodePtr);
+			
+	public int deleteHistory(NodePtrDTO nodePtr);
 	
-	public int deleteHistoryByHistoryId(int board_history_id);
-	
-	public int deleteHistoryBySpecificOne(	@Param("board_history_id")int board_history_id, 
-											@Param("version")int version,
-											@Param("branch_id")int branch_id);
-	
-	public void createHistory(BoardHistoryDTO boardHistoryDTO);
+	public int createHistory(BoardHistoryDTO boardHistoryDTO);
 
-	public int updateHistory(BoardHistoryDTO boardHistoryDTO);
+	public int updateHistoryParent(BoardHistoryDTO boardHistoryDTO);
+
+	public Integer getLastbranch(@Param("board_id")int board_id, @Param("version")int version);
+
+	public List<BoardHistoryDTO> getChildren(NodePtrDTO nodePtr);
 }

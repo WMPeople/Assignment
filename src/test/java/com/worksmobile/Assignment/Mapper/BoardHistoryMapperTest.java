@@ -1,11 +1,8 @@
 package com.worksmobile.Assignment.Mapper;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
-import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,181 +12,133 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.worksmobile.Assignment.AssignmentApplication;
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
-import com.worksmobile.Assignment.Domain.BranchDTO;
+import com.worksmobile.Assignment.Domain.NodePtrDTO;
+import com.worksmobile.Assignment.util.Utils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = AssignmentApplication.class)
 @WebAppConfiguration
 @Transactional
 public class BoardHistoryMapperTest {
-	
-	@Autowired
-	RecnetVersionMapper recnetVersionMapper;
-	
+
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
-	
+
 	@Autowired
-	BranchMapper branchMapper;
-	
+	BoardMapper boardMapper;
+
 	public static final int defaultBoardId = 1;
-	public static final int defaultHistoryId = 0;
 	private static BoardHistoryDTO defaultHistoryDTO;
-	
+	private static NodePtrDTO defaultNodePtrDTO;
+
 	public BoardHistoryMapperTest() {
+		defaultNodePtrDTO = new NodePtrDTO(1, 6, 1);
 		defaultHistoryDTO = new BoardHistoryDTO();
-		defaultHistoryDTO.setBoard_history_id(defaultHistoryId);
-		defaultHistoryDTO.setVersion(1);
-		defaultHistoryDTO.setBranch_id(0);
+		defaultHistoryDTO.setBoard_id(1);
+		defaultHistoryDTO.setVersion(6);
+		defaultHistoryDTO.setBranch(1);
+
 		defaultHistoryDTO.setStatus("Created");
-		defaultHistoryDTO.setBoard_id(defaultBoardId);
+		defaultHistoryDTO.setHistory_subject("sub");
 	}
-	
-	private BoardHistoryDTO mapperGetHistoryDTO(BoardHistoryDTO queryHistoryDTO)
-	{
+
+	@Test
+	public void testGetHistory() {
 		BoardHistoryDTO historyDTO = null;
-		historyDTO = boardHistoryMapper.getHistoryBySpecificOne(
-				queryHistoryDTO.getBoard_history_id(),
-				queryHistoryDTO.getVersion(),
-				queryHistoryDTO.getBranch_id()
-				);
-		
-		return historyDTO;
-	}
-	
-	private void testHistoryDTOSimpleEquals(BoardHistoryDTO lhs, BoardHistoryDTO rhs)
-	{
-		assertEquals(lhs.getBoard_history_id(), rhs.getBoard_history_id());
-		assertEquals(lhs.getBoard_id(), rhs.getBoard_id());
-		assertEquals(lhs.getBranch_id(), rhs.getBranch_id());
-	}
-	
-	@Test
-	public void testGetHistoryByBoardId()
-	{
-		List<BoardHistoryDTO> historyDTOList = null;
-		historyDTOList = boardHistoryMapper.getHistoryByBoardId(defaultBoardId);
-		assertNotNull(historyDTOList);
-		
-		if(historyDTOList.size() == 0)
-		{
-			boardHistoryMapper.createHistory(defaultHistoryDTO);
-			historyDTOList = boardHistoryMapper.getHistoryByBoardId(defaultBoardId);
-		}
-		
-		assertNotEquals(0, historyDTOList.size());
-	}
-	
-	@Test
-	public void testGetHistoryByHistoryId()
-	{
-		List<BoardHistoryDTO> historyDTOList = null;
-		historyDTOList = boardHistoryMapper.getHistoryByHistoryId(defaultHistoryId);
-		assertNotNull(historyDTOList);
-		
-		if(historyDTOList.size() == 0)
-		{
-			boardHistoryMapper.createHistory(defaultHistoryDTO);
-			historyDTOList = boardHistoryMapper.getHistoryByHistoryId(defaultHistoryId);
-		}
-		
-		assertNotEquals(0, historyDTOList.size());	
-	}
-	
-	@Test
-	public void testGetHistoryBySpecificOne()
-	{
-		BoardHistoryDTO historyDTO = null;
-		historyDTO = mapperGetHistoryDTO(defaultHistoryDTO);
-		if(historyDTO == null)
-		{
+		historyDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+		if (historyDTO == null) {
 			boardHistoryMapper.createHistory(defaultHistoryDTO);
 		}
 
-		historyDTO = mapperGetHistoryDTO(defaultHistoryDTO);
-		
+		historyDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+
 		assertNotNull(historyDTO);
 	}
 
-    @Test
-    public void testCreateHistory() throws Exception{
-    	BoardDTO article = new BoardDTO();
-    	article.setBoard_id(defaultBoardId);
-    	article.setSubject("testInsert");
-    	article.setContent("testContent");
-    	
-    	BoardHistoryDTO createdHistoryDTO = new BoardHistoryDTO(article);
-    	
-    	BoardHistoryDTO check = mapperGetHistoryDTO(createdHistoryDTO);
-    	
-    	if(check != null)
-    	{
-    		boardHistoryMapper.deleteHistoryByHistoryId(article.getBoard_id());
-    	}
+	@Test
+	public void testCreateHistory() throws JsonProcessingException {
+		BoardDTO article = new BoardDTO();
+		article.setBoard_id(defaultBoardId);
+		article.setSubject("testInsert");
+		article.setContent("testContent");
+
+		BoardHistoryDTO createdHistoryDTO = new BoardHistoryDTO(article, defaultNodePtrDTO);
+
+		BoardHistoryDTO check = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+		if (check != null) {
+			boardHistoryMapper.deleteHistory(defaultNodePtrDTO);
+		}
 		boardHistoryMapper.createHistory(createdHistoryDTO);
-			
+
 		BoardHistoryDTO insertedDTO = null;
-		insertedDTO = mapperGetHistoryDTO(createdHistoryDTO);
+		insertedDTO = boardHistoryMapper.getHistory(new NodePtrDTO(createdHistoryDTO));
+
+		// ingore created time.
+		insertedDTO.setCreated(null);
+		Utils.assertConvertToJsonObject(createdHistoryDTO, insertedDTO);
+	}
+
+	@Test
+	public void testUpdateHistory() throws JsonProcessingException {
+		BoardHistoryDTO beforeHistoryDTO = null;
+		beforeHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+		if (beforeHistoryDTO == null) {
+			boardHistoryMapper.createHistory(defaultHistoryDTO);
+			beforeHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+		}
+
+		BoardHistoryDTO afterHistoryDTO = beforeHistoryDTO;
+		if (beforeHistoryDTO.getParent_version() == 1) {
+			beforeHistoryDTO.setParent_version(2);
+		} else {
+			beforeHistoryDTO.setParent_version(1);
+		}
+
+		int updateRtn = boardHistoryMapper.updateHistoryParent(afterHistoryDTO);
+		assertEquals(1, updateRtn);
+
+		BoardHistoryDTO dbHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+		Utils.assertConvertToJsonObject(afterHistoryDTO, dbHistoryDTO);
+		;
+	}
+
+	// TODO : testUpdate 와 동일 하다는 결론이면 삭제할것.
+	@Test
+	public void testPatch() throws JsonProcessingException {
+		testUpdateHistory();
+	}
+
+	@Test
+	public void testDeleteSpecificOne() {
+		BoardHistoryDTO boardHistoryDTO = null;
+		boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+
+		if (boardHistoryDTO == null) {
+			boardHistoryMapper.createHistory(defaultHistoryDTO);
+		}
+		boardMapper.boardDelete(defaultNodePtrDTO.toMap());
+		int deletedColCnt = boardHistoryMapper.deleteHistory(defaultNodePtrDTO);
+
+		assertEquals(1, deletedColCnt);
+
+		BoardHistoryDTO deletedHistoryDTO = null;
+		deletedHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+		assertNull(deletedHistoryDTO);
+	}
+	
+	@Test
+	public void testGetChildren() {
+		BoardHistoryDTO boardHistoryDTO = null;
+		boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+
+		if (boardHistoryDTO == null) {
+			boardHistoryMapper.createHistory(defaultHistoryDTO);
+		}
 		
-		
-		testHistoryDTOSimpleEquals(createdHistoryDTO, insertedDTO);
-	}
-    
-    @Test
-    public void testUpdateHistory() throws Exception{
-    	BoardHistoryDTO beforeHistoryDTO = null;
-    	beforeHistoryDTO = mapperGetHistoryDTO(defaultHistoryDTO);
-    	if(beforeHistoryDTO == null)
-    	{
-    		boardHistoryMapper.createHistory(defaultHistoryDTO);
-    	}
-    	
-    	BoardHistoryDTO afterHistoryDTO = beforeHistoryDTO; 
-    	if(beforeHistoryDTO.getStatus().equals("Created"))
-    	{
-    		afterHistoryDTO.setStatus("Modified");
-    	}
-    	else
-    	{
-    		afterHistoryDTO.setStatus("Created");
-    	}
-    	
-    	int updateRtn = boardHistoryMapper.updateHistory(afterHistoryDTO);
-    	assertEquals(1, updateRtn);
-    	
-    	BoardHistoryDTO dbHistoryDTO = mapperGetHistoryDTO(defaultHistoryDTO);
-    	testHistoryDTOSimpleEquals(afterHistoryDTO, dbHistoryDTO);
-	}
-    
-    // TODO : testUpdate 와 동일 하다는 결론이면 삭제할것.
-    @Test
-    public void testPatch() throws Exception{
-    	testUpdateHistory();
-	}
-    
-    @Test
-    public void testDeleteSpecificOne() throws Exception{
-    	BoardHistoryDTO boardHistoryDTO = null;
-    	boardHistoryDTO = mapperGetHistoryDTO(defaultHistoryDTO);
-    	
-    	if(boardHistoryDTO == null)
-    	{
-    		boardHistoryMapper.createHistory(defaultHistoryDTO);
-    	}
-    	recnetVersionMapper.deleteRecentVersion(defaultHistoryId);
-    	BranchDTO branchDTO = branchMapper.getBranch(boardHistoryDTO.getBranch_id());
-    	branchMapper.deleteBranch(branchDTO);
-    	
-    	int deletedColCnt = boardHistoryMapper.deleteHistoryBySpecificOne(boardHistoryDTO.getBoard_history_id(),
-    			boardHistoryDTO.getVersion(), boardHistoryDTO.getBranch_id());
-    	
-    	assertEquals(1, deletedColCnt);
-    	
-    	BoardHistoryDTO deletedHistoryDTO = null;
-    	deletedHistoryDTO = mapperGetHistoryDTO(defaultHistoryDTO);
-    	assertNull(deletedHistoryDTO);
+		// TODO : 미완성
 	}
 }

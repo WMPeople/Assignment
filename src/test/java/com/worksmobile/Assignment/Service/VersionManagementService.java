@@ -1,22 +1,23 @@
 package com.worksmobile.Assignment.Service;
 
+import java.util.List;
+import java.util.concurrent.Future;
+
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
-import com.worksmobile.Assignment.Domain.RecentVersionDTO;
+import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
-import com.worksmobile.Assignment.Mapper.BranchMapper;
-import com.worksmobile.Assignment.Mapper.RecnetVersionMapper;
 
 /***************History Id 을 어떻게 부여 해야 할지?************/
-// start transactional
 // 1. Group By 로 묶어서 id 숫자를 판단
 //		group by 연산이 비쌈.
 
@@ -40,72 +41,184 @@ public class VersionManagementService {
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
 	
-	@Autowired
-	RecnetVersionMapper recnetVersionMapper;
-	
-	@Autowired
-	BranchMapper branchMapper;
-	
-	private static int last_board_history_id;
-	
 	public VersionManagementService() {
 	}
 	
 	@PostConstruct
 	private void init() {
-		last_board_history_id = recnetVersionMapper.getLastVersionHistoryId();
 	}
 	
-	// TODO : throws Exception 처리할것..
+	// TODO : last_board_id 가 스레드 세이프 한지 확인할 것.
+	/*
+	 * @Return : 실패시 null 반환
+	 */
+	@Async
 	@Transactional
-	public int createArticle(BoardDTO article) throws Exception{
-		
-		int board_id = boardMapper.boardCreate(article);
-		article = boardMapper.viewDetail(board_id);
-		
-		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article);
-		boardHistoryDTO.setBoard_id(article.getBoard_id());
-		boardHistoryDTO.setBoard_history_id(last_board_history_id);
-		boardHistoryMapper.createHistory(boardHistoryDTO);
+	public Future<BoardHistoryDTO> createArticle(BoardDTO article) {
+		int last_board_id = boardMapper.getMaxBoardId();
+		last_board_id++;
 
-		RecentVersionDTO recentVersionDTO = new RecentVersionDTO(boardHistoryDTO);
-		recnetVersionMapper.createRecentVersion(recentVersionDTO);
+		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article, new NodePtrDTO(last_board_id, 1, 1));
+		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistoryDTO);
+		if(insertedRowCnt == 0) {
+			return null;
+		}
 		
-		last_board_history_id++;
-		return board_id;
+		NodePtrDTO nodePtr = new NodePtrDTO(boardHistoryDTO);
+		boardHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
+
+		article.setNodePtrDTO(nodePtr);
+		article.setCreated(boardHistoryDTO.getCreated());
+		
+		insertedRowCnt = boardMapper.boardCreate(article);
+		if(insertedRowCnt == 0) {
+			return null;
+		}
+		
+		last_board_id++;
+		return new AsyncResult<BoardHistoryDTO> (boardHistoryDTO);
 	}
 	
-	// DB : 이력 id(그냥 num), 게시글 id, 버전, 
-	public void recoverVersion(int boardHistoryId, int version, int branchId)
+	public NodePtrDTO recoverVersion(NodePtrDTO recoverPtr, NodePtrDTO leapPtr)
 	{
-		BoardDTO recoverArticleDTO = null;
-		BoardHistoryDTO boardHistoryDTO = null;
-		boardHistoryDTO = boardHistoryMapper.getHistoryBySpecificOne(boardHistoryId, version, branchId);
-		if(boardHistoryDTO == null)
+		BoardHistoryDTO recoverHistoryDTO = null;
+		BoardHistoryDTO leapHistoryDTO = null;
+		recoverHistoryDTO = boardHistoryMapper.getHistory(recoverPtr);
+		leapHistoryDTO = boardHistoryMapper.getHistory(leapPtr);
+		if(leapHistoryDTO == null || recoverHistoryDTO == null)
 		{
 			throw new RuntimeException("게시글 이력이 존재하지 않습니다.");
 		}
 		
-		//boardHistoryDTO.setBoard_id(recoverArticleId);
-		boardHistoryDTO.setStatus("RecoveredFrom" + boardHistoryId);
-	}
-
-	public void updateVersion(int boardHistoryId, int beforeArticleId, BoardDTO article)
-	{
-		BoardHistoryDTO boardHistoryDTO = null;
-		//boardHistoryDTO = boardHistoryMapper.getHistoryByHistoryId(boardHistoryId);
-		if(boardHistoryDTO == null)
-		{
-			throw new RuntimeException("게시글 이력이 존재하지 않습니다.");
-		}
-		boardHistoryDTO.setBoard_id(article.getBoard_id());
-		// TODO : 충돌관리
-		// 이전 버전에서 복원 하는 것과는 다름.
-		boardHistoryDTO.setStatus("Modified");
+		BoardDTO recoveredBoardDTO = new BoardDTO(recoverHistoryDTO);
+			
+		return createVersionWithBranch(recoveredBoardDTO, leapPtr, "recovered");
 	}
 	
-	public void deleteVersion(int boardHistoryId)
-	{
+	public NodePtrDTO modifyVersion(BoardDTO modifiedBoard, NodePtrDTO parentPtrDTO) {
+		return createVersionWithBranch(modifiedBoard, parentPtrDTO, "Modified");
+	}
+	
+	private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, NodePtrDTO parentPtrDTO, String status) {
+		BoardHistoryDTO newBranchHistoryDTO = new BoardHistoryDTO();
+		newBranchHistoryDTO.setBoard_id(parentPtrDTO.getBoard_id());
+		newBranchHistoryDTO.setVersion(parentPtrDTO.getVersion() + 1);
+		newBranchHistoryDTO.setStatus(status);
+		newBranchHistoryDTO.setHistory_subject(boardDTO.getSubject());
+		// TODO : zipping
+		newBranchHistoryDTO.setHistory_content(null);
+		newBranchHistoryDTO.setFile_name(boardDTO.getFile_name());
+		newBranchHistoryDTO.setFile_data(boardDTO.getFile_data());
+		newBranchHistoryDTO.setFile_size(boardDTO.getFile_size());
+		newBranchHistoryDTO.setParentNodePtr(parentPtrDTO);
+		newBranchHistoryDTO = createHistoryWithLastBranch(newBranchHistoryDTO, 
+				newBranchHistoryDTO.getBoard_id(), newBranchHistoryDTO.getVersion());
+
+		NodePtrDTO newLeapPtr = new NodePtrDTO(newBranchHistoryDTO);
+		newBranchHistoryDTO = boardHistoryMapper.getHistory(newLeapPtr);
+
+		boardDTO.setNodePtrDTO(newLeapPtr);
+		boardDTO.setCreated(newBranchHistoryDTO.getCreated());
 		
+		if(isLeap(parentPtrDTO)) {
+			boardMapper.boardDelete(parentPtrDTO.toMap());
+		}
+		boardMapper.boardCreate(boardDTO);
+		
+		return newLeapPtr;
+	}
+	
+	
+	private boolean isLeap(NodePtrDTO nodePtrDTO) {
+		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(nodePtrDTO);
+		
+		if(children.size() == 0) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	// TODO : 여기만 동기화가 필요함.
+		// @Async (for branch)
+	private BoardHistoryDTO createHistoryWithLastBranch(BoardHistoryDTO historyDTO, int board_id, int version) {
+		int last_branch = boardHistoryMapper.getLastbranch(board_id, version);
+		historyDTO.setBranch(last_branch + 1);
+		int insertedCnt = boardHistoryMapper.createHistory(historyDTO);
+		if(insertedCnt == 0) {
+			return null;
+		}
+		else {
+			return historyDTO;
+		}
+	}
+
+	// TODO : 루트 삭제는 고려하지 않음.
+	public void deleteVersion(NodePtrDTO deletePtrDTO) {
+		BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
+
+		NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrDTO();
+
+		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(parentPtrDTO);
+		if(children.size() == 0) {
+			BoardHistoryDTO parentHistoryDTO = boardHistoryMapper.getHistory(parentPtrDTO);
+			BoardDTO parentDTO = new BoardDTO(parentHistoryDTO);
+			
+			boardMapper.boardDelete(deletePtrDTO.toMap());
+			boardMapper.boardCreate(parentDTO);
+		}
+		else {
+			for(BoardHistoryDTO childHistoryDTO : children) {
+				childHistoryDTO.setParentNodePtr(parentPtrDTO);
+			}
+		}
+	}
+	
+	public NodePtrDTO findAncestorHaveAnotherChild(NodePtrDTO curPtrDTO) {
+		List<BoardHistoryDTO> children;
+		do {
+			BoardHistoryDTO boardHistoryDTO = boardHistoryMapper.getHistory(curPtrDTO);
+			curPtrDTO = boardHistoryDTO.getParentPtrDTO();
+			children = boardHistoryMapper.getChildren(curPtrDTO);
+		} while(children.size() != 1);
+		
+		return curPtrDTO;
+	}
+	
+	public void deleteUntilHasChild(NodePtrDTO deletePtrDTO) {
+		boolean isDeleteLeap = false;
+		List<BoardHistoryDTO> children;
+		BoardDTO newLeapDTO = null;
+		
+		while(true) {
+			BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
+			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrDTO();
+			children = boardHistoryMapper.getChildren(parentPtrDTO);
+			
+			if(children.size() > 1) {
+				if(isDeleteLeap) {
+					newLeapDTO = new BoardDTO(deleteHistoryDTO);
+					boardMapper.boardCreate(newLeapDTO);
+				}
+				break;
+			}
+
+			children = boardHistoryMapper.getChildren(deletePtrDTO);
+			if(children.size() == 0) {
+				isDeleteLeap = true;
+				
+				boardMapper.boardDelete(deletePtrDTO.toMap());
+			}
+			else {
+				for(BoardHistoryDTO childHistoryDTO : children) {
+					childHistoryDTO.setParentNodePtr(parentPtrDTO);
+				}
+			}
+			int deletedCnt = boardHistoryMapper.deleteHistory(deletePtrDTO);
+			if(deletedCnt == 0) {
+				throw new RuntimeException("not deleted error");
+			}
+		}
 	}
 }

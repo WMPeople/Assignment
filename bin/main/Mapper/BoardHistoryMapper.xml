@@ -4,48 +4,49 @@
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
  
 <mapper namespace="com.worksmobile.Assignment.Mapper.BoardHistoryMapper">
-    <select id="getHistoryByBoardId" parameterType = "int"
+    <select id="getHistory" 
     resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-        SELECT board_history_id, version, branch_id, created, status, board_id
-        FROM board_history
-        WHERE board_id = #{board_id};
+        SELECT board_id, version, branch, created, status, history_subject, 
+        		history_content, file_name, file_data, file_size, parent_board_id,
+        		parent_version, parent_branch
+		FROM board_history
+		WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
     </select>
     
-    <select id="getHistoryByHistoryId" parameterType = "int"
-    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-    	SELECT board_history_id, version, branch_id, created, status, board_id
-    	FROM board_history
-    	WHERE board_history_id = #{board_history_id};
-    </select>
-    
-    <select id="getHistoryBySpecificOne" parameterType = "com.worksmobile.Assignment.Domain.BoardHistoryDTO"
-    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-		SELECT board_history_id, version, branch_id, created, status, board_id
-    	FROM board_history
-    	WHERE board_history_id = #{board_history_id} AND version = #{version} AND branch_id = #{branch_id};
-    </select>
-    
-    <delete id="deleteHistoryByHistoryId" parameterType="int">
-        DELETE FROM board_history
-        WHERE board_history_id = #{board_history_id};
-    </delete>
-
-    <delete id="deleteHistoryBySpecificOne">
-        DELETE FROM board_history
-        WHERE board_history_id = #{board_history_id} AND version = #{version} AND branch_id = #{branch_id};
+    <delete id="deleteHistory" parameterType="int">
+		DELETE FROM board_history
+		WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
     </delete>
 
      <insert id="createHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-        INSERT INTO board_history(board_history_id, version, branch_id, created, status, board_id)
-        VALUES(#{board_history_id}, #{version}, #{branch_id}, CURRENT_TIMESTAMP, #{status}, #{board_id});
+        INSERT INTO board_history(board_id, version, branch, status, history_subject,
+        						history_content, file_name, file_data, file_size,
+        						parent_board_id, parent_version, parent_branch)
+		VALUES(#{board_id}, #{version}, #{branch}, #{status}, #{history_subject},
+				#{history_content}, #{file_name}, #{file_data,jdbcType=BLOB}, 
+				#{file_size}, #{parent_board_id}, #{parent_version}, #{parent_branch});
     </insert>
 
-    <update id="updateHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-       UPDATE board_history
-       SET
-          status = #{status}
-       WHERE
-          board_history_id = #{board_history_id} AND version = #{version} AND branch_id = #{branch_id};
+    <update id="updateHistoryParent" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+		UPDATE board_history
+		SET
+		  parent_board_id = #{parent_board_id}, parent_version = #{parent_version}, parent_branch = #{parent_branch}
+		WHERE
+		  board_id = #{board_id} AND version = #{version} AND branch = #{branch};
     </update>
 
+	<select id="getLastbranch" resultType="int">
+    	SELECT IFNULL(MAX(branch), 0) AS MaxBranch
+		FROM board_history
+		WHERE board_id = #{board_id} AND version = #{version};
+    </select>
+    
+     <select id="getChildren" 
+    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+        SELECT board_id, version, branch, created, status, history_subject, 
+        		history_content, file_name, file_data, file_size, parent_board_id,
+        		parent_version, parent_branch
+		FROM board_history
+		WHERE parent_board_id = #{board_id} AND parent_version = #{version} AND parent_branch = #{branch};
+    </select>
 </mapper>

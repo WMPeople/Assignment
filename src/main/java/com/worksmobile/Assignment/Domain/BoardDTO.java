@@ -1,65 +1,37 @@
 package com.worksmobile.Assignment.Domain;
 
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
+import lombok.Getter;
+import lombok.Setter;
 
 public class BoardDTO {
-	private int board_id;
-	private String subject;
-	private String content;
-	private String created;
+	@Setter @Getter private int board_id;
+	@Setter @Getter private int version;
+	@Setter @Getter private int branch;
+	@Setter @Getter private String subject;
+	@Setter @Getter private String content;
+	@Setter @Getter private String created;
 	
-	private byte[] attachment;
-	private String fileName;
-	private long fileSize;
+	@Setter @Getter private String file_name;
+	@Setter @Getter private byte[] file_data;
+	@Setter @Getter private long file_size;
 	
-	public String getFileName() {
-		return fileName;
+	public BoardDTO() { }
+	public BoardDTO(BoardHistoryDTO boardHistoryDTO) {
+		setNodePtrDTO(new NodePtrDTO(boardHistoryDTO));
+
+		subject = boardHistoryDTO.getHistory_subject();
+		// TODO : unzipping
+		//content = boardHistoryDTO.getHistory_content();
+		created = boardHistoryDTO.getCreated();
+
+		file_name = boardHistoryDTO.getFile_name();
+		file_data = boardHistoryDTO.getFile_data();
+		file_size = boardHistoryDTO.getFile_size();
 	}
 
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
+	public void setNodePtrDTO(NodePtrDTO nodePtrDTO) {
+		board_id = nodePtrDTO.getBoard_id();
+		version = nodePtrDTO.getVersion();
+		branch = nodePtrDTO.getBranch();
 	}
-
-	public long getFileSize() {
-		return fileSize;
-	}
-
-	public void setFileSize(long l) {
-		this.fileSize = l;
-	}
-	
-	public int getBoard_id() {
-		return board_id;
-	}
-
-	public void setBoard_id(int board_id) {
-		this.board_id = board_id;
-	}
-	public String getSubject() {
-		return subject;
-	}
-	public void setSubject(String subject) {
-		this.subject = subject;
-	}
-	public String getContent() {
-		return content;
-	}
-	public void setContent(String content) {
-		this.content = content;
-	}
-	public String getCreated() {
-		return created;
-	}
-	public void setCreated(String created) {
-		this.created = created;
-	}
-	public byte[] getAttachment() {
-		return attachment;
-	}
-	public void setAttachment(byte[] attachment) {
-		this.attachment = attachment;
-	}
-
-
 }
