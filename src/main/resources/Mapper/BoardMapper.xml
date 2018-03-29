@@ -11,7 +11,7 @@
     </select>
     
     <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
-    	select board_id,version,branch,subject,content,created,file_name,file_data,file_size
+    	select board_id,version,branch,subject,content,created,file_name,file_size,file_data
     	from board
     	where board_id = #{board_id} and version = #{version} and branch = #{branch};
     </select>
@@ -46,4 +46,8 @@
         where board_id = #{board_id} and version = #{version} and branch = #{branch};
     </select>
     
+    <select id="getMaxBoardId" resultType="int">
+    	SELECT IFNULL(MAX(board_id), 0) AS MaxBoardId
+    	FROM board;
+    </select>
 </mapper>

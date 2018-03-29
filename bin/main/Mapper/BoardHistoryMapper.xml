@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+ 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="com.worksmobile.Assignment.Mapper.BoardHistoryMapper">
+    <select id="getHistory" 
+    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+        SELECT board_id, version, branch, created, status, history_subject, 
+        		history_content, file_name, file_data, file_size, parent_board_id,
+        		parent_version, parent_branch
+		FROM board_history
+		WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+    </select>
+    
+    <delete id="deleteHistory" parameterType="int">
+		DELETE FROM board_history
+		WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+    </delete>
+
+     <insert id="createHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+        INSERT INTO board_history(board_id, version, branch, status, history_subject,
+        						history_content, file_name, file_data, file_size,
+        						parent_board_id, parent_version, parent_branch)
+		VALUES(#{board_id}, #{version}, #{branch}, #{status}, #{history_subject},
+				#{history_content}, #{file_name}, #{file_data,jdbcType=BLOB}, 
+				#{file_size}, #{parent_board_id}, #{parent_version}, #{parent_branch});
+    </insert>
+
+    <update id="updateHistoryParent" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+		UPDATE board_history
+		SET
+		  parent_board_id = #{parent_board_id}, parent_version = #{parent_version}, parent_branch = #{parent_branch}
+		WHERE
+		  board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+    </update>
+
+	<select id="getLastbranch" resultType="int">
+    	SELECT IFNULL(MAX(branch), 0) AS MaxBranch
+		FROM board_history
+		WHERE board_id = #{board_id} AND version = #{version};
+    </select>
+    
+     <select id="getChildren" 
+    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+        SELECT board_id, version, branch, created, status, history_subject, 
+        		history_content, file_name, file_data, file_size, parent_board_id,
+        		parent_version, parent_branch
+		FROM board_history
+		WHERE parent_board_id = #{board_id} AND parent_version = #{version} AND parent_branch = #{branch};
+    </select>
+</mapper>

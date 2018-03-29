@@ -18,6 +18,7 @@ public interface BoardMapper {
 	public BoardDTO viewDetail(HashMap<String, Integer> parmas) ;
 	
 	public BoardDTO boardFileDownload(int board_id, int version, int branch) ;
-	
 
+	public int getMaxBoardId();
+	
 }

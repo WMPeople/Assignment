@@ -1,84 +1,37 @@
 package com.worksmobile.Assignment.Domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class BoardDTO {
-	private int board_id;
-	private int version;
-	private int branch;
+	@Setter @Getter private int board_id;
+	@Setter @Getter private int version;
+	@Setter @Getter private int branch;
+	@Setter @Getter private String subject;
+	@Setter @Getter private String content;
+	@Setter @Getter private String created;
 	
-	private String subject;
-	private String content;
-	public int getVersion() {
-		return version;
-	}
-
-	public void setVersion(int version) {
-		this.version = version;
-	}
-
-	public int getBranch() {
-		return branch;
-	}
-
-	public void setBranch(int branch) {
-		this.branch = branch;
-	}
-
-	public String getFile_name() {
-		return file_name;
-	}
-
-	public void setFile_name(String file_name) {
-		this.file_name = file_name;
-	}
-
-	public byte[] getFile_data() {
-		return file_data;
-	}
-
-	public void setFile_data(byte[] file_data) {
-		this.file_data = file_data;
-	}
-
-	public long getFile_size() {
-		return file_size;
-	}
-
-	public void setFile_size(long file_size) {
-		this.file_size = file_size;
-	}
-	private String created;
+	@Setter @Getter private String file_name;
+	@Setter @Getter private byte[] file_data;
+	@Setter @Getter private long file_size;
 	
-	private String file_name;
-	private byte[] file_data;
-	private long file_size;
-	
-	
-	public int getBoard_id() {
-		return board_id;
+	public BoardDTO() { }
+	public BoardDTO(BoardHistoryDTO boardHistoryDTO) {
+		setNodePtrDTO(new NodePtrDTO(boardHistoryDTO));
+
+		subject = boardHistoryDTO.getHistory_subject();
+		// TODO : unzipping
+		//content = boardHistoryDTO.getHistory_content();
+		created = boardHistoryDTO.getCreated();
+
+		file_name = boardHistoryDTO.getFile_name();
+		file_data = boardHistoryDTO.getFile_data();
+		file_size = boardHistoryDTO.getFile_size();
 	}
 
-	public void setBoard_id(int board_id) {
-		this.board_id = board_id;
+	public void setNodePtrDTO(NodePtrDTO nodePtrDTO) {
+		board_id = nodePtrDTO.getBoard_id();
+		version = nodePtrDTO.getVersion();
+		branch = nodePtrDTO.getBranch();
 	}
-	public String getSubject() {
-		return subject;
-	}
-	public void setSubject(String subject) {
-		this.subject = subject;
-	}
-	public String getContent() {
-		return content;
-	}
-	public void setContent(String content) {
-		this.content = content;
-	}
-	public String getCreated() {
-		return created;
-	}
-	public void setCreated(String created) {
-		this.created = created;
-	}
-	
-
-
 }
