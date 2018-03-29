@@ -12,7 +12,7 @@ public class Utils {
         return mapper.writeValueAsString(object);
     }
 	
-    public static void assertConvertToJsonObject(Object lhs, Object rhs) throws JsonProcessingException{
-    		assertEquals(jsonStringFromObject(lhs), jsonStringFromObject(rhs));
+    public static void assertConvertToJsonObject(Object expect, Object actual) throws JsonProcessingException{
+    		assertEquals(jsonStringFromObject(expect), jsonStringFromObject(actual));
     }
 }

@@ -11,6 +11,8 @@ import com.worksmobile.Assignment.Domain.NodePtrDTO;
 @Mapper
 public interface BoardHistoryMapper {
 
+	public List<BoardHistoryDTO> getHistoryByBoardId(@Param("board_id")int board_id);
+	
 	public BoardHistoryDTO getHistory(NodePtrDTO nodePtr);
 			
 	public int deleteHistory(NodePtrDTO nodePtr);

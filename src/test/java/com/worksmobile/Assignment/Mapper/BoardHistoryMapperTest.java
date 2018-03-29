@@ -75,7 +75,7 @@ public class BoardHistoryMapperTest {
 		boardHistoryMapper.createHistory(createdHistoryDTO);
 
 		BoardHistoryDTO insertedDTO = null;
-		insertedDTO = boardHistoryMapper.getHistory(new NodePtrDTO(createdHistoryDTO));
+		insertedDTO = boardHistoryMapper.getHistory(createdHistoryDTO);
 
 		// ingore created time.
 		insertedDTO.setCreated(null);

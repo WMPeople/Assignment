@@ -1,5 +1,6 @@
 package com.worksmobile.Assignment.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
@@ -11,11 +12,13 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
+import com.worksmobile.Assignment.util.Utils;
 
 /***************History Id 을 어떻게 부여 해야 할지?************/
 // 1. Group By 로 묶어서 id 숫자를 판단
@@ -48,9 +51,56 @@ public class VersionManagementService {
 	private void init() {
 	}
 	
+	private BoardHistoryDTO getBoardHistory(List<BoardHistoryDTO> historyList, NodePtrDTO nodePtrDTO) {
+		for(BoardHistoryDTO eleHistoryDTO : historyList) {
+			NodePtrDTO elePtrDTO = eleHistoryDTO;
+			if(elePtrDTO.equals(nodePtrDTO)) {
+				return eleHistoryDTO;
+			}
+		}
+		return null;
+	}
+	
+	/***
+	 * 한 게시글과 연관된 모든 게시글 이력을 반환합니다.
+	 * @param leapPtrDTO 가져올 리프 노드 포인터.
+	 * @return 연관된 게시글 히스토리들
+	 * @throws NotLeapNodeException 리프 노드가 아닌 것을 삭제할때 발생됩.
+	 */
+	public List<BoardHistoryDTO> getRelatedHistory(final NodePtrDTO leapPtrDTO) throws NotLeapNodeException{
+		if(!isLeap(leapPtrDTO)) {
+			String leapPtrJson;
+			try {
+				leapPtrJson = Utils.jsonStringFromObject(leapPtrDTO);
+			} catch(JsonProcessingException e) {
+				leapPtrJson = "NodePtrDTO convert to json failed" + "\n" + leapPtrDTO;
+			}
+			throw new NotLeapNodeException("node 정보" + leapPtrJson);
+		}
+		List<BoardHistoryDTO> boardHistoryList = null;
+		boardHistoryList = boardHistoryMapper.getHistoryByBoardId(leapPtrDTO.getBoard_id());
+		List<BoardHistoryDTO> relatedHistoryList = new ArrayList<>(boardHistoryList.size());
+		
+		BoardHistoryDTO leapHistoryDTO = getBoardHistory(boardHistoryList, leapPtrDTO);
+		if(leapHistoryDTO == null) {
+			throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + leapPtrDTO);
+		}
+
+		while(leapHistoryDTO != null) {
+			relatedHistoryList.add(leapHistoryDTO);
+			NodePtrDTO parentPtrDTO = leapHistoryDTO.getParentPtrDTO();
+			BoardHistoryDTO parentHistoryDTO = getBoardHistory(boardHistoryList, parentPtrDTO);
+			leapHistoryDTO = parentHistoryDTO;
+		}
+		
+		return relatedHistoryList;
+	}
+	
 	// TODO : last_board_id 가 스레드 세이프 한지 확인할 것.
-	/*
-	 * @Return : 실패시 null 반환
+	/***
+	 * 최초 기록 게시글을 등록합니다. 
+	 * @param article 게시글에 대한 정보.
+	 * @return 새로운 게시글을 가리키는 포인터.
 	 */
 	@Async
 	@Transactional
@@ -64,7 +114,7 @@ public class VersionManagementService {
 			return null;
 		}
 		
-		NodePtrDTO nodePtr = new NodePtrDTO(boardHistoryDTO);
+		NodePtrDTO nodePtr = boardHistoryDTO;
 		boardHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
 
 		article.setNodePtrDTO(nodePtr);
@@ -79,7 +129,13 @@ public class VersionManagementService {
 		return new AsyncResult<BoardHistoryDTO> (boardHistoryDTO);
 	}
 	
-	public NodePtrDTO recoverVersion(NodePtrDTO recoverPtr, NodePtrDTO leapPtr)
+	/***
+	 * 버전 복구 기능입니다. board DB및  boardHistory 둘다 등록 됩니다.
+	 * @param recoverPtr 복구할 버전에 대한 포인터.
+	 * @param leapPtr 복구 후 부모가 될 포인터.
+	 * @return 새롭게 등록된 버전에 대한 포인터.
+	 */
+	public NodePtrDTO recoverVersion(final NodePtrDTO recoverPtr, final NodePtrDTO leapPtr)
 	{
 		BoardHistoryDTO recoverHistoryDTO = null;
 		BoardHistoryDTO leapHistoryDTO = null;
@@ -95,11 +151,24 @@ public class VersionManagementService {
 		return createVersionWithBranch(recoveredBoardDTO, leapPtr, "recovered");
 	}
 	
+	/***
+	 * 부모 버전이 있을 때 새로운 버전을 등록합니다.
+	 * @param modifiedBoard 새롭게 등록될 게시글에 대한 정보.
+	 * @param parentPtrDTO 부모를 가리키는 노드 포인터.
+	 * @return 새롭게 생성된 리프 노드를 가리킵니다.
+	 */
 	public NodePtrDTO modifyVersion(BoardDTO modifiedBoard, NodePtrDTO parentPtrDTO) {
 		return createVersionWithBranch(modifiedBoard, parentPtrDTO, "Modified");
 	}
 	
-	private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, NodePtrDTO parentPtrDTO, String status) {
+	private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, final NodePtrDTO parentPtrDTO, final String status) {
+		if(isLeap(parentPtrDTO)) {
+			int deletedCnt = boardMapper.boardDelete(parentPtrDTO.toMap());
+			if(deletedCnt != 1) {
+				throw new RuntimeException("delete cnt expected 1 but " + deletedCnt);
+			}
+		}
+		
 		BoardHistoryDTO newBranchHistoryDTO = new BoardHistoryDTO();
 		newBranchHistoryDTO.setBoard_id(parentPtrDTO.getBoard_id());
 		newBranchHistoryDTO.setVersion(parentPtrDTO.getVersion() + 1);
@@ -114,22 +183,22 @@ public class VersionManagementService {
 		newBranchHistoryDTO = createHistoryWithLastBranch(newBranchHistoryDTO, 
 				newBranchHistoryDTO.getBoard_id(), newBranchHistoryDTO.getVersion());
 
-		NodePtrDTO newLeapPtr = new NodePtrDTO(newBranchHistoryDTO);
+		NodePtrDTO newLeapPtr = newBranchHistoryDTO;
 		newBranchHistoryDTO = boardHistoryMapper.getHistory(newLeapPtr);
 
 		boardDTO.setNodePtrDTO(newLeapPtr);
 		boardDTO.setCreated(newBranchHistoryDTO.getCreated());
 		
-		if(isLeap(parentPtrDTO)) {
-			boardMapper.boardDelete(parentPtrDTO.toMap());
+		int createdCnt = boardMapper.boardCreate(boardDTO);
+		if(createdCnt != 1) {
+			throw new RuntimeException("created cnt expected 1 but " + createdCnt);
 		}
-		boardMapper.boardCreate(boardDTO);
 		
 		return newLeapPtr;
 	}
 	
 	
-	private boolean isLeap(NodePtrDTO nodePtrDTO) {
+	private boolean isLeap(final NodePtrDTO nodePtrDTO) {
 		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(nodePtrDTO);
 		
 		if(children.size() == 0) {
@@ -142,7 +211,7 @@ public class VersionManagementService {
 	
 	// TODO : 여기만 동기화가 필요함.
 		// @Async (for branch)
-	private BoardHistoryDTO createHistoryWithLastBranch(BoardHistoryDTO historyDTO, int board_id, int version) {
+	private BoardHistoryDTO createHistoryWithLastBranch(BoardHistoryDTO historyDTO, final int board_id, final int version) {
 		int last_branch = boardHistoryMapper.getLastbranch(board_id, version);
 		historyDTO.setBranch(last_branch + 1);
 		int insertedCnt = boardHistoryMapper.createHistory(historyDTO);
@@ -153,25 +222,51 @@ public class VersionManagementService {
 			return historyDTO;
 		}
 	}
+	
+	private void updateHistoryParentPtr(BoardHistoryDTO boardHistoryDTO) {
+		int updatedCnt = boardHistoryMapper.updateHistoryParent(boardHistoryDTO);
+		if(updatedCnt != 1) {
+			String json;
+			try {
+				json = Utils.jsonStringFromObject(boardHistoryDTO);
+			} catch(Exception e) {
+				json = " to json error";
+			}
+			throw new RuntimeException("updateRowCnt expected 1 but : " + updatedCnt + "\n" +
+										"in " + json);
+		}
+	}
 
 	// TODO : 루트 삭제는 고려하지 않음.
-	public void deleteVersion(NodePtrDTO deletePtrDTO) {
+	/***
+	 * 특정 버전에 대한 이력 1개를 삭제합니다. leap노드이면 board도 삭제 됩니다. 
+	 * @param deletePtrDTO 삭제할 버전에 대한 정보.
+	 */
+	public void deleteVersion(final NodePtrDTO deletePtrDTO) {
 		BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
-
 		NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrDTO();
 
-		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(parentPtrDTO);
-		if(children.size() == 0) {
+		List<BoardHistoryDTO> deleteNodeChildren = boardHistoryMapper.getChildren(deletePtrDTO);
+		if(deleteNodeChildren.size() == 0) {
 			BoardHistoryDTO parentHistoryDTO = boardHistoryMapper.getHistory(parentPtrDTO);
 			BoardDTO parentDTO = new BoardDTO(parentHistoryDTO);
 			
-			boardMapper.boardDelete(deletePtrDTO.toMap());
-			boardMapper.boardCreate(parentDTO);
+			int deletedCnt = boardMapper.boardDelete(deletePtrDTO.toMap());
+			int createdCnt = boardMapper.boardCreate(parentDTO);
+			if(deletedCnt == 0 || createdCnt == 0) {
+				throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
+						"deleteRowCnt : " + deletedCnt + " createdCnt : " + createdCnt);
+			}
 		}
 		else {
-			for(BoardHistoryDTO childHistoryDTO : children) {
+			for(BoardHistoryDTO childHistoryDTO : deleteNodeChildren) {
 				childHistoryDTO.setParentNodePtr(parentPtrDTO);
+				updateHistoryParentPtr(childHistoryDTO);
 			}
+		}
+		int deletedCnt = boardHistoryMapper.deleteHistory(deletePtrDTO);
+		if(deletedCnt != 1) {
+			throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt);
 		}
 	}
 	
@@ -186,39 +281,38 @@ public class VersionManagementService {
 		return curPtrDTO;
 	}
 	
-	public void deleteArticle(NodePtrDTO deletePtrDTO) {
-		boolean isDeleteLeap = false;
-		List<BoardHistoryDTO> children;
-		BoardDTO newLeapDTO = null;
+	/**
+	 * 특정 게시글을 삭제합니다. 연관 브렌치를 모두 삭제합니다. (단, 형제 노드가 존재 할때까지)
+	 * @param leapPtrDTO 리프 노드만 주어야합니다.
+	 * @throws NotLeapNodeException 리프 노드가 아닌 것을 삭제할때 발생됩.
+	 */
+	public void deleteArticle(NodePtrDTO leapPtrDTO) throws NotLeapNodeException {
+		int deletedCnt = boardMapper.boardDelete(leapPtrDTO.toMap());
+		if(deletedCnt != 1) {
+			String leapPtrJson;
+			try {
+				leapPtrJson = Utils.jsonStringFromObject(leapPtrDTO);
+			} catch(JsonProcessingException e) {
+				leapPtrJson = "NodePtrDTO convert to json failed" + "\n" + leapPtrDTO;
+			}
+			throw new NotLeapNodeException("node 정보" + leapPtrJson);
+		}
 		
 		while(true) {
-			BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
+			BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(leapPtrDTO);
 			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrDTO();
-			children = boardHistoryMapper.getChildren(parentPtrDTO);
+
+			deletedCnt = boardHistoryMapper.deleteHistory(leapPtrDTO);
+			if(deletedCnt == 0) {
+				throw new RuntimeException("deleteArticle메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt);
+			}
+			
+			List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(parentPtrDTO);
 			
 			if(children.size() > 1) {
-				if(isDeleteLeap) {
-					newLeapDTO = new BoardDTO(deleteHistoryDTO);
-					boardMapper.boardCreate(newLeapDTO);
-				}
 				break;
 			}
-
-			children = boardHistoryMapper.getChildren(deletePtrDTO);
-			if(children.size() == 0) {
-				isDeleteLeap = true;
-				
-				boardMapper.boardDelete(deletePtrDTO.toMap());
-			}
-			else {
-				for(BoardHistoryDTO childHistoryDTO : children) {
-					childHistoryDTO.setParentNodePtr(parentPtrDTO);
-				}
-			}
-			int deletedCnt = boardHistoryMapper.deleteHistory(deletePtrDTO);
-			if(deletedCnt == 0) {
-				throw new RuntimeException("not deleted error");
-			}
+			leapPtrDTO = parentPtrDTO;
 		}
 	}
 }

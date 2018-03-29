@@ -3,10 +3,7 @@ package com.worksmobile.Assignment.Domain;
 import lombok.Getter;
 import lombok.Setter;
 
-public class BoardDTO {
-	@Setter @Getter private int board_id;
-	@Setter @Getter private int version;
-	@Setter @Getter private int branch;
+public class BoardDTO extends NodePtrDTO{
 	@Setter @Getter private String subject;
 	@Setter @Getter private String content;
 	@Setter @Getter private String created;
@@ -16,8 +13,13 @@ public class BoardDTO {
 	@Setter @Getter private long file_size;
 	
 	public BoardDTO() { }
+	/***
+	 * BoardHistoryDTO의 공통된 내용을 전부 가져옵니다.
+	 * 내용을 압축 해제 역할도 담당.
+	 * @param boardHistoryDTO
+	 */
 	public BoardDTO(BoardHistoryDTO boardHistoryDTO) {
-		setNodePtrDTO(new NodePtrDTO(boardHistoryDTO));
+		setNodePtrDTO(boardHistoryDTO);
 
 		subject = boardHistoryDTO.getHistory_subject();
 		// TODO : unzipping
