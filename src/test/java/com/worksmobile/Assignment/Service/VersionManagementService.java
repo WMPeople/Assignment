@@ -186,7 +186,7 @@ public class VersionManagementService {
 		return curPtrDTO;
 	}
 	
-	public void deleteUntilHasChild(NodePtrDTO deletePtrDTO) {
+	public void deleteArticle(NodePtrDTO deletePtrDTO) {
 		boolean isDeleteLeap = false;
 		List<BoardHistoryDTO> children;
 		BoardDTO newLeapDTO = null;
