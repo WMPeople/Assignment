@@ -2,7 +2,10 @@ package com.worksmobile.Assignment.Service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -12,7 +15,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.stereotype.Service;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,7 +44,7 @@ public class VersionManagementTest {
 	
 	private BoardDTO defaultBoardDTO;
 	
-	private BoardHistoryDTO defaultCreateDTO;
+	private BoardHistoryDTO defaultCreatedDTO;
 	
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
@@ -51,7 +53,7 @@ public class VersionManagementTest {
 		defaultBoardDTO.setContent("versionTestCont");;
 
 		Future<BoardHistoryDTO> asyncExpectHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
-		defaultCreateDTO = asyncExpectHistoryDTO.get();
+		defaultCreatedDTO = asyncExpectHistoryDTO.get();
 	}
 	
 	@Test
@@ -61,10 +63,10 @@ public class VersionManagementTest {
 
 	@Test
 	public void testCreateArticle() throws InterruptedException, ExecutionException, JsonProcessingException {
-		NodePtrDTO nodePtr = new NodePtrDTO(defaultCreateDTO);
+		NodePtrDTO nodePtr = defaultCreatedDTO;
 		BoardHistoryDTO dbHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
 		
-		Utils.assertConvertToJsonObject(defaultCreateDTO, dbHistoryDTO);
+		Utils.assertConvertToJsonObject(defaultCreatedDTO, dbHistoryDTO);
 		
 		defaultBoardDTO.setNodePtrDTO(nodePtr);
 		defaultBoardDTO.setCreated(dbHistoryDTO.getCreated());
@@ -81,7 +83,7 @@ public class VersionManagementTest {
 		Future<BoardHistoryDTO> asyncCreatedHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
 		BoardHistoryDTO createdHistoryDTO = asyncCreatedHistoryDTO.get();
 		
-		NodePtrDTO prevPtrDTO = new NodePtrDTO(createdHistoryDTO);
+		NodePtrDTO prevPtrDTO = createdHistoryDTO;
 		BoardDTO prevLeapDTO = boardMapper.viewDetail(prevPtrDTO.toMap());
 		NodePtrDTO newLeapPtrDTO = versionManagementService.recoverVersion(prevPtrDTO, prevPtrDTO);
 		
@@ -101,12 +103,15 @@ public class VersionManagementTest {
 		child.setSubject("childSub");
 		child.setContent("childCont");
 		
-		NodePtrDTO parentPtrDTO = new NodePtrDTO(defaultCreateDTO);
+		NodePtrDTO parentPtrDTO = defaultCreatedDTO;
 		NodePtrDTO resultPtrDTO = versionManagementService.modifyVersion(child, parentPtrDTO);
 		
+		BoardDTO parentBoardDTO = boardMapper.viewDetail(parentPtrDTO.toMap());
+		assertNull(parentBoardDTO);
 		BoardDTO leapBoardDTO = boardMapper.viewDetail(resultPtrDTO.toMap());
 		assertNotNull(leapBoardDTO);
-		assertEquals(defaultBoardDTO.getVersion() + 1, resultPtrDTO.getVersion());
+		int defaultVersion = defaultBoardDTO.getVersion() == null ? 0 : defaultBoardDTO.getVersion();
+		assertEquals((Integer)(defaultVersion + 1), resultPtrDTO.getVersion());
 		
 		child.setNodePtrDTO(resultPtrDTO);
 		Utils.assertConvertToJsonObject(child, leapBoardDTO);
@@ -118,12 +123,13 @@ public class VersionManagementTest {
 		child.setContent("childCont");
 		
 		NodePtrDTO childPtrDTO = versionManagementService.modifyVersion(child, parentPtrDTO);
+		child.setNodePtrDTO(childPtrDTO);
 		
 		BoardDTO leapBoardDTO = boardMapper.viewDetail(childPtrDTO.toMap());
 		assertNotNull(leapBoardDTO);
-		assertEquals(defaultBoardDTO.getVersion() + 1, childPtrDTO.getVersion());
+		int parentVersion = parentPtrDTO.getVersion() == null ? 0 : parentPtrDTO.getVersion();
+		assertEquals((Integer)(parentVersion + 1), childPtrDTO.getVersion());
 		
-		child.setNodePtrDTO(childPtrDTO);
 		Utils.assertConvertToJsonObject(child, leapBoardDTO);
 		
 		return childPtrDTO;
@@ -131,7 +137,7 @@ public class VersionManagementTest {
 	
 	@Test
 	public void testMakeModifyHasChild() throws JsonProcessingException {
-		NodePtrDTO parentPtrDTO = new NodePtrDTO(defaultCreateDTO);
+		NodePtrDTO parentPtrDTO = defaultCreatedDTO;
 
 		makeChild(parentPtrDTO);
 		makeChild(parentPtrDTO);
@@ -139,7 +145,7 @@ public class VersionManagementTest {
 	
 	@Test
 	public void testDeleteLeapNode() throws JsonProcessingException {
-		NodePtrDTO rootPtrDTO = new NodePtrDTO(defaultCreateDTO);
+		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
 
 		NodePtrDTO deletePtrDTO = makeChild(rootPtrDTO);
 		versionManagementService.deleteVersion(deletePtrDTO);
@@ -149,8 +155,8 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testDeleteHasChildNode() throws JsonProcessingException {
-		NodePtrDTO rootPtrDTO = new NodePtrDTO(defaultCreateDTO);
+	public void testDeleteWhenHasChildNode() throws JsonProcessingException {
+		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
 		
 		NodePtrDTO middlePtrDTO = makeChild(rootPtrDTO);
 		NodePtrDTO childPtrDTO = makeChild(middlePtrDTO);
@@ -160,18 +166,75 @@ public class VersionManagementTest {
 		BoardHistoryDTO childHistoryDTO = boardHistoryMapper.getHistory(childPtrDTO);
 		NodePtrDTO childParentPtrDTO = childHistoryDTO.getParentPtrDTO();
 		
-		Utils.assertConvertToJsonObject(childParentPtrDTO, rootPtrDTO);
+		assertEquals(rootPtrDTO, childParentPtrDTO);
 	}
 	
 	@Test
 	public void testDeleteHasChildrenNode() throws JsonProcessingException {
-		NodePtrDTO rootPtrDTO = new NodePtrDTO(defaultCreateDTO);
+		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
 		
 		NodePtrDTO middlePtrDTO = makeChild(rootPtrDTO);
 
-		for(int i = 0; i < 10; i++) {
-			makeChild(middlePtrDTO);
+		int childrenCnt = 10;
+		List<NodePtrDTO> childrenList = new ArrayList<>(childrenCnt);
+		for(int i = 0; i < childrenCnt; i++) {
+			childrenList.add(makeChild(middlePtrDTO));
 		}
-		// TODO : not completed!
+		
+		versionManagementService.deleteVersion(middlePtrDTO);
+		
+		for(NodePtrDTO child : childrenList) {
+			BoardHistoryDTO historyDTO = boardHistoryMapper.getHistory(child);
+			NodePtrDTO parentPtrDTO = historyDTO.getParentPtrDTO();
+			assertEquals(rootPtrDTO, parentPtrDTO);
+		}
+	}
+	
+	@Test
+	public void testDeleteArticle() throws JsonProcessingException, NotLeapNodeException {
+		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
+		
+		NodePtrDTO hasChildrenPtrDTO = makeChild(rootPtrDTO);
+		
+		int childrenCnt = 2;
+		List<NodePtrDTO> childrenList = new ArrayList<>(childrenCnt);
+		for(int i = 0; i < childrenCnt; i++) {
+			childrenList.add(makeChild(hasChildrenPtrDTO));
+		}
+		
+		NodePtrDTO hasChildPtrDTO = childrenList.get(0);
+		NodePtrDTO leapPtrDTO = makeChild(hasChildPtrDTO);
+		
+		versionManagementService.deleteArticle(leapPtrDTO);
+		
+	}
+	
+	@Test
+	public void testGetRelatedHistory() throws JsonProcessingException, NotLeapNodeException {
+		int childrenCnt = 2;
+		List<NodePtrDTO> nodePtrList = new ArrayList<>(1 + 1 + childrenCnt + 1);
+		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
+		nodePtrList.add(rootPtrDTO);
+		
+		NodePtrDTO hasChildrenPtrDTO = makeChild(rootPtrDTO);
+		nodePtrList.add(hasChildrenPtrDTO);
+		
+		List<NodePtrDTO> childrenList = new ArrayList<>(childrenCnt);
+		for(int i = 0; i < childrenCnt; i++) {
+			childrenList.add(makeChild(hasChildrenPtrDTO));
+		}
+		nodePtrList.addAll(childrenList);
+		
+		NodePtrDTO hasChildPtrDTO = childrenList.get(0);
+		NodePtrDTO leapPtrDTO = makeChild(hasChildPtrDTO);
+		nodePtrList.add(leapPtrDTO);
+		
+		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(leapPtrDTO);
+		assertNotNull(relatedHistoryList);
+		for(BoardHistoryDTO eleHistoryDTO : relatedHistoryList) {
+			assertNotNull(eleHistoryDTO);
+			NodePtrDTO eleNodePtr = eleHistoryDTO;
+			assertTrue(nodePtrList.contains(eleNodePtr));
+		}
 	}
 }
