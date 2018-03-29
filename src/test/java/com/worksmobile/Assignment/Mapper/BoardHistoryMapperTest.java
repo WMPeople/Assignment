@@ -92,10 +92,10 @@ public class BoardHistoryMapperTest {
 		}
 
 		BoardHistoryDTO afterHistoryDTO = beforeHistoryDTO;
-		if (beforeHistoryDTO.getParent_version() == 1) {
-			beforeHistoryDTO.setParent_version(2);
-		} else {
+		if (beforeHistoryDTO.getParent_version() == null) {
 			beforeHistoryDTO.setParent_version(1);
+		} else {
+			beforeHistoryDTO.setParent_version(null);
 		}
 
 		int updateRtn = boardHistoryMapper.updateHistoryParent(afterHistoryDTO);

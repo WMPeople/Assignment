@@ -9,9 +9,9 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	@Getter @Setter private String history_subject;
 	@Getter @Setter private byte[] history_content;
 
-	@Getter @Setter private int parent_board_id;
-	@Getter @Setter private int parent_version;
-	@Getter @Setter private int parent_branch;
+	@Getter @Setter private Integer parent_board_id = null;
+	@Getter @Setter private Integer parent_version = null;
+	@Getter @Setter private Integer parent_branch = null;
 	
 	@Setter @Getter private String file_name;
 	@Setter @Getter private byte[] file_data;

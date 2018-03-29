@@ -309,7 +309,7 @@ public class VersionManagementService {
 			
 			List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(parentPtrDTO);
 			
-			if(children.size() > 1) {
+			if(children.size() >= 1) {
 				break;
 			}
 			leapPtrDTO = parentPtrDTO;

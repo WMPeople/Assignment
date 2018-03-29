@@ -6,12 +6,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class NodePtrDTO {
-	@Getter @Setter protected int board_id;
-	@Getter @Setter protected int version;
-	@Getter @Setter protected int branch;
+	@Getter @Setter protected Integer board_id = null;
+	@Getter @Setter protected Integer version = null;
+	@Getter @Setter protected Integer branch = null;
 	
 	public NodePtrDTO() { }
-	public NodePtrDTO(int board_id, int version, int branch) {
+	public NodePtrDTO(Integer board_id, Integer version, Integer branch) {
 		this.board_id = board_id;
 		this.version = version;
 		this.branch = branch;

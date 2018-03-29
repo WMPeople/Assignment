@@ -110,7 +110,8 @@ public class VersionManagementTest {
 		assertNull(parentBoardDTO);
 		BoardDTO leapBoardDTO = boardMapper.viewDetail(resultPtrDTO.toMap());
 		assertNotNull(leapBoardDTO);
-		assertEquals(defaultBoardDTO.getVersion() + 1, resultPtrDTO.getVersion());
+		int defaultVersion = defaultBoardDTO.getVersion() == null ? 0 : defaultBoardDTO.getVersion();
+		assertEquals((Integer)(defaultVersion + 1), resultPtrDTO.getVersion());
 		
 		child.setNodePtrDTO(resultPtrDTO);
 		Utils.assertConvertToJsonObject(child, leapBoardDTO);
@@ -126,7 +127,8 @@ public class VersionManagementTest {
 		
 		BoardDTO leapBoardDTO = boardMapper.viewDetail(childPtrDTO.toMap());
 		assertNotNull(leapBoardDTO);
-		assertEquals(parentPtrDTO.getVersion() + 1, childPtrDTO.getVersion());
+		int parentVersion = parentPtrDTO.getVersion() == null ? 0 : parentPtrDTO.getVersion();
+		assertEquals((Integer)(parentVersion + 1), childPtrDTO.getVersion());
 		
 		Utils.assertConvertToJsonObject(child, leapBoardDTO);
 		
