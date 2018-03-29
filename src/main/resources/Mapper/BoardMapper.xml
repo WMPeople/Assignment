@@ -11,7 +11,7 @@
     </select>
     
     <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
-    	select board_id,version,branch,subject,content,created,file_name,file_size,file_data
+    	select board_id,version,branch,subject,content,created,file_name,file_data,file_size
     	from board
     	where board_id = #{board_id} and version = #{version} and branch = #{branch};
     </select>

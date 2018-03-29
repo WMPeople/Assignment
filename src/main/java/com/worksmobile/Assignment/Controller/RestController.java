@@ -3,7 +3,9 @@ package com.worksmobile.Assignment.Controller;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,12 +15,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.worksmobile.Assignment.Domain.BoardDTO;
+import com.worksmobile.Assignment.Domain.DiffNodePtrDTO;
+import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
 
 @org.springframework.web.bind.annotation.RestController
@@ -132,18 +137,31 @@ public class RestController {
 		return boardMapper.boardUpdate(board);
 	}
 	
-	//게시판 삭제
-	@RequestMapping(value = "/boards/{board_id}", method = RequestMethod.DELETE)
-	@ResponseBody
-	public String destroy(@PathVariable(value = "board_id") int board_id) throws Exception {
-		boardMapper.boardDelete(board_id);
-		return "success";
+//	//게시판 삭제
+//	@RequestMapping(value = "/boards/{board_id}", method = RequestMethod.DELETE)
+//	@ResponseBody
+//	public String destroy(@PathVariable(value = "board_id") int board_id) throws Exception {
+//		boardMapper.boardDelete(board_id);
+//		return "success";
+//	}
+	
+	//버전 관리 test
+	@RequestMapping(value = "/boards/diff", method = RequestMethod.POST)
+	public ModelAndView diff(DiffNodePtrDTO diffNodePtr) throws Exception {
+		NodePtrDTO left = diffNodePtr.getLeftPtrDTO();
+		NodePtrDTO right = diffNodePtr.getRightPtrDTO();
+		
+		
+		
+		return new ModelAndView("diff","list","boardHistoryList");
 	}
 	
 	//버전 관리 test
-	@RequestMapping(value = "/boards/temp", method = RequestMethod.GET)
-	public String boardTemp() throws Exception {
-	
-		return "boardTemp";
+
+	@RequestMapping(value = "/boards/management/{board_id}/{version}/{branch}", method = RequestMethod.GET)
+	public ModelAndView versionManagement(@PathVariable(value = "board_id") int board_id, 
+			@PathVariable(value = "version") int version, 
+			@PathVariable(value = "branch") int branch) throws Exception {
+		 return new ModelAndView("versionManagement","list","boardHistoryList");
 	}
 }
