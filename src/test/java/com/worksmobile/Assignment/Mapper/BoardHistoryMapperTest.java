@@ -1,8 +1,12 @@
 package com.worksmobile.Assignment.Mapper;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import java.io.IOException;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +21,7 @@ import com.worksmobile.Assignment.AssignmentApplication;
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
+import com.worksmobile.Assignment.Service.Compress;
 import com.worksmobile.Assignment.util.Utils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -60,13 +65,14 @@ public class BoardHistoryMapperTest {
 	}
 
 	@Test
-	public void testCreateHistory() throws JsonProcessingException {
+	public void testCreateHistory() throws IOException {
 		BoardDTO article = new BoardDTO();
 		article.setBoard_id(defaultBoardId);
 		article.setSubject("testInsert");
 		article.setContent("testContent");
 
-		BoardHistoryDTO createdHistoryDTO = new BoardHistoryDTO(article, defaultNodePtrDTO);
+		BoardHistoryDTO createdHistoryDTO = new BoardHistoryDTO(article, defaultNodePtrDTO, BoardHistoryDTO.CREATED);
+		createdHistoryDTO.setHistory_content(Compress.compress(article.getContent()));
 
 		BoardHistoryDTO check = boardHistoryMapper.getHistory(defaultNodePtrDTO);
 		if (check != null) {
@@ -138,7 +144,13 @@ public class BoardHistoryMapperTest {
 		if (boardHistoryDTO == null) {
 			boardHistoryMapper.createHistory(defaultHistoryDTO);
 		}
+		BoardHistoryDTO childDTO = boardHistoryDTO;
+		childDTO.setParentNodePtr(boardHistoryDTO);
+		childDTO.setVersion(boardHistoryDTO.getVersion() + 1);
+		boardHistoryMapper.createHistory(childDTO);
 		
-		// TODO : 미완성
+		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(boardHistoryDTO);
+		assertNotEquals(0, children.size());
+		assertEquals(childDTO, children.get(0));
 	}
 }

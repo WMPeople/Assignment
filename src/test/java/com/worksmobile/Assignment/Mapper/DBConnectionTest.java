@@ -3,6 +3,7 @@ package com.worksmobile.Assignment.Mapper;
 import static org.junit.Assert.assertNotNull;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
@@ -32,7 +33,7 @@ public class DBConnectionTest {
     }
  
     @Test
-    public void testConnection() throws Exception{
+    public void testConnection() throws SQLException {
         System.out.println("ds : "+ds);
         
         Connection con = ds.getConnection();

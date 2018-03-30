@@ -75,11 +75,34 @@ public class VersionManagementTest {
 		Utils.assertConvertToJsonObject(defaultBoardDTO, dbBoardDTO);
 	}
 	
-	// recoverVersion == make leap Ver.
+	@Test
+	public void testCreateSevenHundredThousandTextContentArticle() throws JsonProcessingException, InterruptedException, ExecutionException {
+		StringBuilder sevenHundredContent =  new StringBuilder();
+		for(int i = 0; i < 700000; i++) {
+			sevenHundredContent.append(i % 10);
+		}
+		
+		defaultBoardDTO = new BoardDTO();
+		defaultBoardDTO.setSubject("칠십만자가 들어가있습니다");
+		defaultBoardDTO.setContent(sevenHundredContent.toString());
+
+		Future<BoardHistoryDTO> asyncExpectHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
+		defaultCreatedDTO = asyncExpectHistoryDTO.get();
+		
+		NodePtrDTO nodePtr = defaultCreatedDTO;
+		BoardHistoryDTO dbHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
+		
+		Utils.assertConvertToJsonObject(defaultCreatedDTO, dbHistoryDTO);
+		
+		defaultBoardDTO.setNodePtrDTO(nodePtr);
+		defaultBoardDTO.setCreated(dbHistoryDTO.getCreated());
+		
+		BoardDTO dbBoardDTO = boardMapper.viewDetail(nodePtr.toMap());
+		Utils.assertConvertToJsonObject(defaultBoardDTO, dbBoardDTO);	
+	}
+	
 	@Test
 	public void testRecoverVersion() throws InterruptedException, ExecutionException, JsonProcessingException {
-		// TODO : Content zipping not completed.
-		defaultBoardDTO.setContent(null);
 		Future<BoardHistoryDTO> asyncCreatedHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
 		BoardHistoryDTO createdHistoryDTO = asyncCreatedHistoryDTO.get();
 		
@@ -206,7 +229,42 @@ public class VersionManagementTest {
 		NodePtrDTO leapPtrDTO = makeChild(hasChildPtrDTO);
 		
 		versionManagementService.deleteArticle(leapPtrDTO);
+	}
+	
+	@Test
+	public void testDeleteArticleHasOneChild() throws JsonProcessingException, NotLeapNodeException {
+		int generationCnt = 5;
+		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
+		generationList.add(defaultBoardDTO);
+		for(int i = 1; i < generationCnt; i++) {
+			generationList.add(makeChild(generationList.get(i - 1)));
+		}
 		
+		versionManagementService.deleteArticle(generationList.get(generationCnt - 1));
+	}
+	
+	@Test(expected=NotLeapNodeException.class)
+	public void testDeleteArticleShouldTrhowNotLeapNodeException() throws JsonProcessingException, NotLeapNodeException {
+		int generationCnt = 5;
+		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
+		generationList.add(defaultBoardDTO);
+		for(int i = 1; i < generationCnt; i++) {
+			generationList.add(makeChild(generationList.get(i - 1)));
+		}
+		
+		versionManagementService.deleteArticle(generationList.get(0));
+	}
+	
+	@Test(expected=NotLeapNodeException.class)
+	public void testGetRelatedHistoryhouldTrhowNotLeapNodeException() throws JsonProcessingException, NotLeapNodeException {
+		int generationCnt = 5;
+		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
+		generationList.add(defaultBoardDTO);
+		for(int i = 1; i < generationCnt; i++) {
+			generationList.add(makeChild(generationList.get(i - 1)));
+		}
+		
+		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(generationList.get(0));
 	}
 	
 	@Test
