@@ -1,5 +1,7 @@
 package com.worksmobile.Assignment.Domain;
 
+import java.io.IOException;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,21 +19,22 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	@Setter @Getter private byte[] file_data;
 	@Setter @Getter private long file_size;
 	
+	public static String CREATED = "Created";
+	
 	public BoardHistoryDTO() {};
 	/***
-	 * 게시글을 새롭게 만들때 사용. 공통된 내용을 전부 복사합니다.
-	 * 게시글 내용 압축도 담당.
+	 * 게시글을 새롭게 만들때 사용. (내용 제외)공통된 내용을 전부 복사합니다.
+	 * 중요! : 게시글 내용 압축은 담당하지 않습니다.
 	 * @param article 새로운 게시글의 내용.
 	 * @param nodePtrDTO 게시글의 포인터
+	 * @throws IOException 
 	 */
-	public BoardHistoryDTO(BoardDTO article, NodePtrDTO nodePtrDTO) {
+	public BoardHistoryDTO(BoardDTO article, NodePtrDTO nodePtrDTO, String status) {
 		board_id = nodePtrDTO.getBoard_id();
 		version = nodePtrDTO.getVersion() ;
 		branch = nodePtrDTO.getBranch();
-		status = "Created";
+		this.status = status;
 		history_subject = article.getSubject();
-		//created = null;
-		// TODO : article.getContent() conver to history_content. with zipping.
 	}
 	
 	public void setParentNodePtr(NodePtrDTO parentNodePtrDTO) {

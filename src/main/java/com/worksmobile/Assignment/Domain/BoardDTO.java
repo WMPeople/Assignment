@@ -14,16 +14,15 @@ public class BoardDTO extends NodePtrDTO{
 	
 	public BoardDTO() { }
 	/***
-	 * BoardHistoryDTO의 공통된 내용을 전부 가져옵니다.
-	 * 내용을 압축 해제 역할도 담당.
+	 * BoardHistoryDTO의 내용제외하고 공통된 내용을 전부 가져옵니다.
+	 * 중요! : 내용을 압축 해제 역할은 담당하지 않습니다.
 	 * @param boardHistoryDTO
 	 */
 	public BoardDTO(BoardHistoryDTO boardHistoryDTO) {
 		setNodePtrDTO(boardHistoryDTO);
 
 		subject = boardHistoryDTO.getHistory_subject();
-		// TODO : unzipping
-		//content = boardHistoryDTO.getHistory_content();
+		content = null;
 		created = boardHistoryDTO.getCreated();
 
 		file_name = boardHistoryDTO.getFile_name();
@@ -36,4 +35,5 @@ public class BoardDTO extends NodePtrDTO{
 		version = nodePtrDTO.getVersion();
 		branch = nodePtrDTO.getBranch();
 	}
+	
 }

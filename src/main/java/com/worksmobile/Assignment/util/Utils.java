@@ -6,7 +6,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Utils {
-
+	public static String jsonStringIfExceptionToString(Object object) {
+		String json = "";
+		try {
+			json = Utils.jsonStringFromObject(object);
+		} catch(JsonProcessingException jsonErr) {
+			jsonErr.printStackTrace();
+			json = object.toString();
+		}
+		return json;
+	}
     public static String jsonStringFromObject(Object object) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);

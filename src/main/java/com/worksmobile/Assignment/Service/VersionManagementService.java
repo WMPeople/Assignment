@@ -1,5 +1,6 @@
 package com.worksmobile.Assignment.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -69,13 +70,8 @@ public class VersionManagementService {
 	 */
 	public List<BoardHistoryDTO> getRelatedHistory(final NodePtrDTO leapPtrDTO) throws NotLeapNodeException{
 		if(!isLeap(leapPtrDTO)) {
-			String leapPtrJson;
-			try {
-				leapPtrJson = Utils.jsonStringFromObject(leapPtrDTO);
-			} catch(JsonProcessingException e) {
-				leapPtrJson = "NodePtrDTO convert to json failed" + "\n" + leapPtrDTO;
-			}
-			throw new NotLeapNodeException("node 정보" + leapPtrJson);
+			String leapPtrJson = Utils.jsonStringIfExceptionToString(leapPtrDTO);
+			throw new NotLeapNodeException("leap node 정보" + leapPtrJson);
 		}
 		List<BoardHistoryDTO> boardHistoryList = null;
 		boardHistoryList = boardHistoryMapper.getHistoryByBoardId(leapPtrDTO.getBoard_id());
@@ -83,13 +79,7 @@ public class VersionManagementService {
 		
 		BoardHistoryDTO leapHistoryDTO = getBoardHistory(boardHistoryList, leapPtrDTO);
 		if(leapHistoryDTO == null) {
-			String historyListJson = "";
-			try {
-				historyListJson = Utils.jsonStringFromObject(boardHistoryList);
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-				historyListJson = "parse error";
-			}
+			String historyListJson = Utils.jsonStringIfExceptionToString(boardHistoryList);
 			throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + leapPtrDTO + "\n" +
 										"listCnt : " + boardHistoryList.size() + "content : " + historyListJson);
 		}
@@ -114,12 +104,18 @@ public class VersionManagementService {
 	@Transactional
 	public Future<BoardHistoryDTO> createArticle(BoardDTO article) {
 		int last_board_id = boardMapper.getMaxBoardId();
-		last_board_id++;
-
-		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article, new NodePtrDTO(last_board_id, 1, 1));
+		NodePtrDTO newNodePtrDTO = new NodePtrDTO(last_board_id + 1, 1, 1);
+		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article, newNodePtrDTO, "Created");
+		try {
+			boardHistoryDTO.setHistory_content(Compress.compress(article.getContent()));
+		} catch(IOException e) {
+			e.printStackTrace();
+			String json = Utils.jsonStringIfExceptionToString(article);
+			throw new RuntimeException("createArticle메소드에서 게시글 내용을 압축에 실패하였습니다. \n게시글 : " + json);
+		}
 		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistoryDTO);
 		if(insertedRowCnt == 0) {
-			return null;
+			throw new RuntimeException("createArticle메소드에서 createHistory error" + boardHistoryDTO);
 		}
 		
 		NodePtrDTO nodePtr = boardHistoryDTO;
@@ -130,17 +126,16 @@ public class VersionManagementService {
 		
 		insertedRowCnt = boardMapper.boardCreate(article);
 		if(insertedRowCnt == 0) {
-			return null;
+			throw new RuntimeException("createArticle메소드에서 boardCreate error" + boardHistoryDTO);
 		}
 		
-		last_board_id++;
 		return new AsyncResult<BoardHistoryDTO> (boardHistoryDTO);
 	}
 	
 	/***
 	 * 버전 복구 기능입니다. board DB및  boardHistory 둘다 등록 됩니다.
 	 * @param recoverPtr 복구할 버전에 대한 포인터.
-	 * @param leapPtr 복구 후 부모가 될 포인터.
+	 * @param leapPtr 복구 후 부모가 될 리프 포인터.
 	 * @return 새롭게 등록된 버전에 대한 포인터.
 	 */
 	public NodePtrDTO recoverVersion(final NodePtrDTO recoverPtr, final NodePtrDTO leapPtr)
@@ -151,10 +146,26 @@ public class VersionManagementService {
 		leapHistoryDTO = boardHistoryMapper.getHistory(leapPtr);
 		if(leapHistoryDTO == null || recoverHistoryDTO == null)
 		{
-			throw new RuntimeException("게시글 이력이 존재하지 않습니다.");
+			String json = "";
+			try {
+				json = Utils.jsonStringFromObject(leapHistoryDTO);
+				json.concat(Utils.jsonStringFromObject(recoverHistoryDTO));
+			} catch(JsonProcessingException e) {
+				e.printStackTrace();
+				json = leapHistoryDTO.toString();
+				json += recoverHistoryDTO.toString();
+			}
+			throw new RuntimeException("recoverVersion에서 복구할 게시글 이력이 존재하지 않습니다. \nleapHistoryDTO : " + json);
 		}
 		
 		BoardDTO recoveredBoardDTO = new BoardDTO(recoverHistoryDTO);
+		try {
+			recoveredBoardDTO.setContent(Compress.deCompress(recoverHistoryDTO.getHistory_content()));
+		} catch (IOException e) {
+			e.printStackTrace();
+			String json = Utils.jsonStringIfExceptionToString(recoveredBoardDTO);
+			throw new RuntimeException("recoverVersion에서 게시글 내용을 압축해제 중 에러 발생. \nrecoveredBoardDTO : " + json);
+		}
 			
 		return createVersionWithBranch(recoveredBoardDTO, leapPtr, "recovered");
 	}
@@ -170,6 +181,15 @@ public class VersionManagementService {
 	}
 	
 	private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, final NodePtrDTO parentPtrDTO, final String status) {
+		byte[] compressedContent = null;
+		try {
+			compressedContent = Compress.compress(boardDTO.getContent());
+		} catch(IOException e) {
+			e.printStackTrace();
+			String json = Utils.jsonStringIfExceptionToString(boardDTO);
+			throw new RuntimeException("createVersionWithBranch메소드에서 게시글 내용을 압축에 실패하였습니다. \n게시글 : " + json);
+		}
+		
 		if(isLeap(parentPtrDTO)) {
 			int deletedCnt = boardMapper.boardDelete(parentPtrDTO.toMap());
 			if(deletedCnt != 1) {
@@ -182,8 +202,7 @@ public class VersionManagementService {
 		newBranchHistoryDTO.setVersion(parentPtrDTO.getVersion() + 1);
 		newBranchHistoryDTO.setStatus(status);
 		newBranchHistoryDTO.setHistory_subject(boardDTO.getSubject());
-		// TODO : zipping
-		newBranchHistoryDTO.setHistory_content(null);
+		newBranchHistoryDTO.setHistory_content(compressedContent);
 		newBranchHistoryDTO.setFile_name(boardDTO.getFile_name());
 		newBranchHistoryDTO.setFile_data(boardDTO.getFile_data());
 		newBranchHistoryDTO.setFile_size(boardDTO.getFile_size());
@@ -258,6 +277,14 @@ public class VersionManagementService {
 		if(deleteNodeChildren.size() == 0) {
 			BoardHistoryDTO parentHistoryDTO = boardHistoryMapper.getHistory(parentPtrDTO);
 			BoardDTO parentDTO = new BoardDTO(parentHistoryDTO);
+			try {
+				String content = Compress.deCompress(parentHistoryDTO.getHistory_content());
+				parentDTO.setContent(content);
+			} catch(IOException e) {
+				e.printStackTrace();
+				String history = Utils.jsonStringIfExceptionToString(parentHistoryDTO);
+				throw new RuntimeException("deleteVersion메소드에서 압축 해제 실패 \nhistoryDTO : " + history);
+			}
 			
 			int deletedCnt = boardMapper.boardDelete(deletePtrDTO.toMap());
 			int createdCnt = boardMapper.boardCreate(parentDTO);
@@ -308,6 +335,9 @@ public class VersionManagementService {
 		
 		while(true) {
 			BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(leapPtrDTO);
+			if(deleteHistoryDTO == null) {
+				break;
+			}
 			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrDTO();
 
 			deletedCnt = boardHistoryMapper.deleteHistory(leapPtrDTO);
