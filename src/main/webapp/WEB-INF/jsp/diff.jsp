@@ -11,18 +11,20 @@
 <HTML>
 <HEAD>
 <TITLE>Diff, Match and Patch: Demo of Diff</TITLE>
-<SCRIPT SRC="js/diff_match_patch.js"></SCRIPT>
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<SCRIPT SRC="${pageContext.request.contextPath}/js/diff_match_patch.js"></SCRIPT>
 </HEAD>
 
 <BODY>
-	<H1>Diff, Match and Patch</H1>
+	<H1>Diff,</H1> 
 	<H2>Demo of Diff</H2>
 
 	<P>Diff takes two texts and finds the differences. This
 		implementation works on a character by character basis. The result of
 		any diff may contain 'chaff', irrelevant small commonalities which
 		complicate the output. A post-diff cleanup algorithm factors out these
-		trivial commonalities.</P>
+		trivial commonalities.  ${list}  </P>
 
 	<SCRIPT>
 		var dmp = new diff_match_patch();

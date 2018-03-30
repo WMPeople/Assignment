@@ -1289,7 +1289,7 @@ diff_match_patch.prototype.diff_prettyHtml = function(diffs) {
        }
         
     }
-  }
+  
   
   html1.push('<br>-----------------------------------------------------</br>');
   return html1.join('')+html2.join('');

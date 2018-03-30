@@ -32,11 +32,6 @@
 			<span class="name">브랜치 : <span class="_group">${board.branch}</span> <span class="_company"></span></span>
 			<span class="date">최종 수정시간 :  ${board.created}</span>
 			<span class="date">첨부 파일 :   <a href="${path}/Assignment/boards/download/${board.board_id}/${board.version}/${board.branch}" name="file">${board.file_name}     </a> (${board.file_size})</span>
-			
-						
-								 
-
-			
 
 		<div class="cont _content translateArea" id="content"><p>
 		<span style="font-family: 나눔고딕, NanumGothic, sans-serif;">
@@ -48,16 +43,16 @@
 
 		<div class="btn_box _btn_area _no_print">
 			<form action="/Assignment/boards/update" method="post" >
-			<input name="board_id" type="text" value="${board.board_id}" style="display:none;">
-			<input name="board_id" type="text" value="${board.version}" style="display:none;">
-			<input name="board_id" type="text" value="${board.branch}" style="display:none;">
-            <input name="subject" type="text" value="${board.subject}" style="display:none;">
-            <input name="created" type="text" value="${board.created}" style="display:none;">
-            <input name="content" type="text" value="${board.content}" style="display:none;">
-            <input name="fileName" type="text" value="${board.file_name}" style="display:none;">
-            <button class="_edit_atc" type="submit">수정</button>
-            <button class="_delete_atc" type="button" onclick="btnDelete('${board.board_id}');">삭제</button>
-        </form>
+				<input name="board_id" type="text" value="${board.board_id}" style="display:none;">
+				<input name="version" type="text" value="${board.version}" style="display:none;">
+				<input name="branch" type="text" value="${board.branch}" style="display:none;">
+	            <input name="subject" type="text" value="${board.subject}" style="display:none;">
+	            <input name="created" type="text" value="${board.created}" style="display:none;">
+	            <input name="content" type="text" value="${board.content}" style="display:none;">
+	            <input name="fileName" type="text" value="${board.file_name}" style="display:none;">
+	            <button class="_edit_atc" type="submit">수정</button>
+	            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version},${board.branch});">삭제</button>
+       		</form>
 			
 		</div>
 		
@@ -65,19 +60,18 @@
 </div>
 <script>
 $(document).ready(function(){
-    /* 게시글 관련 */
-    // 1. 게시글 수정
-	
-    
+
  });
 
-function btnDelete(board_id){
+function btnDelete(board_id,version,branch){
     $.ajax({
         type: "DELETE",
-        url: "${path}/Assignment/boards/"+board_id,
+        url: "${path}/Assignment/boards/"+board_id+"/"+version+"/"+branch,
         success: function(result){
-           alert("삭제완료")
-           location.href = "/Assignment/";
+        	if(result == 'success'){
+        		alert("삭제완료");
+        		location.href = "/Assignment/";
+        	}
         }
     })
 }
