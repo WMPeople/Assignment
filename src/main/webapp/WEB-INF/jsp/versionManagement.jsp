@@ -17,9 +17,58 @@
 </head>
 <body>
     <h3>버전 관리 페이지</h3> 
-    <button class="btn btn-primary" style="float : left;" onclick="btnDiff();">선택한 버전 비교</button>
     
-    <table class="table">
+    <!--     DIFF 임 -->
+	<form method="post" name="diffForm">
+		<input name="board_id1" type="text" id="board_id1"value="0" style="display:none;">
+		<input name="version1" type="text" id="version1" value="0" style="display:none;">
+		<input name="branch1" type="text" id="branch1" value="0" style="display:none;">
+        <input name="board_id2" type="text" id="board_id2" value="2" style="display:none;">
+        <input name="version2" type="text" id="version2" value="1" style="display:none;">
+        <input name="branch2" type="text" id="branch2" value="1" style="display:none;">
+        <button class="btn btn-primary" type="button" onclick="diff();" >비교</button>
+	</form>
+
+  
+	
+	
+	
+<!--진짜 사용하는 것 -->	
+
+    
+<!--     <table class="table"> -->
+<!--         <tr> -->
+<!--             <th>체크박스</th> -->
+<!--             <th>게시물번호</th> -->
+<!--             <th>버전</th> -->
+<!--             <th>브랜치</th> -->
+<!--             <th>날짜</th> -->
+<!--             <th>상태</th> -->
+<!--             <th>동작</th> -->
+            
+<%--             <c:forEach var="boardHistory" items="${list}"> --%>
+<!--         <tr> -->
+<%--             <td><input type="checkbox" name="cbox[]" value="${boardHistory.board_id}-${boardHistory.version}-${boardHistory.branch}" onchange="cbox.remain_two(this);"></td> --%>
+<%--             <td>${boardHistory.board_id}</td> --%>
+<%--             <td>${boardHistory.version}</td> --%>
+<%--             <td>${boardHistory.branch}</td> --%>
+<%--             <td>${boardHistory.created}</td> --%>
+<%--             <td>${boardHistory.status}</td> --%>
+<!--        		<td> -->
+<%--        		<button class="btn btn-primary" id="btnDelete" onclick="btnVersionDelete(${boardHistory.board_id},${boardHistory.version},${boardHistory.branch})">삭제</button> --%>
+<%--        		<button class="btn btn-primary" id="btnRecover" onclick="btnReCover(${boardHistory.board_id},${boardHistory.version},${boardHistory.branch})">복원</button> --%>
+<!--        		</td> -->
+          
+
+<!--         </tr> -->
+<%--         </c:forEach> --%>
+<!--     </table> -->
+
+
+
+
+<!--테스트용 -->
+   <table class="table">
         <tr>
             <th>체크박스</th>
             <th>게시물번호</th>
@@ -28,41 +77,62 @@
             <th>날짜</th>
             <th>상태</th>
             <th>동작</th>
-            
-<%--             <c:forEach var="boardHistory" items="${list}"> --%>
-<!--         <tr> -->
-<%--             <td><input type="checkbox" name="cbox[]" value="${board.board_id}-${board.version}-${board.branch}" onchange="cbox.remain_two(this);"></td> --%>
-<%--             <td>${boardHistory.board_id}</td> --%>
-<%--             <td>${boardHistory.version}</td> --%>
-<%--             <td>${boardHistory.branch}</td> --%>
-<%--             <td>${boardHistory.created}</td> --%>
-<%--             <td>${boardHistory.status}</td> --%>
-<!--        		<td> -->
-<%--        		<button class="btn btn-primary" id="btnDelete" onclick="btnDelete('${board.board_id}')">삭제</button> --%>
-<%--        		<button class="btn btn-primary" id="btnRestore" onclick="btnRestore('${board.board_id}')">복원</button> --%>
-<!--        		</td> -->
+
+           
+        <tr>
+            <td><input type="checkbox" name="cbox[]" value="31-1-1" onchange="cbox.remain_two(this);"></td>
+            <td>31</td>
+            <td>1</td>
+            <td>1</td>
+            <td>234</td>
+            <td>boardHistory.status</td>
+       		<td>
+       		<button class="btn btn-primary" id="btnVersionDelete" onclick="btnVersionDelete(31,1,1)">삭제</button>
+       		<button class="btn btn-primary" id="btnVersionRecover" onclick="btnRecover(31,1,1)">복원</button>
+       		</td>
           
 
-<!--         </tr> -->
-<%--         </c:forEach> --%>
+        </tr>
+        
+         <tr>
+            <td><input type="checkbox" name="cbox[]" value="31-2-1" onchange="cbox.remain_two(this);"></td>
+            <td>31</td>
+            <td>2</td>
+            <td>1</td>
+            <td>234</td>
+            <td>boardHistory.status</td>
+       		<td>
+       		<button class="btn btn-primary" id="btnVersionDelete" onclick="btnVersionDelete(31,2,1)">삭제</button>
+       		<button class="btn btn-primary" id="btnVersionRecover" onclick="btnRecover(31,2,1)">복원</button>
+       		</td>
+          
+
+        </tr>
+        
+        
+          <tr>
+            <td><input type="checkbox" name="cbox[]" value="31-3-1" onchange="cbox.remain_two(this);"></td>
+            <td>31</td>
+            <td>3</td>
+            <td>1</td>
+            <td>234</td>
+            <td>boardHistory.status</td>
+       		<td>
+       		<button class="btn btn-primary" id="btnVersionDelete" onclick="btnVersionDelete(31,3,1)">삭제</button>
+       		<button class="btn btn-primary" id="btnVersionRecover" onclick="btnRecover(31,3,1)">복원</button>
+       		</td>
+          
+
+        </tr>
+        
     </table>
+
 <script>
 $(document).ready(function(){
-    
+	
  });
  
-function isTwoSelected() {  
-    var num = 0;  
-    $("input:checkbox:checked").each(function (index) {  
-        num += 1;  
-    });  
-    
-    if (num==2) return false;
-    if (num!=2) return true;
 
-//  
-}  
- 
 function remain_two_obj(prefix){
 	 
 	this.old = new Array();
@@ -96,44 +166,73 @@ function remain_two_obj(prefix){
 		}
 	}
 }
- 
-var cbox = new remain_two_obj('cbox');
- 
-function btnDelete(board_id){
-    $.ajax({
-        type: "DELETE",
-        url: "${path}/Assignment/boards/"+board_id,
-        success: function(result){
-           alert("삭제완료")
-           location.reload();
-        }
-    })
+var cbox = new remain_two_obj('cbox'); 
+
+function btnVersionDelete(board_id){
+	  $.ajax({
+	        type: "DELETE",
+	        url: "${path}/Assignment/boards/version/"+board_id+"/"+version+"/"+branch,
+	        success: function(result){
+	        	if(result == 'success'){
+	        		alert("삭제완료");
+	        		location.reload();
+	        	}
+	        	else{
+	        		alert("삭제실패");
+	        	}
+	        }
+	    })
 }
 
+function btnRecover(board_id,version,branch){
+	  $.ajax({
+	        type: "GET",
+	        url: "${path}/Assignment/boards/recover/"+board_id+"/"+version+"/"+branch,
+	        success: function(result){
+	        	if(result == 'success'){
+	        		alert("복원완료");
+	        		location.reload();
+	        	}
+	        	else{
+	        		alert("복원실패");
+	        	}
+	        }
+	    })
+}
 
-function btnDiff(board_id){
+function diff(){
 	
-	if(isTwoSelected()){
-		  $.ajax({
-		        type: "GET",
-		        url: "${path}/Assignment/boards/diff",
-		        data: 
-		        success: function(result){
-		        	location.href='/Assignment/'+result;
-		           
-		        }
-		    })
-		
+	var num = 0;  
+ 	var checkArr = [];
+ 
+ 	$(":checkbox[name='cbox[]']:checked").each(function (index){  
+    num += 1;  
+    checkArr.push($(this).val());
+ 	});  
+ 	
+	if (num==2){
+		 var firstNode = checkArr[0].split('-');
+		 var secondNode = checkArr[1].split('-');
+
+	     $("#board_id1").val(firstNode[0]);
+	     $("#version1").val(firstNode[1]);
+	     $("#branch1").val(firstNode[2]);
+	     
+	     $("#board_id2").val(secondNode[0]);
+	     $("#version2").val(secondNode[1]);
+	     $("#branch2").val(secondNode[2]);
 	}
-	else{
-		alert("두개 선택하세요.");
-	}
-  
+	var fm = document.diffForm;
+	fm.method='post';
+	fm.action='${path}/Assignment/boards/diff';
+	fm.submit();
+
 }
 
-function btnVersion(){
-	function_click();
-}
+
+    
+
+
 
 </script>
 </body>

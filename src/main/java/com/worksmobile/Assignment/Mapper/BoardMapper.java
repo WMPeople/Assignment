@@ -2,6 +2,8 @@ package com.worksmobile.Assignment.Mapper;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.ibatis.annotations.Mapper;
 import com.worksmobile.Assignment.Domain.BoardDTO;
 
@@ -17,7 +19,7 @@ public interface BoardMapper {
 	
 	public BoardDTO viewDetail(HashMap<String, Integer> parmas) ;
 	
-	public BoardDTO boardFileDownload(int board_id, int version, int branch) ;
+	public BoardDTO boardFileDownload(HashMap<String,Integer> params) ;
 
 	public int getMaxBoardId();
 	

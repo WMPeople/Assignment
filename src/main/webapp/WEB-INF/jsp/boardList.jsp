@@ -17,10 +17,8 @@
 </head>
 <body>
     <h3>게시물 목록</h3> 
-    <button class="btn btn-primary" style="float : right;" onclick="btnCreate();">글쓰기</button>
-     <button class="btn btn-primary" style="float : right;" onclick="btnDiff(10,1,1,10,2,1);">비교테스트</button>
-     
-   
+    <button class="btn btn-primary" style="float : right;" onclick="location.href='/Assignment/boards'">글쓰기</button>
+ 
     <table class="table">
         <tr>
             <th>게시물번호</th>
@@ -38,7 +36,7 @@
        		<td><a href="${path}/Assignment/boards/${board.board_id}/${board.version}/${board.branch}">${board.subject}</a></td>
             <td>${board.created}</td>
 			<td> 
-			<button class="btn btn-primary" id="btnDelete" onclick="btnDelete('${board.board_id}')">삭제</button> 
+			<button class="btn btn-primary" id="btnDelete" onclick="btnDelete(${board.board_id},${board.version},${board.branch});">삭제</button> 
 			<button class="btn btn-primary" id="btnManagement" onclick="location.href='${path}/Assignment/boards/management/${board.board_id}/${board.version}/${board.branch}'">버전관리</button>
 			</td> 
 
@@ -50,58 +48,17 @@ $(document).ready(function(){
     /* 게시글 관련 */
     // 1. 게시글 수정
 
-
-
  });
  
-function btnDelete(board_id){
+function btnDelete(board_id,version,branch){
     $.ajax({
         type: "DELETE",
-        url: "${path}/Assignment/boards/"+board_id,
+        url: "${path}/Assignment/boards/"+board_id+"/"+version+"/"+branch,
         success: function(result){
-           alert("삭제완료")
-           location.reload();
-        }
-    })
-}
-
-function btnCreate(board_id){
-    $.ajax({
-        type: "GET",
-        url: "${path}/Assignment/boards/",
-        success: function(result){
-        	location.href='/Assignment/'+result;
-           
-        }
-    })
-}
-
-function btnDiff(board_id1,version1,branch1,board_id2,version2,branch2){
-	var temp1 = {board_id1 : board_id1 , version1 : version1, branch1 : branch1 , board_id2 : board_id2 ,version2: version2, branch2 : branch2 };
-	var a =JSON.stringify(temp1);
-	
-	
-    $.ajax({
-        type: "POST",
-        contentType: "charset=UTF-8",
-        data: a,
-        processData: false,
-        url: "boards/diff",
-        success: function(){
-        }
-    })
-}
-
-function btnManagement(board_id,version,branch){
-    $.ajax({
-        type: "GET",
-        url: "boards/management",
-        data: board_id,version,branch,
-        success: function(result){
-        	console.log(result);
-        	location.href="boards/management";
-        	
-        	
+        	if(result == 'success'){
+        		alert("삭제완료");
+        		location.href = "/Assignment/";
+        	}
         }
     })
 }

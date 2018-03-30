@@ -47,6 +47,8 @@
 <!-- 			<button type="button" class="btn _temp">임시저장</button> -->
 <!-- 			<button type="button" class="btn _preview">미리보기</button> -->
 				<input type="text" name="board_id" id="board_id" style="display:none;"  value="<%= request.getParameter("board_id") %>">
+				<input type="text" name="version" id="version" style="display:none;"  value="<%= request.getParameter("version") %>">
+				<input type="text" name="branch" id="branch" style="display:none;"  value="<%= request.getParameter("branch") %>">
 			 <button type="button" id= "btnUpdate"class="btn tx_point _save"><strong>수정</strong></button>
 		</div>
 	</div>
@@ -57,8 +59,9 @@
 $(document).ready(function(){
     
     $("#btnUpdate").click(function(){
-    	var formData = {board_id : $("#board_id").val() , subject: $("#subject").val() , content :  $("#content").val()}
-        console.log(formData)
+    	var formData = {board_id : Number($("#board_id").val()) , version : Number($("#version").val()) , branch : Number($("#branch").val()) , subject: $("#subject").val() , content :  $("#content").val()}
+
+    	console.log(formData)
     	$.ajax({                
             type: "PUT",
             contentType: "application/json; charset=UTF-8",
@@ -67,11 +70,17 @@ $(document).ready(function(){
             url: "/Assignment/boards",
 // update 버그 수정
             //             data: formData, fileUp,
-            success: function(){
+            success: function(result){
+            	if(result == 1){
+            		alert("보드 수정 완료");
+                    location.href = "/Assignment/";
+            	}
+            	else{
+            		alert("수정 실패");
+            	}
             	
-                alert("보드 생성 완료");
-                location.href = "/Assignment/";
-                console.log(formData)
+                
+                
             }
         	,
         	error : function(xhr, status, error) {

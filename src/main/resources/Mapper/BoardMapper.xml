@@ -40,7 +40,7 @@
         where board_id = #{board_id} and version = #{version} and branch = #{branch};
     </update>
     
-    <select id="boardFileDownload" parameterType="int" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
+    <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
         SELECT file_name,file_data,file_size
         FROM board
         where board_id = #{board_id} and version = #{version} and branch = #{branch};
