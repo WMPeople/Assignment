@@ -308,6 +308,9 @@ public class VersionManagementService {
 		
 		while(true) {
 			BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(leapPtrDTO);
+			if(deleteHistoryDTO == null) {
+				break;
+			}
 			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrDTO();
 
 			deletedCnt = boardHistoryMapper.deleteHistory(leapPtrDTO);
