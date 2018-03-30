@@ -83,7 +83,15 @@ public class VersionManagementService {
 		
 		BoardHistoryDTO leapHistoryDTO = getBoardHistory(boardHistoryList, leapPtrDTO);
 		if(leapHistoryDTO == null) {
-			throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + leapPtrDTO);
+			String historyListJson = "";
+			try {
+				historyListJson = Utils.jsonStringFromObject(boardHistoryList);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+				historyListJson = "parse error";
+			}
+			throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + leapPtrDTO + "\n" +
+										"listCnt : " + boardHistoryList.size() + "content : " + historyListJson);
 		}
 
 		while(leapHistoryDTO != null) {
