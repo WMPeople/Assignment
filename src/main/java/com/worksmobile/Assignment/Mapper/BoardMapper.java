@@ -9,7 +9,6 @@ import com.worksmobile.Assignment.Domain.BoardDTO;
 
 @Mapper
 public interface BoardMapper {
-	public List<BoardDTO> boardList() ;
 
 	public int boardCreate(BoardDTO board) ;
 
@@ -22,5 +21,9 @@ public interface BoardMapper {
 	public BoardDTO boardFileDownload(HashMap<String,Integer> params) ;
 
 	public int getMaxBoardId();
+	
+	public List<BoardDTO> articleList(HashMap<String, Integer> params);
+	
+	public int articleGetCount();
 	
 }

@@ -29,6 +29,7 @@
 	<SCRIPT>
 		var dmp = new diff_match_patch();
 
+		
 		function launch() {
 			var text1 = document.getElementById('text1').value;
 			var text2 = document.getElementById('text2').value;
@@ -52,32 +53,22 @@
 			document.getElementById('outputdiv').innerHTML = ds + '<BR>Time: '
 					+ (ms_end - ms_start) / 1000 + 's';
 			
-
 			
-
 		}
 	</SCRIPT>
-
 	<FORM action="#" onsubmit="return false">
 		<TABLE WIDTH="100%">
 			<TR>
 				<TD WIDTH="50%">
 					<H3>Text Version 1:</H3> <TEXTAREA ID="text1" STYLE="width: 100%"
-						ROWS=10>I am the very model of a modern Major-General,
-I've information vegetable, animal, and mineral,
-I know the kings of England, and I quote the fights historical,
-From Marathon to Waterloo, in order categorical.</TEXTAREA>
+						ROWS=10>${leftContent}</TEXTAREA>
 				</TD>
 				<TD WIDTH="50%">
 					<H3>Text Version 2:</H3> <TEXTAREA ID="text2" STYLE="width: 100%"
-						ROWS=10>I am the very model of a cartoon individual,
-My animation's comical, unusual, and whimsical,
-I'm quite adept at funny gags, comedic theory I have read,
-From wicked puns and stupid jokes to anvils that drop on your head.</TEXTAREA>
+						ROWS=10>${rightContent}</TEXTAREA>
 				</TD>
 			</TR>
 		</TABLE>
-
 		<P>
 			<INPUT TYPE="button" onClick="launch()" VALUE="Compute Diff">
 		</P>

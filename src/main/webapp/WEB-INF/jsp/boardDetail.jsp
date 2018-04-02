@@ -40,7 +40,6 @@
 		</font></span></p>
 		</div>
 
-
 		<div class="btn_box _btn_area _no_print">
 			<form action="/Assignment/boards/update" method="post" >
 				<input name="board_id" type="text" value="${board.board_id}" style="display:none;">
@@ -49,13 +48,13 @@
 	            <input name="subject" type="text" value="${board.subject}" style="display:none;">
 	            <input name="created" type="text" value="${board.created}" style="display:none;">
 	            <input name="content" type="text" value="${board.content}" style="display:none;">
-	            <input name="fileName" type="text" value="${board.file_name}" style="display:none;">
+	            <input name="file_name" type="text" value="${board.file_name}" style="display:none;">
+	            <input name="file_data" type="file" value="${board.file_data}" style="display:none;">
+	            <input name="file_size" type="text" value="${board.file_size}" style="display:none;">
 	            <button class="_edit_atc" type="submit">수정</button>
 	            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version},${board.branch});">삭제</button>
        		</form>
-			
 		</div>
-		
 	</div>
 </div>
 <script>
@@ -76,8 +75,6 @@ function btnDelete(board_id,version,branch){
     })
 }
 
-
 </script>
-
 </body>
 </html>

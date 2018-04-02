@@ -5,45 +5,67 @@
  
 <mapper namespace="com.worksmobile.Assignment.Mapper.BoardMapper">
 	
-	<select id="boardList" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
-        select board_id,version,branch,subject,content,created
-        from board;
-    </select>
+   <!-- offset위치부터 noOfRecords 수 만큼 select 한다. -->
+   <select id="articleList" resultType="com.worksmobile.Assignment.Domain.BoardDTO" parameterType="hashmap">
+		SELECT * FROM board LIMIT #{offset}, #{noOfRecords}  
+	</select>
+	
+	<select id="articleGetCount" resultType="int">
+		SELECT count(*) FROM board;  
+	</select>
+	    
     
     <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
-    	select board_id,version,branch,subject,content,created,file_name,file_data,file_size
-    	from board
-    	where board_id = #{board_id} and version = #{version} and branch = #{branch};
+    	SELECT board_id,version,branch,subject,content,created,file_name,file_data,file_size
+    	FROM board
+    	WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
     </select>
     
-<!--     board_history와 동시에 넣어져야함. -->
+	<!--  board_history와 동시에 넣어져야함. -->
     <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
-        insert into board
+       
+    	<if test="#{file_name} != null">
+        INSERT INTO board
         (board_id,version,branch,subject,content,created,file_name,file_data,file_size)
         VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created},#{file_name},#{file_data,jdbcType=BLOB},#{file_size});
+        </if>
+        
+        <if test="#{file_name} == null">
+        INSERT INTO board
+        (board_id,version,branch,subject,content,created)
+        VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created});
+        </if>
+    
+    
+    
     </insert>
     
     <!--  게시물 삭제시 이력 모두 삭제되어야 한다. -->
     <delete id="boardDelete" parameterType="hashmap">
-        delete from board 
-        where board_id = #{board_id} and version = #{version} and branch = #{branch};
+        DELETE FROM board 
+        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
     </delete>
     
-    <!-- 히스토리 먼저 처리하고 boardUpdate 실행됨 -->
+    <!--  히스토리 먼저 처리하고 boardUpdate 실행됨 -->
     <!--  우선 업데이트시 파일은 건드리지 않는다. -->
     <update id="boardUpdate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
         UPDATE board 
-        set 
+        SET 
         subject = #{subject},
         content = #{content},
-        created = CURRENT_TIMESTAMP
-        where board_id = #{board_id} and version = #{version} and branch = #{branch};
+        created = CURRENT_TIMESTAMP,
+        <if test="#{file_name} != null">
+        file_name = #{file_name},
+        file_data = #{file_data},
+        file_size = #{file_size}
+  		</if>
+        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
     </update>
     
     <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
         SELECT file_name,file_data,file_size
         FROM board
-        where board_id = #{board_id} and version = #{version} and branch = #{branch};
+        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
     </select>
     
     <select id="getMaxBoardId" resultType="int">
