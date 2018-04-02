@@ -8,7 +8,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +22,7 @@ import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
-import com.worksmobile.Assignment.Mapper.TempBoardMapper;
+import com.worksmobile.Assignment.Mapper.BoardTempMapper;
 import com.worksmobile.Assignment.util.Utils;
 
 @RunWith(SpringRunner.class)
@@ -40,7 +39,7 @@ public class VersionManagementTest {
 	BoardHistoryMapper boardHistoryMapper;
 
 	@Autowired
-	TempBoardMapper recnetVersionMapper;
+	BoardTempMapper boardTempMapper;
 	
 	private BoardDTO defaultBoardDTO;
 	
@@ -52,8 +51,7 @@ public class VersionManagementTest {
 		defaultBoardDTO.setSubject("versionTestSub");
 		defaultBoardDTO.setContent("versionTestCont");;
 
-		Future<BoardHistoryDTO> asyncExpectHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
-		defaultCreatedDTO = asyncExpectHistoryDTO.get();
+		defaultCreatedDTO = versionManagementService.createArticle(defaultBoardDTO);
 	}
 	
 	@Test
@@ -86,8 +84,7 @@ public class VersionManagementTest {
 		defaultBoardDTO.setSubject("칠십만자가 들어가있습니다");
 		defaultBoardDTO.setContent(sevenHundredContent.toString());
 
-		Future<BoardHistoryDTO> asyncExpectHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
-		defaultCreatedDTO = asyncExpectHistoryDTO.get();
+		defaultCreatedDTO = versionManagementService.createArticle(defaultBoardDTO);
 		
 		NodePtrDTO nodePtr = defaultCreatedDTO;
 		BoardHistoryDTO dbHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
@@ -103,8 +100,7 @@ public class VersionManagementTest {
 	
 	@Test
 	public void testRecoverVersion() throws InterruptedException, ExecutionException, JsonProcessingException {
-		Future<BoardHistoryDTO> asyncCreatedHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
-		BoardHistoryDTO createdHistoryDTO = asyncCreatedHistoryDTO.get();
+		BoardHistoryDTO createdHistoryDTO= versionManagementService.createArticle(defaultBoardDTO);
 		
 		NodePtrDTO prevPtrDTO = createdHistoryDTO;
 		BoardDTO prevLeapDTO = boardMapper.viewDetail(prevPtrDTO.toMap());
