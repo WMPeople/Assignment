@@ -71,7 +71,7 @@ public class BoardHistoryMapperTest {
 		article.setSubject("testInsert");
 		article.setContent("testContent");
 
-		BoardHistoryDTO createdHistoryDTO = new BoardHistoryDTO(article, defaultNodePtrDTO, BoardHistoryDTO.STATUS_CREATED);
+		BoardHistoryDTO createdHistoryDTO = new BoardHistoryDTO(article, defaultNodePtrDTO, BoardHistoryDTO.CREATED);
 		createdHistoryDTO.setHistory_content(Compress.compress(article.getContent()));
 
 		BoardHistoryDTO check = boardHistoryMapper.getHistory(defaultNodePtrDTO);
@@ -143,14 +143,11 @@ public class BoardHistoryMapperTest {
 
 		if (boardHistoryDTO == null) {
 			boardHistoryMapper.createHistory(defaultHistoryDTO);
-			boardHistoryDTO = boardHistoryMapper.getHistory(defaultHistoryDTO);
 		}
-		assertNotNull(boardHistoryDTO);
-		BoardHistoryDTO childDTO = boardHistoryDTO.clone();
+		BoardHistoryDTO childDTO = boardHistoryDTO;
 		childDTO.setParentNodePtr(boardHistoryDTO);
 		childDTO.setVersion(boardHistoryDTO.getVersion() + 1);
 		boardHistoryMapper.createHistory(childDTO);
-		childDTO = boardHistoryMapper.getHistory(childDTO);
 		
 		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(boardHistoryDTO);
 		assertNotEquals(0, children.size());

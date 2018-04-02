@@ -45,10 +45,5 @@ public class NodePtrDTO {
 				.append("branch : ").append(branch);
 		return builder.toString();
 	}
-	
-	@Override
-	public NodePtrDTO clone() {
-		return new NodePtrDTO(board_id, version, branch);
-	}
 }
 

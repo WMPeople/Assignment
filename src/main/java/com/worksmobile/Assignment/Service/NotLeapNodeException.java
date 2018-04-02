@@ -1,12 +1,12 @@
 package com.worksmobile.Assignment.Service;
 
-public class NotLeafNodeException extends Exception {
+public class NotLeapNodeException extends Exception {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public NotLeafNodeException(String message) {
+	public NotLeapNodeException(String message) {
 		super(message);
 	}
 }

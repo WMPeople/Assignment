@@ -36,21 +36,4 @@ public class BoardDTO extends NodePtrDTO{
 		branch = nodePtrDTO.getBranch();
 	}
 	
-	@Override
-	public BoardDTO clone() {
-		BoardDTO rtn = new BoardDTO();
-		rtn.board_id = board_id;
-		rtn.version = version;
-		rtn.branch = branch;
-		
-		rtn.subject = subject;
-		rtn.content = content;
-		rtn.created = created;
-		
-		rtn.file_name = file_name;
-		rtn.file_size = file_size;
-		rtn.file_data = file_data;
-		
-		return rtn;
-	}
 }
