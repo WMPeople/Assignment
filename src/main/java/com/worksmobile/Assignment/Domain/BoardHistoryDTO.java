@@ -19,7 +19,8 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	@Setter @Getter private byte[] file_data;
 	@Setter @Getter private long file_size;
 	
-	public static String CREATED = "Created";
+	public static final String STATUS_CREATED = "Created";
+	public static final String STATUS_MODIFIED = "Modified";
 	
 	public BoardHistoryDTO() {};
 	/***
@@ -45,5 +46,32 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	
 	public NodePtrDTO getParentPtrDTO() {
 		return new NodePtrDTO(parent_board_id, parent_version, parent_branch);
+	}
+	
+	@Override
+	public BoardHistoryDTO clone() {
+		BoardHistoryDTO rtn = new BoardHistoryDTO();
+		rtn.board_id = board_id;
+		rtn.version = version;
+		rtn.branch = branch;
+
+		rtn.created = created;
+		rtn.status = status;
+		rtn.history_subject = history_subject;
+		if(history_content != null) {
+			rtn.history_content = history_content.clone();
+		}
+		
+		rtn.parent_board_id = parent_board_id;
+		rtn.parent_version = parent_version;
+		rtn.parent_branch = parent_branch;
+		
+		rtn.file_name = file_name;
+		if(file_data != null) {
+			rtn.file_data = file_data.clone();
+		}
+		rtn.file_size = file_size;
+		
+		return rtn;
 	}
 }

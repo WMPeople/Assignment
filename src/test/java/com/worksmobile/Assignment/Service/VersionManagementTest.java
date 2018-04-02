@@ -5,10 +5,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +23,6 @@ import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
-import com.worksmobile.Assignment.Mapper.TempBoardMapper;
 import com.worksmobile.Assignment.util.Utils;
 
 @RunWith(SpringRunner.class)
@@ -39,11 +38,7 @@ public class VersionManagementTest {
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
 
-	@Autowired
-	TempBoardMapper recnetVersionMapper;
-	
 	private BoardDTO defaultBoardDTO;
-	
 	private BoardHistoryDTO defaultCreatedDTO;
 	
 	@Before
@@ -52,8 +47,7 @@ public class VersionManagementTest {
 		defaultBoardDTO.setSubject("versionTestSub");
 		defaultBoardDTO.setContent("versionTestCont");;
 
-		Future<BoardHistoryDTO> asyncExpectHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
-		defaultCreatedDTO = asyncExpectHistoryDTO.get();
+		defaultCreatedDTO = versionManagementService.createArticle(defaultBoardDTO);
 	}
 	
 	@Test
@@ -62,7 +56,7 @@ public class VersionManagementTest {
 	}
 
 	@Test
-	public void testCreateArticle() throws InterruptedException, ExecutionException, JsonProcessingException {
+	public void testCreateArticle() throws InterruptedException, ExecutionException, IOException {
 		NodePtrDTO nodePtr = defaultCreatedDTO;
 		BoardHistoryDTO dbHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
 		
@@ -73,6 +67,10 @@ public class VersionManagementTest {
 		
 		BoardDTO dbBoardDTO = boardMapper.viewDetail(nodePtr.toMap());
 		Utils.assertConvertToJsonObject(defaultBoardDTO, dbBoardDTO);
+		
+		BoardDTO boardDTOCopyFromHistory = new BoardDTO(dbHistoryDTO);
+		boardDTOCopyFromHistory.setContent(Compress.deCompress(dbHistoryDTO.getHistory_content()));
+		Utils.assertConvertToJsonObject(boardDTOCopyFromHistory, dbBoardDTO);
 	}
 	
 	@Test
@@ -86,8 +84,7 @@ public class VersionManagementTest {
 		defaultBoardDTO.setSubject("칠십만자가 들어가있습니다");
 		defaultBoardDTO.setContent(sevenHundredContent.toString());
 
-		Future<BoardHistoryDTO> asyncExpectHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
-		defaultCreatedDTO = asyncExpectHistoryDTO.get();
+		defaultCreatedDTO = versionManagementService.createArticle(defaultBoardDTO);
 		
 		NodePtrDTO nodePtr = defaultCreatedDTO;
 		BoardHistoryDTO dbHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
@@ -102,9 +99,8 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testRecoverVersion() throws InterruptedException, ExecutionException, JsonProcessingException {
-		Future<BoardHistoryDTO> asyncCreatedHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
-		BoardHistoryDTO createdHistoryDTO = asyncCreatedHistoryDTO.get();
+	public void testRecoverVersion() throws InterruptedException, ExecutionException, JsonProcessingException, NotLeafNodeException {
+		BoardHistoryDTO createdHistoryDTO = versionManagementService.createArticle(defaultBoardDTO);
 		
 		NodePtrDTO prevPtrDTO = createdHistoryDTO;
 		BoardDTO prevLeapDTO = boardMapper.viewDetail(prevPtrDTO.toMap());
@@ -214,7 +210,7 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testDeleteArticle() throws JsonProcessingException, NotLeapNodeException {
+	public void testDeleteArticle() throws JsonProcessingException, NotLeafNodeException {
 		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
 		
 		NodePtrDTO hasChildrenPtrDTO = makeChild(rootPtrDTO);
@@ -232,7 +228,7 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testDeleteArticleHasOneChild() throws JsonProcessingException, NotLeapNodeException {
+	public void testDeleteArticleHasOneChild() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
 		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
 		generationList.add(defaultBoardDTO);
@@ -243,8 +239,8 @@ public class VersionManagementTest {
 		versionManagementService.deleteArticle(generationList.get(generationCnt - 1));
 	}
 	
-	@Test(expected=NotLeapNodeException.class)
-	public void testDeleteArticleShouldTrhowNotLeapNodeException() throws JsonProcessingException, NotLeapNodeException {
+	@Test(expected=NotLeafNodeException.class)
+	public void testDeleteArticleShouldTrhowNotLeapNodeException() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
 		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
 		generationList.add(defaultBoardDTO);
@@ -255,8 +251,8 @@ public class VersionManagementTest {
 		versionManagementService.deleteArticle(generationList.get(0));
 	}
 	
-	@Test(expected=NotLeapNodeException.class)
-	public void testGetRelatedHistoryhouldTrhowNotLeapNodeException() throws JsonProcessingException, NotLeapNodeException {
+	@Test(expected=NotLeafNodeException.class)
+	public void testGetRelatedHistoryhouldTrhowNotLeapNodeException() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
 		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
 		generationList.add(defaultBoardDTO);
@@ -264,11 +260,12 @@ public class VersionManagementTest {
 			generationList.add(makeChild(generationList.get(i - 1)));
 		}
 		
+		@SuppressWarnings("unused")
 		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(generationList.get(0));
 	}
 	
 	@Test
-	public void testGetRelatedHistory() throws JsonProcessingException, NotLeapNodeException {
+	public void testGetRelatedHistory() throws JsonProcessingException, NotLeafNodeException {
 		int childrenCnt = 2;
 		List<NodePtrDTO> nodePtrList = new ArrayList<>(1 + 1 + childrenCnt + 1);
 		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
