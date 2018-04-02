@@ -287,9 +287,19 @@ public class VersionManagementService {
 			}
 			
 			int deletedCnt = boardMapper.boardDelete(deletePtrDTO.toMap());
+			if(deletedCnt != 1) {
+				String json = Utils.jsonStringIfExceptionToString(deletePtrDTO);
+				throw new RuntimeException("deleteVersion메소드에서 게시글 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
+			};
+
+			deletedCnt = boardHistoryMapper.deleteHistory(deletePtrDTO);
+			if(deletedCnt != 1) {
+				String json = Utils.jsonStringIfExceptionToString(deletePtrDTO);
+				throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
+			}
 			if(isLeaf(parentDTO)) {
 				int createdCnt = boardMapper.boardCreate(parentDTO);
-				if(deletedCnt == 0 || createdCnt == 0) {
+				if(createdCnt == 0) {
 					throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
 							"deleteRowCnt : " + deletedCnt + " createdCnt : " + createdCnt);
 				}
@@ -300,10 +310,11 @@ public class VersionManagementService {
 				childHistoryDTO.setParentNodePtr(parentPtrDTO);
 				updateHistoryParentPtr(childHistoryDTO);
 			}
-		}
-		int deletedCnt = boardHistoryMapper.deleteHistory(deletePtrDTO);
-		if(deletedCnt != 1) {
-			throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt);
+			int deletedCnt = boardHistoryMapper.deleteHistory(deletePtrDTO);
+			if(deletedCnt != 1) {
+				String json = Utils.jsonStringIfExceptionToString(deletePtrDTO);
+				throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
+			}
 		}
 	}
 	
