@@ -100,9 +100,8 @@ public class VersionManagementService {
 	 * @param article 게시글에 대한 정보.
 	 * @return 새로운 게시글을 가리키는 포인터.
 	 */
-	@Async
 	@Transactional
-	public Future<BoardHistoryDTO> createArticle(BoardDTO article) {
+	public BoardHistoryDTO createArticle(BoardDTO article) {
 		int last_board_id = boardMapper.getMaxBoardId();
 		NodePtrDTO newNodePtrDTO = new NodePtrDTO(last_board_id + 1, 1, 1);
 		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article, newNodePtrDTO, "Created");
@@ -129,7 +128,7 @@ public class VersionManagementService {
 			throw new RuntimeException("createArticle메소드에서 boardCreate error" + boardHistoryDTO);
 		}
 		
-		return new AsyncResult<BoardHistoryDTO> (boardHistoryDTO);
+		return boardHistoryDTO;
 	}
 	
 	/***

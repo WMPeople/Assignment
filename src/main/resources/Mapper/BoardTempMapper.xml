@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+ 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="com.worksmobile.Assignment.Mapper.BoardTempMapper">
+	
+	<select id="boardList" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
+        SELECT board_id,version,branch,subject,content,created
+        FROM board_temp;
+    </select>
+    
+    <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
+    	SELECT board_id,version,branch,subject,content,created,file_name,file_data,file_size
+    	FROM board_temp
+    	WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+    </select>
+    
+<!--     board_history와 동시에 넣어져야함. -->
+    <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
+        INSERT INTO board_temp
+        (board_id,version,branch,subject,content,created,file_name,file_data,file_size)
+        VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created},#{file_name},#{file_data,jdbcType=BLOB},#{file_size});
+    </insert>
+    
+    <!--  게시물 삭제시 이력 모두 삭제되어야 한다. -->
+    <delete id="boardDelete" parameterType="hashmap">
+        DELETE from board_temp
+        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+    </delete>
+    
+    <!-- 히스토리 먼저 처리하고 boardUpdate 실행됨 -->
+    <!--  우선 업데이트시 파일은 건드리지 않는다. -->
+    <update id="boardUpdate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
+        UPDATE board_temp
+        SET 
+        subject = #{subject},
+        content = #{content},
+        created = CURRENT_TIMESTAMP
+        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+    </update>
+    
+    <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
+        SELECT file_name,file_data,file_size
+        FROM board_temp
+        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+    </select>
+</mapper>
