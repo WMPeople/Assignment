@@ -71,7 +71,7 @@ public class BoardHistoryMapperTest {
 		article.setSubject("testInsert");
 		article.setContent("testContent");
 
-		BoardHistoryDTO createdHistoryDTO = new BoardHistoryDTO(article, defaultNodePtrDTO, BoardHistoryDTO.CREATED);
+		BoardHistoryDTO createdHistoryDTO = new BoardHistoryDTO(article, defaultNodePtrDTO, BoardHistoryDTO.STATUS_CREATED);
 		createdHistoryDTO.setHistory_content(Compress.compress(article.getContent()));
 
 		BoardHistoryDTO check = boardHistoryMapper.getHistory(defaultNodePtrDTO);

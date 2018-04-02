@@ -80,7 +80,6 @@
 $(document).ready(function(){
     /* 게시글 관련 */
     // 1. 게시글 수정
-
  });
  
 function btnDelete(board_id,version,branch){
@@ -102,7 +101,6 @@ function btnDelete(board_id,version,branch){
 function goPage(pages, lines) {
     location.href = '?' + "pages=" + pages;
 }
-
 </script>
 </body>
 </html>

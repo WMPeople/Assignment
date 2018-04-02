@@ -38,15 +38,7 @@
 			</ul>
 			
 			<textarea  name="content" id="content" style="min-height: 500px; min-weight: 500px;" ></textarea>
-	<!--      	<input type="text" name="content" id="content" class="itxt content _title"> -->
 			<div class="btn_area _btn_area">
-	<!-- 			<p class="next"> -->
-	<!-- 				<button type="button" class="btn _cancel">작성취소</button> -->
-	<!-- 				<button type="button" class="btn _atc_delete">삭제</button> -->
-	<!-- 			</p> -->
-	<!-- 			<button type="button" class="btn _temp">임시저장</button> -->
-	<!-- 			<button type="button" class="btn _preview">미리보기</button> -->
-	
 				 <button type="button" id= "btnCreate"class="btn tx_point _save"><strong>확인</strong></button>
 			</div>
 		</div>

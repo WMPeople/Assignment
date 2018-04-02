@@ -1,5 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+    
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
@@ -35,23 +39,24 @@
 
 		<div class="cont _content translateArea" id="content"><p>
 		<span style="font-family: 나눔고딕, NanumGothic, sans-serif;">
-		<font class="NaverTrans-Parent"><font class="NaverTrans-Child"> ${board.content}
+		<font class="NaverTrans-Parent"><font class="NaverTrans-Child"> 
+		<pre>${board.content}</pre>	
 		</font>
 		</font></span></p>
 		</div>
 
 		<div class="btn_box _btn_area _no_print">
 			<form action="/Assignment/boards/update" method="post" >
-				<input name="board_id" type="text" value="${board.board_id}" style="display:none;">
-				<input name="version" type="text" value="${board.version}" style="display:none;">
-				<input name="branch" type="text" value="${board.branch}" style="display:none;">
-	            <input name="subject" type="text" value="${board.subject}" style="display:none;">
-	            <input name="created" type="text" value="${board.created}" style="display:none;">
-	            <input name="content" type="text" value="${board.content}" style="display:none;">
-	            <input name="file_name" type="text" value="${board.file_name}" style="display:none;">
-	            <input name="file_data" type="file" value="${board.file_data}" style="display:none;">
-	            <input name="file_size" type="text" value="${board.file_size}" style="display:none;">
-	            <button class="_edit_atc" type="submit">수정</button>
+				<input name="board_id" type="text" id="board_id" value="${board.board_id}" style="display:none;">
+				<input name="version" type="text" id="version" value="${board.version}" style="display:none;">
+				<input name="branch" type="text" id="branch" value="${board.branch}" style="display:none;">
+	            <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">
+	            <input name="created" type="text" id="created" value="${board.created}" style="display:none;">
+	            <input name="content" type="text" id="content" value="${board.content}" style="display:none;">
+	            <input name="file_name" type="text" id="file_name" value="${board.file_name}" style="display:none;">
+	            <input name="file_data" type="file" id="file_data" value="${board.file_data}" style="display:none;">
+	            <input name="file_size" type="text" id="file_size" value="${board.file_size}" style="display:none;">
+	            <button class="_edit_atc" type="submit">수정</button>	
 	            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version},${board.branch});">삭제</button>
        		</form>
 		</div>
@@ -59,7 +64,9 @@
 </div>
 <script>
 $(document).ready(function(){
-
+	var text = $('#content > pre').text().replace(/\n/g, "<br>");
+	$('body > div > div.infor._infor > div.btn_box._btn_area._no_print > form > input[type="text"]:nth-child(6)').val(text);
+// 	$('#content').val($('#content > pre').text());
  });
 
 function btnDelete(board_id,version,branch){
@@ -74,6 +81,7 @@ function btnDelete(board_id,version,branch){
         }
     })
 }
+
 
 </script>
 </body>

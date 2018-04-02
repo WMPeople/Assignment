@@ -52,7 +52,7 @@
 				</ul>
 
 				<textarea name="content" id="content"
-					style="min-height: 500px; min-weight: 500px;"><%=request.getParameter("content")%></textarea>
+					style="min-height: 500px; min-weight: 500px;">${param.content} </textarea>
 				<!--      	<input type="text" name="content" id="content" class="itxt content _title"> -->
 				<div class="btn_area _btn_area">
 					<!-- 			<p class="next"> -->
@@ -61,13 +61,9 @@
 					<!-- 			</p> -->
 					<!-- 			<button type="button" class="btn _temp">임시저장</button> -->
 					<!-- 			<button type="button" class="btn _preview">미리보기</button> -->
-					<input type="text" name="board_id" id="board_id"
-						style="display: none;"
-						value="<%=request.getParameter("board_id")%>"> <input
-						type="text" name="version" id="version" style="display: none;"
-						value="<%=request.getParameter("version")%>"> <input
-						type="text" name="branch" id="branch" style="display: none;"
-						value="<%=request.getParameter("branch")%>">
+					<input type="text" name="board_id" id="board_id"style="display: none;" value="<%=request.getParameter("board_id")%>"> 
+					<input type="text" name="version" id="version" style="display: none;" value="<%=request.getParameter("version")%>"> 
+					<input type="text" name="branch" id="branch" style="display: none;" value="<%=request.getParameter("branch")%>">
 					<button type="button" id="btnUpdate" class="btn tx_point _save">
 						<strong>수정</strong>
 					</button>
@@ -81,6 +77,8 @@ $(document).ready(function(){
 	  $("#fileUpdate").click(function(){
 	    	 document.getElementById('test').innerHTML='<input type="file" id="fileUp" name="fileUp" />'
 	     });
+	  var replaceText = $('#content').val().replace(/<br>/g, '\n');
+ 	 $('#content').val(replaceText);
 
 });
 $("#btnUpdate").click(function(){

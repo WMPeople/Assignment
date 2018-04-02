@@ -16,7 +16,9 @@
 <title>버전 관리 페이지</title>
 </head>
 <body>
-    <h3>버전 관리 페이지</h3> 
+	
+
+    <h3>버전 관리 페이지 <button TYPE="BUTTON" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/Assignment'">홈으로</button></h3> 
     
     <!--     DIFF 임 -->
 	<form method="post" name="diffForm">
@@ -60,7 +62,7 @@
 	               </c:when>
 	               	<c:otherwise>
 			       		<button class="btn btn-primary" id="btnDelete" 
-			       		onclick="btnDelete(${boardHistory.board_id},${boardHistory.version},${boardHistory.branch})">삭제</button>
+			       		onclick="btnVersionDelete(${boardHistory.board_id},${boardHistory.version},${boardHistory.branch})">삭제</button>
 					</c:otherwise>
 			</c:choose>
        
@@ -178,13 +180,13 @@ function btnDiff(){
 		 var firstNode = checkArr[0].split('-');
 		 var secondNode = checkArr[1].split('-');
 	
-	     $("#board_id1").val(firstNode[0]);
-	     $("#version1").val(firstNode[1]);
-	     $("#branch1").val(firstNode[2]);
+	     $("#board_id1").val(Number(firstNode[0]));
+	     $("#version1").val(Number(firstNode[1]));
+	     $("#branch1").val(Number(firstNode[2]));
 	     
-	     $("#board_id2").val(secondNode[0]);
-	     $("#version2").val(secondNode[1]);
-	     $("#branch2").val(secondNode[2]);
+	     $("#board_id2").val(Number(secondNode[0]));
+	     $("#version2").val(Number(secondNode[1]));
+	     $("#branch2").val(Number(secondNode[2]));
 	}
 	var fm = document.diffForm;
 	fm.method='post';

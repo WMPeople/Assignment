@@ -308,22 +308,15 @@ public class RestController {
 	
 	//버전 비교
 	@RequestMapping(value = "/boards/diff", method = RequestMethod.POST)
-	public ModelAndView diff(String board_id1, 
-			 String version1,
-			 String branch1 ,
-			 String board_id2, 
-			 String version2, 
-			 String branch2) throws Exception {
+	public ModelAndView diff(int board_id1, 
+			 int version1,
+			 int branch1 ,
+			 int board_id2, 
+			 int version2, 
+			 int branch2) throws Exception {
 		
-		int number1 = Integer.parseInt(board_id1);
-		int number2 = Integer.parseInt(version1);
-		int number3 = Integer.parseInt(branch1);
-		int number4 = Integer.parseInt(board_id2);
-		int number5 = Integer.parseInt(version2);
-		int number6 = Integer.parseInt(branch2);
-		
-		NodePtrDTO left= new NodePtrDTO(number1,number2,number3);
-		NodePtrDTO right= new NodePtrDTO(number4,number5,number6);
+		NodePtrDTO left= new NodePtrDTO(board_id1,version1,branch1);
+		NodePtrDTO right= new NodePtrDTO(board_id2,version2,branch2);
 		
 		String leftContent = Compress.deCompress(boardHistoryMapper.getHistory(left).getHistory_content());
 		String rightContent = Compress.deCompress(boardHistoryMapper.getHistory(right).getHistory_content());

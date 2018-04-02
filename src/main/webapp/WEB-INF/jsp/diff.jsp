@@ -17,7 +17,7 @@
 </HEAD>
 
 <BODY>
-	<H1>Diff,</H1> 
+	<H3>Diff,<button TYPE="BUTTON" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/Assignment'">홈으로</button></H3> 
 	<H2>Demo of Diff</H2>
 
 	<P>Diff takes two texts and finds the differences. This

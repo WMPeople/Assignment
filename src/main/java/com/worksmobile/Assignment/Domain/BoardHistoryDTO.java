@@ -19,7 +19,7 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	@Setter @Getter private byte[] file_data;
 	@Setter @Getter private long file_size;
 	
-	public static String CREATED = "Created";
+	public static String STATUS_CREATED = "Created";
 	
 	public BoardHistoryDTO() {};
 	/***
