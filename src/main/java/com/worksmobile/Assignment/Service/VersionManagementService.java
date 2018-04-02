@@ -193,7 +193,8 @@ public class VersionManagementService {
 		if(isLeap(parentPtrDTO)) {
 			int deletedCnt = boardMapper.boardDelete(parentPtrDTO.toMap());
 			if(deletedCnt != 1) {
-				throw new RuntimeException("delete cnt expected 1 but " + deletedCnt);
+				String json = Utils.jsonStringIfExceptionToString(parentPtrDTO);
+				throw new RuntimeException("delete cnt expected 1 but " + deletedCnt + "\n parentPtrDTO :" + json);
 			}
 		}
 		
