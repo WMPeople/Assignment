@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Before;
@@ -75,7 +76,10 @@ public class CompressTest {
 	
 	@Test
 	public void testDBEquals() throws IOException {
-		List<BoardDTO> boardList = boardMapper.boardList();
+		HashMap<String, Integer> map = new HashMap<>();
+		map.put("offset", 0);
+		map.put("noOfRecords", 1000);
+		List<BoardDTO> boardList = boardMapper.articleList(map);
 		List<String> contentStrList = new ArrayList<>(boardList.size());
 		List<byte[]> historyContentList = new ArrayList<>(boardList.size());
 		List<Boolean> compressResult = new ArrayList<>(boardList.size());

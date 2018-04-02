@@ -143,14 +143,15 @@ public class BoardHistoryMapperTest {
 
 		if (boardHistoryDTO == null) {
 			boardHistoryMapper.createHistory(defaultHistoryDTO);
+			boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
 		}
-		BoardHistoryDTO childDTO = boardHistoryDTO;
-		childDTO.setParentNodePtr(boardHistoryDTO);
-		childDTO.setVersion(boardHistoryDTO.getVersion() + 1);
-		boardHistoryMapper.createHistory(childDTO);
+		assertNotNull(boardHistoryDTO);
+		boardHistoryDTO.setParentNodePtr(boardHistoryDTO);
+		boardHistoryDTO.setVersion(boardHistoryDTO.getVersion() + 1);
+		boardHistoryMapper.createHistory(boardHistoryDTO);
 		
-		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(boardHistoryDTO);
+		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(defaultNodePtrDTO);
 		assertNotEquals(0, children.size());
-		assertEquals(childDTO, children.get(0));
+		assertEquals(boardHistoryDTO, children.get(0));
 	}
 }

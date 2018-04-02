@@ -210,7 +210,7 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testDeleteArticle() throws JsonProcessingException, NotLeapNodeException {
+	public void testDeleteArticle() throws JsonProcessingException, NotLeafNodeException {
 		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
 		
 		NodePtrDTO hasChildrenPtrDTO = makeChild(rootPtrDTO);
@@ -228,7 +228,7 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testDeleteArticleHasOneChild() throws JsonProcessingException, NotLeapNodeException {
+	public void testDeleteArticleHasOneChild() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
 		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
 		generationList.add(defaultBoardDTO);
@@ -239,8 +239,8 @@ public class VersionManagementTest {
 		versionManagementService.deleteArticle(generationList.get(generationCnt - 1));
 	}
 	
-	@Test(expected=NotLeapNodeException.class)
-	public void testDeleteArticleShouldTrhowNotLeapNodeException() throws JsonProcessingException, NotLeapNodeException {
+	@Test(expected=NotLeafNodeException.class)
+	public void testDeleteArticleShouldTrhowNotLeafNodeException() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
 		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
 		generationList.add(defaultBoardDTO);
@@ -251,8 +251,8 @@ public class VersionManagementTest {
 		versionManagementService.deleteArticle(generationList.get(0));
 	}
 	
-	@Test(expected=NotLeapNodeException.class)
-	public void testGetRelatedHistoryhouldTrhowNotLeapNodeException() throws JsonProcessingException, NotLeapNodeException {
+	@Test(expected=NotLeafNodeException.class)
+	public void testGetRelatedHistoryhouldTrhowNotLeafNodeException() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
 		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
 		generationList.add(defaultBoardDTO);
@@ -264,7 +264,7 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testGetRelatedHistory() throws JsonProcessingException, NotLeapNodeException {
+	public void testGetRelatedHistory() throws JsonProcessingException, NotLeafNodeException {
 		int childrenCnt = 2;
 		List<NodePtrDTO> nodePtrList = new ArrayList<>(1 + 1 + childrenCnt + 1);
 		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
