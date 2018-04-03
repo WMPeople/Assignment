@@ -37,6 +37,7 @@
             <th>게시물번호</th>
             <th>버전</th>
             <th>브랜치</th>
+            <th>제목</th>
             <th>날짜</th>
             <th>상태</th>
             <th>동작</th>
@@ -49,6 +50,7 @@
             <td>${boardHistory.board_id}</td>
             <td>${boardHistory.version}</td>
             <td>${boardHistory.branch}</td>
+            <td><a href="${path}/Assignment/history/${boardHistory.board_id}/${boardHistory.version}/${boardHistory.branch}">${boardHistory.history_subject}</a></td>
             <td>${boardHistory.created}</td>
             <td>${boardHistory.status}</td>
        		<td>

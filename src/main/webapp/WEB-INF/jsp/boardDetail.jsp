@@ -44,22 +44,24 @@
 		</font>
 		</font></span></p>
 		</div>
-
-		<div class="btn_box _btn_area _no_print">
-			<form action="/Assignment/boards/update" method="post" >
-				<input name="board_id" type="text" id="board_id" value="${board.board_id}" style="display:none;">
-				<input name="version" type="text" id="version" value="${board.version}" style="display:none;">
-				<input name="branch" type="text" id="branch" value="${board.branch}" style="display:none;">
-	            <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">
-	            <input name="created" type="text" id="created" value="${board.created}" style="display:none;">
-	            <input name="content" type="text" id="content" value="${board.content}" style="display:none;">
-	            <input name="file_name" type="text" id="file_name" value="${board.file_name}" style="display:none;">
-	            <input name="file_data" type="file" id="file_data" value="${board.file_data}" style="display:none;">
-	            <input name="file_size" type="text" id="file_size" value="${board.file_size}" style="display:none;">
-	            <button class="_edit_atc" type="submit">수정</button>	
-	            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version},${board.branch});">삭제</button>
-       		</form>
-		</div>
+		
+		<c:if test="${isHistory eq 0}">
+			<div class="btn_box _btn_area _no_print">
+				<form action="/Assignment/boards/update" method="post" >
+					<input name="board_id" type="text" id="board_id" value="${board.board_id}" style="display:none;">
+					<input name="version" type="text" id="version" value="${board.version}" style="display:none;">
+					<input name="branch" type="text" id="branch" value="${board.branch}" style="display:none;">
+		            <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">
+		            <input name="created" type="text" id="created" value="${board.created}" style="display:none;">
+		            <input name="content" type="text" id="content" value="${board.content}" style="display:none;">
+		            <input name="file_name" type="text" id="file_name" value="${board.file_name}" style="display:none;">
+		            <input name="file_data" type="file" id="file_data" value="${board.file_data}" style="display:none;">
+		            <input name="file_size" type="text" id="file_size" value="${board.file_size}" style="display:none;">
+		            <button class="_edit_atc" type="submit">수정</button>	
+		            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version},${board.branch});">삭제</button>
+	       		</form>
+			</div>
+		</c:if>
 	</div>
 </div>
 <script>

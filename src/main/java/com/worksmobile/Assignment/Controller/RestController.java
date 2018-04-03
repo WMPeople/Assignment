@@ -1,5 +1,6 @@
 package com.worksmobile.Assignment.Controller;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -101,7 +102,12 @@ public class RestController {
 		
 		BoardDTO board = boardMapper.viewDetail(params);
 		
-		return new ModelAndView("boardDetail","board",board);
+		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.addObject("board", board);
+		modelAndView.addObject("isHistory", 0);
+		
+		modelAndView.setViewName("boardDetail");
+		return modelAndView;
 	}
 	
 	/***
@@ -374,5 +380,42 @@ public class RestController {
 		return map;
 	}
 	
+	/***
+	 * 게시물 상세보기 입니다.
+	 * @param board_id 상세 조회 할 게시물의 board_id
+	 * @param version 상세 조회 할 게시물의 version
+	 * @param branch 상세 조회 할 게시물의 branch
+	 * @return 상세보기 화면과 게시물 내용이 맵 형태로 리턴됩니다.
+	 */
+	@RequestMapping(value = "/history/{board_id}/{version}/{branch}", method = RequestMethod.GET)
+	@ResponseBody
+	public ModelAndView history(@PathVariable(value = "board_id") int board_id, 
+			@PathVariable(value = "version") int version, 
+			@PathVariable(value = "branch") int branch) {
+		
+		NodePtrDTO node = new NodePtrDTO(board_id,version,branch);
+		
+		BoardHistoryDTO boardHistory = boardHistoryMapper.getHistory(node);
+		BoardDTO board = new BoardDTO(boardHistory);
+		
+		String deCompreesedContent = "";
+		try {
+			deCompreesedContent = Compress.deCompress(boardHistory.getHistory_content());
+		} catch (IOException e) {
+			e.printStackTrace();
+			deCompreesedContent = "압축 해제 실패";
+			throw new RuntimeException(e);
+		}
+		board.setContent(deCompreesedContent);
+		
+		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.addObject("board", board);
+		modelAndView.addObject("isHistory", 1);
+		
+		modelAndView.setViewName("boardDetail");
+		
+		return modelAndView;
+		
+	}
 	
 }
