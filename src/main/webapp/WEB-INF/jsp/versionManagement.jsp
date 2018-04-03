@@ -60,12 +60,9 @@
 	               </c:when>
 	               	<c:otherwise>
 			       		<button class="btn btn-primary" id="btnDelete" 
-			       		onclick="btnVersionDelete(${boardHistory.board_id},${boardHistory.version})">삭제</button>
+			       		onclick="btnDelete(${boardHistory.board_id},${boardHistory.version})">삭제</button>
 					</c:otherwise>
 			</c:choose>
-       
-       		 
-    
        		</td>
         </tr>
         </c:forEach>

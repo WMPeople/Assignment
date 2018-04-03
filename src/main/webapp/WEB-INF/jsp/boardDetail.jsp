@@ -70,7 +70,7 @@ $(document).ready(function(){
 // 	$('#content').val($('#content > pre').text());
  });
 
-function btnDelete(board_id,version,branch){
+function btnDelete(board_id,version){
     $.ajax({
         type: "DELETE",
         url: "${path}/Assignment/boards/"+board_id+"/"+version,

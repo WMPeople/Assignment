@@ -27,7 +27,7 @@
     	<if test="#{file_id} != null">
         INSERT INTO board
         (board_id,version,subject,content,created,file_id)
-        VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created},#{file_id});
+        VALUES (#{board_id}, #{version},#{subject},#{content},#{created},#{file_id});
         </if>
         
         <if test="#{file_id} == null">
