@@ -16,9 +16,9 @@
 	    
     
     <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
-    	SELECT board_id,version,branch,subject,content,created,file_name,file_data,file_size
+    	SELECT board_id,version,subject,content,created,file_name,file_data,file_size
     	FROM board
-    	WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+    	WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
 	<!--  board_history와 동시에 넣어져야함. -->
@@ -26,14 +26,14 @@
        
     	<if test="#{file_name} != null">
         INSERT INTO board
-        (board_id,version,branch,subject,content,created,file_name,file_data,file_size)
-        VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created},#{file_name},#{file_data,jdbcType=BLOB},#{file_size});
+        (board_id,version,subject,content,created,file_name,file_data,file_size)
+        VALUES (#{board_id}, #{version},#{subject},#{content},#{created},#{file_name},#{file_data,jdbcType=BLOB},#{file_size});
         </if>
         
         <if test="#{file_name} == null">
         INSERT INTO board
-        (board_id,version,branch,subject,content,created)
-        VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created});
+        (board_id,version,subject,content,created)
+        VALUES (#{board_id}, #{version},#{subject},#{content},#{created});
         </if>
     
     
@@ -43,7 +43,7 @@
     <!--  게시물 삭제시 이력 모두 삭제되어야 한다. -->
     <delete id="boardDelete" parameterType="hashmap">
         DELETE FROM board 
-        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+        WHERE board_id = #{board_id} AND version = #{version};
     </delete>
     
     <!--  히스토리 먼저 처리하고 boardUpdate 실행됨 -->
@@ -59,13 +59,13 @@
         file_data = #{file_data},
         file_size = #{file_size}
   		</if>
-        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+        WHERE board_id = #{board_id} AND version = #{version};
     </update>
     
     <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
         SELECT file_name,file_data,file_size
         FROM board
-        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+        WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
     <select id="getMaxBoardId" resultType="int">
