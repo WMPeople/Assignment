@@ -33,9 +33,8 @@
 		<div class="infor _infor">
 			<span class="name">게시물 번호 : <span class="_group">${board.board_id}</span> <span class="_company"></span></span>
 			<span class="name">버전 : <span class="_group">${board.version}</span> <span class="_company"></span></span>
-			<span class="name">브랜치 : <span class="_group">${board.branch}</span> <span class="_company"></span></span>
 			<span class="date">최종 수정시간 :  ${board.created}</span>
-			<span class="date">첨부 파일 :   <a href="${path}/Assignment/boards/download/${board.board_id}/${board.version}/${board.branch}" name="file">${board.file_name}     </a> (${board.file_size})</span>
+			<span class="date">첨부 파일 :   <a href="${path}/Assignment/boards/download/${board.board_id}/${board.version}" name="file">${board.file_name}     </a> (${board.file_size})</span>
 
 		<div class="cont _content translateArea" id="content"><p>
 		<span style="font-family: 나눔고딕, NanumGothic, sans-serif;">
@@ -50,15 +49,14 @@
 				<form action="/Assignment/boards/update" method="post" >
 					<input name="board_id" type="text" id="board_id" value="${board.board_id}" style="display:none;">
 					<input name="version" type="text" id="version" value="${board.version}" style="display:none;">
-					<input name="branch" type="text" id="branch" value="${board.branch}" style="display:none;">
 		            <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">
 		            <input name="created" type="text" id="created" value="${board.created}" style="display:none;">
 		            <input name="content" type="text" id="content" value="${board.content}" style="display:none;">
-		            <input name="file_name" type="text" id="file_name" value="${board.file_name}" style="display:none;">
 		            <input name="file_data" type="file" id="file_data" value="${board.file_data}" style="display:none;">
 		            <input name="file_size" type="text" id="file_size" value="${board.file_size}" style="display:none;">
+		            <input name="file_name" type="text" id="file_name" value="${board.file_name}" style="display:none;">
 		            <button class="_edit_atc" type="submit">수정</button>	
-		            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version},${board.branch});">삭제</button>
+		            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version});">삭제</button>
 	       		</form>
 			</div>
 		</c:if>
@@ -71,10 +69,10 @@ $(document).ready(function(){
 // 	$('#content').val($('#content > pre').text());
  });
 
-function btnDelete(board_id,version,branch){
+function btnDelete(board_id,versionh){
     $.ajax({
         type: "DELETE",
-        url: "${path}/Assignment/boards/"+board_id+"/"+version+"/"+branch,
+        url: "${path}/Assignment/boards/"+board_id+"/"+version,
         success: function(result){
         	if(result == 'success'){
         		alert("삭제완료");

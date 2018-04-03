@@ -23,7 +23,6 @@
         <tr>
             <th>게시물번호</th>
             <th>버전</th>
-            <th>브랜치</th>
             <th>제목</th>
             <th>최종수정시간</th>
             <th>삭제</th>
@@ -32,12 +31,11 @@
         <tr>
             <td>${board.board_id}</td>
             <td>${board.version}</td>
-            <td>${board.branch}</td>
-       		<td><a href="${path}/Assignment/boards/${board.board_id}/${board.version}/${board.branch}">${board.subject}</a></td>
+       		<td><a href="${path}/Assignment/boards/${board.board_id}/${board.version}">${board.subject}</a></td>
             <td>${board.created}</td>
 			<td> 
-			<button class="btn btn-primary" id="btnDelete" onclick="btnDelete(${board.board_id},${board.version},${board.branch});">삭제</button> 
-			<button class="btn btn-primary" id="btnManagement" onclick="location.href='${path}/Assignment/boards/management/${board.board_id}/${board.version}/${board.branch}'">버전관리</button>
+			<button class="btn btn-primary" id="btnDelete" onclick="btnDelete(${board.board_id},${board.version});">삭제</button> 
+			<button class="btn btn-primary" id="btnManagement" onclick="location.href='${path}/Assignment/boards/management/${board.board_id}/${board.version}'">버전관리</button>
 			</td> 
         </tr>
         </c:forEach>
@@ -82,10 +80,10 @@ $(document).ready(function(){
     // 1. 게시글 수정
  });
  
-function btnDelete(board_id,version,branch){
+function btnDelete(board_id,version){
     $.ajax({
         type: "DELETE",
-        url: "${path}/Assignment/boards/"+board_id+"/"+version+"/"+branch,
+        url: "${path}/Assignment/boards/"+board_id+"/"+version,
         success: function(result){
         	if(result == 'success'){
         		alert("삭제완료");

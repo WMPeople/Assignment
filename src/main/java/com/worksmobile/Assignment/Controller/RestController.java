@@ -86,19 +86,16 @@ public class RestController {
 	 * 게시물 상세보기 입니다.
 	 * @param board_id 상세 조회 할 게시물의 board_id
 	 * @param version 상세 조회 할 게시물의 version
-	 * @param branch 상세 조회 할 게시물의 branch
 	 * @return 상세보기 화면과 게시물 내용이 맵 형태로 리턴됩니다.
 	 */
-	@RequestMapping(value = "/boards/{board_id}/{version}/{branch}", method = RequestMethod.GET)
+	@RequestMapping(value = "/boards/{board_id}/{version}", method = RequestMethod.GET)
 	@ResponseBody
 	public ModelAndView show(@PathVariable(value = "board_id") int board_id, 
-			@PathVariable(value = "version") int version, 
-			@PathVariable(value = "branch") int branch) {
+			@PathVariable(value = "version") int version) {
 		
 		HashMap<String, Integer> params = new HashMap<String, Integer>();
 		params.put("board_id", board_id);
 		params.put("version", version);
-		params.put("branch", branch);
 		
 		BoardDTO board = boardMapper.viewDetail(params);
 		
@@ -114,21 +111,18 @@ public class RestController {
 	 * 파일 다온로드 함수 입니다. 게시물 상세보기 기능에서 사용됩니다.
 	 * @param board_id 첨부파일이 있는 게시물의 board_id
 	 * @param version 첨부파일이 있는 게시물의 version
-	 * @param branch 첨부파일이 있는 게시물의 branch
 	 * @param request 요청
 	 * @param response 응답
 	 */
-	@RequestMapping(value = "/boards/download/{board_id}/{version}/{branch}", method = RequestMethod.GET)
+	@RequestMapping(value = "/boards/download/{board_id}/{version}", method = RequestMethod.GET)
 	public void boardFileDownload(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version, 
-			@PathVariable(value = "branch") int branch,
 			HttpServletRequest request, 
 			HttpServletResponse response) throws Exception {
 
 		HashMap<String, Integer> params = new HashMap<String, Integer>();
 		params.put("board_id", board_id);
 		params.put("version", version);
-		params.put("branch", branch);
 		
 		BoardDTO board = boardMapper.boardFileDownload(params);
     	
@@ -176,14 +170,24 @@ public class RestController {
 		}
 		try {
 			if(mFile!=null) {
-				board.setFile_data(mFile.getBytes());
-				board.setFile_name(mFile.getOriginalFilename());
-				board.setFile_size(mFile.getSize());
+				if(mFile.getOriginalFilename().equals("")) {
+					board.setFile_data(null);
+					board.setFile_name(null);
+					board.setFile_size(0);
+				}
+				else {
+					board.setFile_data(mFile.getBytes());
+					board.setFile_name(mFile.getOriginalFilename());
+					board.setFile_size(mFile.getSize());
+				}
+
 			}
 			else {
+				System.out.println("2");
 				board.setFile_data(null);
 				board.setFile_name(null);
 				board.setFile_size(0);
+				
 			}
 			versionManagementService.createArticle(board);
 			return 1;
@@ -240,7 +244,7 @@ public class RestController {
 				board.setFile_size(0);
 			}
 			System.out.println(board.getFile_name());
-			NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion(),board.getBranch());
+			NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion());
 			NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
 			if(newNode== null)
 				return 0;
@@ -268,7 +272,6 @@ public class RestController {
 		HashMap<String, Integer> params = new HashMap<String, Integer>();
 		params.put("board_id", board.getBoard_id());
 		params.put("version", board.getVersion());
-		params.put("branch", board.getBranch());
 		
 		pastBoard = boardMapper.viewDetail(params);
 		
@@ -276,7 +279,7 @@ public class RestController {
 		board.setFile_data(pastBoard.getFile_data());
 		board.setFile_size(pastBoard.getFile_size());
 		
-		NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion(),board.getBranch());
+		NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion());
 		NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
 		if(newNode== null)
 			return 0;
@@ -287,27 +290,24 @@ public class RestController {
 	 * 게시물 삭제시 호출되는 함수입니다.
 	 * @param board_id 삭제를 원하는 게시물의 board_id
 	 * @param version 삭제를 원하는 게시물의 version
-	 * @param branch 삭제를 원하는 게시물의 branch
 	 */
-	@RequestMapping(value = "/boards/{board_id}/{version}/{branch}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/boards/{board_id}/{version}", method = RequestMethod.DELETE)
 	@ResponseBody
 	public String destroy(@PathVariable(value = "board_id") int board_id,
-			@PathVariable(value = "version") int version,
-			@PathVariable(value = "branch") int branch) throws Exception {
+			@PathVariable(value = "version") int version) throws Exception {
 
-		NodePtrDTO leapPtrDTO = new NodePtrDTO(board_id,version,branch);
+		NodePtrDTO leapPtrDTO = new NodePtrDTO(board_id,version);
 		versionManagementService.deleteArticle(leapPtrDTO);
 		return "success";
 	}
 	
 	//버전삭제
-	@RequestMapping(value = "/boards/version/{board_id}/{version}/{branch}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/boards/version/{board_id}/{version}", method = RequestMethod.DELETE)
 	@ResponseBody
 	public String versionDestory(@PathVariable(value = "board_id") int board_id,
-			@PathVariable(value = "version") int version,
-			@PathVariable(value = "branch") int branch) throws Exception {
+			@PathVariable(value = "version") int version) throws Exception {
 
-		NodePtrDTO deletePtrDTO = new NodePtrDTO(board_id,version,branch);
+		NodePtrDTO deletePtrDTO = new NodePtrDTO(board_id,version);
 			versionManagementService.deleteVersion(deletePtrDTO);
 		return "success";
 	}
@@ -316,13 +316,11 @@ public class RestController {
 	@RequestMapping(value = "/boards/diff", method = RequestMethod.POST)
 	public ModelAndView diff(int board_id1, 
 			 int version1,
-			 int branch1 ,
 			 int board_id2, 
-			 int version2, 
-			 int branch2) throws Exception {
+			 int version2 ) throws Exception {
 		
-		NodePtrDTO left= new NodePtrDTO(board_id1,version1,branch1);
-		NodePtrDTO right= new NodePtrDTO(board_id2,version2,branch2);
+		NodePtrDTO left= new NodePtrDTO(board_id1,version1);
+		NodePtrDTO right= new NodePtrDTO(board_id2,version2);
 		
 		String leftContent = Compress.deCompress(boardHistoryMapper.getHistory(left).getHistory_content());
 		String rightContent = Compress.deCompress(boardHistoryMapper.getHistory(right).getHistory_content());
@@ -339,34 +337,30 @@ public class RestController {
 	}
 	
 	//버전 관리 
-	@RequestMapping(value = "/boards/management/{board_id}/{version}/{branch}", method = RequestMethod.GET)
+	@RequestMapping(value = "/boards/management/{board_id}/{version}", method = RequestMethod.GET)
 	public ModelAndView versionManagement(@PathVariable(value = "board_id") int board_id, 
-			@PathVariable(value = "version") int version, 
-			@PathVariable(value = "branch") int branch) throws Exception {
+			@PathVariable(value = "version") int version ) throws Exception {
 		
-		NodePtrDTO leapPtrDTO = new NodePtrDTO(board_id,version,branch);
+		NodePtrDTO leapPtrDTO = new NodePtrDTO(board_id,version);
 		List<BoardHistoryDTO> boardHistory = versionManagementService.getRelatedHistory(leapPtrDTO);
 		
 		return new ModelAndView("versionManagement","list",boardHistory);
 	}
 	
 	//버전 복원
-	@RequestMapping(value = "/boards/recover/{board_id}/{version}/{branch}/{leafBoard_id}/{leafVersion}/{leafBranch}", method = RequestMethod.GET)
+	@RequestMapping(value = "/boards/recover/{board_id}/{version}/{leafBoard_id}/{leafVersion}", method = RequestMethod.GET)
 	public HashMap<String,Object> versionRecover(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version, 
-			@PathVariable(value = "branch") int branch,
 			@PathVariable(value = "leafBoard_id") int leafBoard_id, 
-			@PathVariable(value = "leafVersion") int leafVersion, 
-			@PathVariable(value = "leafBranch") int leafBranch) throws Exception {
+			@PathVariable(value = "leafVersion") int leafVersion) throws Exception { 
 		
 		System.out.println(board_id);
 		
-		NodePtrDTO recoverPtr = new NodePtrDTO(board_id,version,branch);	
+		NodePtrDTO recoverPtr = new NodePtrDTO(board_id,version);	
 		NodePtrDTO leapNodePtr = new NodePtrDTO();
 
 		leapNodePtr.setBoard_id(leafBoard_id);
 		leapNodePtr.setVersion(leafVersion);
-		leapNodePtr.setBranch(leafBranch);
 		
 		NodePtrDTO newLeapNode =versionManagementService.recoverVersion(recoverPtr, leapNodePtr);
 		
@@ -375,7 +369,6 @@ public class RestController {
 		map.put("result","success");
 		map.put("board_id", newLeapNode.getBoard_id());
 		map.put("version", newLeapNode.getVersion());
-		map.put("branch", newLeapNode.getBranch());
 		
 		return map;
 	}
@@ -384,16 +377,14 @@ public class RestController {
 	 * 게시물 상세보기 입니다.
 	 * @param board_id 상세 조회 할 게시물의 board_id
 	 * @param version 상세 조회 할 게시물의 version
-	 * @param branch 상세 조회 할 게시물의 branch
 	 * @return 상세보기 화면과 게시물 내용이 맵 형태로 리턴됩니다.
 	 */
-	@RequestMapping(value = "/history/{board_id}/{version}/{branch}", method = RequestMethod.GET)
+	@RequestMapping(value = "/history/{board_id}/{version}", method = RequestMethod.GET)
 	@ResponseBody
 	public ModelAndView history(@PathVariable(value = "board_id") int board_id, 
-			@PathVariable(value = "version") int version, 
-			@PathVariable(value = "branch") int branch) {
+			@PathVariable(value = "version") int version) {
 		
-		NodePtrDTO node = new NodePtrDTO(board_id,version,branch);
+		NodePtrDTO node = new NodePtrDTO(board_id,version);
 		
 		BoardHistoryDTO boardHistory = boardHistoryMapper.getHistory(node);
 		BoardDTO board = new BoardDTO(boardHistory);

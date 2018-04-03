@@ -39,8 +39,7 @@
 						<h3 class="tx">파일첨부</h3> <c:if test="${param.file_name != ''}">
 							<span class="date" id="test">첨부 파일 : <a
 								href="${path}/Assignment/boards/download/${param.board_id}/
-						${param.version}/
-						${param.branch}"
+						${param.version}"
 								name="file">${param.file_name} </a> (${param.file_size})
 								<button type="button" id="fileUpdate" class="btn tx_point _save">파일
 									수정</button>
@@ -61,9 +60,11 @@
 					<!-- 			</p> -->
 					<!-- 			<button type="button" class="btn _temp">임시저장</button> -->
 					<!-- 			<button type="button" class="btn _preview">미리보기</button> -->
-					<input type="text" name="board_id" id="board_id"style="display: none;" value="<%=request.getParameter("board_id")%>"> 
-					<input type="text" name="version" id="version" style="display: none;" value="<%=request.getParameter("version")%>"> 
-					<input type="text" name="branch" id="branch" style="display: none;" value="<%=request.getParameter("branch")%>">
+					<input type="text" name="board_id" id="board_id"
+						style="display: none;"
+						value="<%=request.getParameter("board_id")%>"> <input
+						type="text" name="version" id="version" style="display: none;"
+						value="<%=request.getParameter("version")%>">
 					<button type="button" id="btnUpdate" class="btn tx_point _save">
 						<strong>수정</strong>
 					</button>
@@ -84,7 +85,8 @@ $(document).ready(function(){
 $("#btnUpdate").click(function(){
    	var file_name = '<%=request.getParameter("file_name")%>';
    	if(file_name != ''){
-   		file_name = '<%=request.getParameter("file_name")%>';
+   		file_name = '<%=request.getParameter("file_name")%>
+	';
 		}
 		var formData = new FormData($("#fileForm")[0]);
 
