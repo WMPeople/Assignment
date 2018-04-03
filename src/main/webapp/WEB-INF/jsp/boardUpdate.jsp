@@ -85,8 +85,7 @@ $(document).ready(function(){
 $("#btnUpdate").click(function(){
    	var file_name = '<%=request.getParameter("file_name")%>';
    	if(file_name != ''){
-   		file_name = '<%=request.getParameter("file_name")%>
-	';
+   		file_name = '<%=request.getParameter("file_name")%>';
 		}
 		var formData = new FormData($("#fileForm")[0]);
 

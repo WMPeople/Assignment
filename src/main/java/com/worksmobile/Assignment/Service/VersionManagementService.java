@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,13 +24,6 @@ public class VersionManagementService {
 	
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
-	
-	public VersionManagementService() {
-	}
-	
-	@PostConstruct
-	private void init() {
-	}
 	
 	private BoardHistoryDTO getBoardHistory(List<BoardHistoryDTO> historyList, NodePtrDTO nodePtrDTO) {
 		for(BoardHistoryDTO eleHistoryDTO : historyList) {
@@ -76,7 +67,6 @@ public class VersionManagementService {
 		return relatedHistoryList;
 	}
 	
-	// TODO : last_board_id 가 스레드 세이프 한지 확인할 것.
 	/***
 	 * 최초 기록 게시글을 등록합니다. 
 	 * @param article 게시글에 대한 정보.
@@ -89,9 +79,10 @@ public class VersionManagementService {
 
 	/**
 	 *  압축은 충돌영역에서 제외하기위함.
-	 * @param article
-	 * @param version
-	 * @param status
+	 * @param article 등록할 게시물의 제목, 내용, 첨부파일이 사용됩니다.
+	 * @param version 새로운 게시물의 버전
+	 * @param status 게시물 이력의 상태에 들어갈 내용
+	 * @param parentNodePtr 게시물의 부모 노드 포인터
 	 * @return
 	 */
 	private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final NodePtrDTO parentNodePtr) {
@@ -106,11 +97,14 @@ public class VersionManagementService {
 		return createArticleAndHistory(article, version, status, compressedContent, parentNodePtr);
 	}
 	
-	/**
+	/***
 	 *  충돌 영역! 게시판 DB 와 이력 DB 에 둘다 등록합니다.
 	 *  게시판 id를 1증가 시켜 작성합니다.
-	 * @param article
-	 * @param version
+	 * @param article 등록할 게시물의 제목, 내용, 첨부파일이 사용됩니다.
+	 * @param version 새로운 게시물의 버전
+	 * @param status 게시물 이력의 상태에 들어갈 내용
+	 * @param compressedContent 압축된 내용
+	 * @param parentNodePtr 게시물의 부모 노드 포인터
 	 * @return
 	 */
 	synchronized private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final byte[] compressedContent, final NodePtrDTO parentNodePtr) {
@@ -139,7 +133,7 @@ public class VersionManagementService {
 	}
 	
 	// TODO : 생성시에 잎 노드 인지 보장을 하지 않음.
-	// TODO : 충돌 관리?? 만약 잎 노드가 아닌경우 새로운 Branch 로 만들어짐을 유의할것.
+	// TODO : 충돌 관리?? 만약 잎 노드가 아닌경우 새로운 게시물 번호로 만들어짐을 유의할것.
 	/***
 	 * 버전 복구 기능입니다. board DB및  boardHistory 둘다 등록 됩니다.
 	 * @param recoverPtr 복구할 버전에 대한 포인터.
