@@ -8,20 +8,19 @@ import lombok.Setter;
 public class NodePtrDTO {
 	@Getter @Setter protected Integer board_id = null;
 	@Getter @Setter protected Integer version = null;
-	@Getter @Setter protected Integer branch = null;
+	
+	public static final NodePtrDTO DEFAULT_NULL_NODE_PTR = new NodePtrDTO();
 	
 	public NodePtrDTO() { }
-	public NodePtrDTO(Integer board_id, Integer version, Integer branch) {
+	public NodePtrDTO(Integer board_id, Integer version) {
 		this.board_id = board_id;
 		this.version = version;
-		this.branch = branch;
 	}
 
 	public HashMap<String, Integer> toMap() {
 		HashMap<String, Integer> map = new HashMap<>();
 		map.put("board_id", board_id);
 		map.put("version", version);
-		map.put("branch", branch);
 		return map;
 	}
 	
@@ -33,17 +32,12 @@ public class NodePtrDTO {
 	public boolean equals(Object arg0) {
 		NodePtrDTO dto = (NodePtrDTO)arg0;
 		return	checkEquals(board_id, dto.board_id) &&
-				checkEquals(version, dto.version) &&
-				checkEquals(branch, dto.branch);
+				checkEquals(version, dto.version);
 	}
 	
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(board_id)
-				.append("-").append(version)
-				.append("-").append(branch);
-		return builder.toString();
+		return String.format("%d-%d", board_id, version);
 	}
 }
 

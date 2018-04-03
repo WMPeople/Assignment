@@ -21,7 +21,5 @@ public interface BoardHistoryMapper {
 
 	public int updateHistoryParent(BoardHistoryDTO boardHistoryDTO);
 
-	public Integer getLastbranch(@Param("board_id")int board_id, @Param("version")int version);
-
 	public List<BoardHistoryDTO> getChildren(NodePtrDTO nodePtr);
 }

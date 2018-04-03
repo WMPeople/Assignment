@@ -13,7 +13,6 @@ public class BoardHistoryDTO extends NodePtrDTO{
 
 	@Getter @Setter private Integer parent_board_id = null;
 	@Getter @Setter private Integer parent_version = null;
-	@Getter @Setter private Integer parent_branch = null;
 	
 	@Setter @Getter private String file_name;
 	@Setter @Getter private byte[] file_data;
@@ -34,18 +33,22 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	public BoardHistoryDTO(BoardDTO article, NodePtrDTO nodePtrDTO, String status) {
 		board_id = nodePtrDTO.getBoard_id();
 		version = nodePtrDTO.getVersion() ;
-		branch = nodePtrDTO.getBranch();
 		this.status = status;
 		history_subject = article.getSubject();
+		
+		if(article.getFile_name() != null) {
+			file_name = article.getFile_name();
+			file_data = article.getFile_data();
+			file_size = article.getFile_size();
+		}
 	}
 	
 	public void setParentNodePtr(NodePtrDTO parentNodePtrDTO) {
 		parent_board_id = parentNodePtrDTO.getBoard_id();
 		parent_version = parentNodePtrDTO.getVersion();
-		parent_branch = parentNodePtrDTO.getBranch();
 	}
 	
 	public NodePtrDTO getParentPtrDTO() {
-		return new NodePtrDTO(parent_board_id, parent_version, parent_branch);
+		return new NodePtrDTO(parent_board_id, parent_version);
 	}
 }

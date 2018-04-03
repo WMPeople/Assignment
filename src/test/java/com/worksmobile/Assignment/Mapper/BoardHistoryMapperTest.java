@@ -41,11 +41,10 @@ public class BoardHistoryMapperTest {
 	private static NodePtrDTO defaultNodePtrDTO;
 
 	public BoardHistoryMapperTest() {
-		defaultNodePtrDTO = new NodePtrDTO(1, 6, 1);
+		defaultNodePtrDTO = new NodePtrDTO(1, 6);
 		defaultHistoryDTO = new BoardHistoryDTO();
 		defaultHistoryDTO.setBoard_id(1);
 		defaultHistoryDTO.setVersion(6);
-		defaultHistoryDTO.setBranch(1);
 
 		defaultHistoryDTO.setStatus("Created");
 		defaultHistoryDTO.setHistory_subject("sub");
