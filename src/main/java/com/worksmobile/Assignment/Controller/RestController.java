@@ -23,9 +23,11 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
+import com.worksmobile.Assignment.Domain.FileDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
+import com.worksmobile.Assignment.Mapper.FileMapper;
 import com.worksmobile.Assignment.Service.Compress;
 import com.worksmobile.Assignment.Service.Paging;
 import com.worksmobile.Assignment.Service.VersionManagementService;
@@ -41,6 +43,9 @@ public class RestController {
     
     @Autowired
     private BoardHistoryMapper boardHistoryMapper;
+    
+    @Autowired
+    private FileMapper fileMapper;
     
 	/***
 	 * 첫 화면으로, 사용자가 요청한 페이지에 해당하는 게시물을 보여줍니다.
@@ -101,11 +106,12 @@ public class RestController {
 		params.put("branch", branch);
 		
 		BoardDTO board = boardMapper.viewDetail(params);
+		FileDTO file = fileMapper.getFile(board.getFile_id());
 		
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("board", board);
 		modelAndView.addObject("isHistory", 0);
-		
+		modelAndView.addObject("file", file);
 		modelAndView.setViewName("boardDetail");
 		return modelAndView;
 	}
@@ -118,24 +124,17 @@ public class RestController {
 	 * @param request 요청
 	 * @param response 응답
 	 */
-	@RequestMapping(value = "/boards/download/{board_id}/{version}/{branch}", method = RequestMethod.GET)
-	public void boardFileDownload(@PathVariable(value = "board_id") int board_id, 
-			@PathVariable(value = "version") int version, 
-			@PathVariable(value = "branch") int branch,
+	@RequestMapping(value = "/boards/download/{file_id}", method = RequestMethod.GET)
+	public void boardFileDownload(@PathVariable(value = "file_id") int file_id,
 			HttpServletRequest request, 
 			HttpServletResponse response) throws Exception {
 
-		HashMap<String, Integer> params = new HashMap<String, Integer>();
-		params.put("board_id", board_id);
-		params.put("version", version);
-		params.put("branch", branch);
+		FileDTO file = fileMapper.getFile(file_id);
 		
-		BoardDTO board = boardMapper.boardFileDownload(params);
-    	
-		byte fileByte[] = board.getFile_data();
+		byte fileByte[] = file.getFile_data();
     	response.setContentType("application/octet-stream");
         response.setContentLength(fileByte.length);
-        response.setHeader("Content-Disposition", "attachment; fileName=\"" + URLEncoder.encode(board.getFile_name(),"UTF-8")+"\";");
+        response.setHeader("Content-Disposition", "attachment; fileName=\"" + URLEncoder.encode(file.getFile_name(),"UTF-8")+"\";");
         response.setHeader("Content-Transfer-Encoding", "binary");
         response.getOutputStream().write(fileByte);
         response.getOutputStream().flush();
@@ -176,14 +175,14 @@ public class RestController {
 		}
 		try {
 			if(mFile!=null) {
-				board.setFile_data(mFile.getBytes());
-				board.setFile_name(mFile.getOriginalFilename());
-				board.setFile_size(mFile.getSize());
-			}
-			else {
-				board.setFile_data(null);
-				board.setFile_name(null);
-				board.setFile_size(0);
+				
+				FileDTO file = new FileDTO();
+				file.setFile_name(mFile.getOriginalFilename());
+				file.setFile_data(mFile.getBytes());
+				file.setFile_size(mFile.getSize());
+			
+				fileMapper.createFile(file);
+				board.setFile_id(file.getFile_id());
 			}
 			versionManagementService.createArticle(board);
 			return 1;
@@ -230,16 +229,19 @@ public class RestController {
 		
 		try {
 			if(mFile!=null) {
-				board.setFile_data(mFile.getBytes());
-				board.setFile_name(mFile.getOriginalFilename());
-				board.setFile_size(mFile.getSize());
+				if(mFile.getOriginalFilename().equals("")) {
+					board.setFile_id(0);
+				}
+				else {
+					FileDTO file = new FileDTO();
+					file.setFile_name(mFile.getOriginalFilename());
+					file.setFile_data(mFile.getBytes());
+					file.setFile_size(mFile.getSize());
+				
+					fileMapper.createFile(file);
+					board.setFile_id(file.getFile_id());
+				}
 			}
-			else {
-				board.setFile_data(null);
-				board.setFile_name(null);
-				board.setFile_size(0);
-			}
-			System.out.println(board.getFile_name());
 			NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion(),board.getBranch());
 			NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
 			if(newNode== null)
@@ -270,11 +272,8 @@ public class RestController {
 		params.put("version", board.getVersion());
 		params.put("branch", board.getBranch());
 		
-		pastBoard = boardMapper.viewDetail(params);
-		
-		board.setFile_name(pastBoard.getFile_name());
-		board.setFile_data(pastBoard.getFile_data());
-		board.setFile_size(pastBoard.getFile_size());
+		pastBoard = boardMapper.viewDetail(params);	
+		board.setFile_id(pastBoard.getFile_id());
 		
 		NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion(),board.getBranch());
 		NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
@@ -359,8 +358,6 @@ public class RestController {
 			@PathVariable(value = "leafVersion") int leafVersion, 
 			@PathVariable(value = "leafBranch") int leafBranch) throws Exception {
 		
-		System.out.println(board_id);
-		
 		NodePtrDTO recoverPtr = new NodePtrDTO(board_id,version,branch);	
 		NodePtrDTO leapNodePtr = new NodePtrDTO();
 
@@ -381,7 +378,7 @@ public class RestController {
 	}
 	
 	/***
-	 * 게시물 상세보기 입니다.
+	 * 이력 상세보기 입니다.
 	 * @param board_id 상세 조회 할 게시물의 board_id
 	 * @param version 상세 조회 할 게시물의 version
 	 * @param branch 상세 조회 할 게시물의 branch
@@ -397,6 +394,7 @@ public class RestController {
 		
 		BoardHistoryDTO boardHistory = boardHistoryMapper.getHistory(node);
 		BoardDTO board = new BoardDTO(boardHistory);
+		FileDTO file = fileMapper.getFile(board.getFile_id());
 		
 		String deCompreesedContent = "";
 		try {
@@ -411,7 +409,7 @@ public class RestController {
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("board", board);
 		modelAndView.addObject("isHistory", 1);
-		
+		modelAndView.addObject("file", file);
 		modelAndView.setViewName("boardDetail");
 		
 		return modelAndView;

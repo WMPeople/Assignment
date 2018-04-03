@@ -14,10 +14,8 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	@Getter @Setter private Integer parent_board_id = null;
 	@Getter @Setter private Integer parent_version = null;
 	@Getter @Setter private Integer parent_branch = null;
-	
-	@Setter @Getter private String file_name;
-	@Setter @Getter private byte[] file_data;
-	@Setter @Getter private long file_size;
+
+	@Setter@Getter private int file_id;
 	
 	public static final String STATUS_CREATED = "Created";
 	public static final String STATUS_MODIFIED = "Modified";
@@ -37,6 +35,7 @@ public class BoardHistoryDTO extends NodePtrDTO{
 		branch = nodePtrDTO.getBranch();
 		this.status = status;
 		history_subject = article.getSubject();
+		file_id = article.getFile_id();
 	}
 	
 	public void setParentNodePtr(NodePtrDTO parentNodePtrDTO) {

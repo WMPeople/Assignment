@@ -7,7 +7,7 @@
 	<select id="getHistoryByBoardId"
     resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
         SELECT board_id, version, branch, created, status, history_subject, 
-        		history_content, file_name, file_data, file_size, parent_board_id,
+        		history_content, file_id, parent_board_id,
         		parent_version, parent_branch
 		FROM board_history
 		WHERE board_id = #{board_id};
@@ -16,7 +16,7 @@
     <select id="getHistory" 
     resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
         SELECT board_id, version, branch, created, status, history_subject, 
-        		history_content, file_name, file_data, file_size, parent_board_id,
+        		history_content, file_id, parent_board_id,
         		parent_version, parent_branch
 		FROM board_history
 		WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
@@ -29,11 +29,10 @@
     
      <insert id="createHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
         INSERT INTO board_history(board_id, version, branch, status, history_subject,
-        						history_content, file_name, file_data, file_size,
+        						history_content, file_id,
         						parent_board_id, parent_version, parent_branch)
 		VALUES(#{board_id}, #{version}, #{branch}, #{status}, #{history_subject},
-				#{history_content}, #{file_name}, #{file_data,jdbcType=BLOB}, 
-				#{file_size}, #{parent_board_id}, #{parent_version}, #{parent_branch});
+				#{history_content}, #{file_id}, #{parent_board_id}, #{parent_version}, #{parent_branch});
     </insert>
 
     <update id="updateHistoryParent" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
@@ -53,7 +52,7 @@
      <select id="getChildren" 
     resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
         SELECT board_id, version, branch, created, status, history_subject, 
-        		history_content, file_name, file_data, file_size, parent_board_id,
+        		history_content, file_id, parent_board_id,
         		parent_version, parent_branch
 		FROM board_history
 		WHERE parent_board_id = #{board_id} AND parent_version = #{version} AND parent_branch = #{branch};

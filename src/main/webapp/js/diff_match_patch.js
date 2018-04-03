@@ -1288,7 +1288,6 @@ diff_match_patch.prototype.diff_prettyHtml = function(diffs) {
         html2[x] = '<span>' + text + '</span>';
         break;
        }
-        
     }
   
   returnHtml.push(html1.join(''));

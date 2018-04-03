@@ -160,6 +160,7 @@ function btnRecover(board_id,version,branch){
 	        		alert("복원완료");
 	        		location.href='${path}/Assignment/boards/management/'+result.board_id+'/'+result.version+'/'+result.branch;
 	        	}
+
 	        	else{
 	        		alert("복원실패");
 	        	}

@@ -35,7 +35,7 @@
 			<span class="name">버전 : <span class="_group">${board.version}</span> <span class="_company"></span></span>
 			<span class="name">브랜치 : <span class="_group">${board.branch}</span> <span class="_company"></span></span>
 			<span class="date">최종 수정시간 :  ${board.created}</span>
-			<span class="date">첨부 파일 :   <a href="${path}/Assignment/boards/download/${board.board_id}/${board.version}/${board.branch}" name="file">${board.file_name}     </a> (${board.file_size})</span>
+			<span class="date">첨부 파일 :   <a href="${path}/Assignment/boards/download/${file.file_id}" name="file">${file.file_name}     </a> (${file.file_size})</span>
 
 		<div class="cont _content translateArea" id="content"><p>
 		<span style="font-family: 나눔고딕, NanumGothic, sans-serif;">
@@ -54,9 +54,10 @@
 		            <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">
 		            <input name="created" type="text" id="created" value="${board.created}" style="display:none;">
 		            <input name="content" type="text" id="content" value="${board.content}" style="display:none;">
-		            <input name="file_name" type="text" id="file_name" value="${board.file_name}" style="display:none;">
-		            <input name="file_data" type="file" id="file_data" value="${board.file_data}" style="display:none;">
-		            <input name="file_size" type="text" id="file_size" value="${board.file_size}" style="display:none;">
+		            <input name="file_id" type="text" id="file_id" value="${file.file_id}" style="display:none;">
+		            <input name="file_name" type="text" id="file_name" value="${file.file_name}" style="display:none;">
+		            <input name="file_data" type="file" id="file_data" value="${file.file_data}" style="display:none;">
+		            <input name="file_size" type="text" id="file_size" value="${file.file_size}" style="display:none;">
 		            <button class="_edit_atc" type="submit">수정</button>	
 		            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version},${board.branch});">삭제</button>
 	       		</form>

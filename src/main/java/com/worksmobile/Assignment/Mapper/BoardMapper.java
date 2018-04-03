@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import com.worksmobile.Assignment.Domain.BoardDTO;
+import com.worksmobile.Assignment.Domain.FileDTO;
 
 @Mapper
 public interface BoardMapper {
@@ -18,7 +19,7 @@ public interface BoardMapper {
 	
 	public BoardDTO viewDetail(HashMap<String, Integer> parmas) ;
 	
-	public BoardDTO boardFileDownload(HashMap<String,Integer> params) ;
+	public FileDTO boardFileDownload(HashMap<String,Integer> params) ;
 
 	public int getMaxBoardId();
 	

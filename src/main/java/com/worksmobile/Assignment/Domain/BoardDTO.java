@@ -7,10 +7,7 @@ public class BoardDTO extends NodePtrDTO{
 	@Setter @Getter private String subject;
 	@Setter @Getter private String content;
 	@Setter @Getter private String created;
-	
-	@Setter @Getter private String file_name;
-	@Setter @Getter private byte[] file_data;
-	@Setter @Getter private long file_size;
+	@Setter@Getter private int file_id;
 	
 	public BoardDTO() { }
 	/***
@@ -25,9 +22,7 @@ public class BoardDTO extends NodePtrDTO{
 		content = null;
 		created = boardHistoryDTO.getCreated();
 
-		file_name = boardHistoryDTO.getFile_name();
-		file_data = boardHistoryDTO.getFile_data();
-		file_size = boardHistoryDTO.getFile_size();
+		file_id = boardHistoryDTO.getFile_id();
 	}
 
 	public void setNodePtrDTO(NodePtrDTO nodePtrDTO) {

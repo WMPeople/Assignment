@@ -16,7 +16,7 @@
 	    
     
     <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
-    	SELECT board_id,version,branch,subject,content,created,file_name,file_data,file_size
+    	SELECT board_id,version,branch,subject,content,created,file_id
     	FROM board
     	WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
     </select>
@@ -24,19 +24,19 @@
 	<!--  board_history와 동시에 넣어져야함. -->
     <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
        
-    	<if test="#{file_name} != null">
+    	<if test="#{file_id} != null">
         INSERT INTO board
-        (board_id,version,branch,subject,content,created,file_name,file_data,file_size)
-        VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created},#{file_name},#{file_data,jdbcType=BLOB},#{file_size});
+        (board_id,version,branch,subject,content,created,file_id)
+        VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created},#{file_id});
         </if>
         
-        <if test="#{file_name} == null">
+        <if test="#{file_id} == null">
         INSERT INTO board
         (board_id,version,branch,subject,content,created)
         VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created});
         </if>
     
-    
+   
     
     </insert>
     
@@ -54,17 +54,17 @@
         subject = #{subject},
         content = #{content},
         created = CURRENT_TIMESTAMP,
-        <if test="#{file_name} != null">
-        file_name = #{file_name},
-        file_data = #{file_data},
-        file_size = #{file_size}
+        <if test="#{file_id} != null">
+        file_id = #{file_id}
   		</if>
         WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
     </update>
     
-    <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
-        SELECT file_name,file_data,file_size
-        FROM board
+    <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.FileDTO">
+        SELECT b.file_name, b.file_data, b.file_size
+        FROM board as a
+        JOIN file as b
+        ON a.file_id = b.file_id
         WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
     </select>
     

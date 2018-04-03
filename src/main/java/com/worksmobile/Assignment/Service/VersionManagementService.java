@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
+import com.worksmobile.Assignment.Domain.FileDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
@@ -94,7 +95,10 @@ public class VersionManagementService {
 			String json = Utils.jsonStringIfExceptionToString(article);
 			throw new RuntimeException("createArticle메소드에서 게시글 내용을 압축에 실패하였습니다. \n게시글 : " + json);
 		}
+
 		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistoryDTO);
+		
+		
 		if(insertedRowCnt == 0) {
 			throw new RuntimeException("createArticle메소드에서 createHistory error" + boardHistoryDTO);
 		}
@@ -150,8 +154,8 @@ public class VersionManagementService {
 			String json = Utils.jsonStringIfExceptionToString(recoveredBoardDTO);
 			throw new RuntimeException("recoverVersion에서 게시글 내용을 압축해제 중 에러 발생. \nrecoveredBoardDTO : " + json);
 		}
-			
-		return createVersionWithBranch(recoveredBoardDTO, leafPtr, BoardHistoryDTO.STATUS_RECOVERED + recoverPtr.toString());
+		String status = String.format("%s(%s)", BoardHistoryDTO.STATUS_RECOVERED, recoverPtr.toString());
+		return createVersionWithBranch(recoveredBoardDTO, leafPtr, status);
 	}
 	
 	/***
@@ -183,9 +187,7 @@ public class VersionManagementService {
 		newBranchHistoryDTO.setStatus(status);
 		newBranchHistoryDTO.setHistory_subject(boardDTO.getSubject());
 		newBranchHistoryDTO.setHistory_content(compressedContent);
-		newBranchHistoryDTO.setFile_name(boardDTO.getFile_name());
-		newBranchHistoryDTO.setFile_data(boardDTO.getFile_data());
-		newBranchHistoryDTO.setFile_size(boardDTO.getFile_size());
+		newBranchHistoryDTO.setFile_id(boardDTO.getFile_id());
 		newBranchHistoryDTO.setParentNodePtr(parentPtrDTO);
 		newBranchHistoryDTO = createHistoryWithLastBranch(newBranchHistoryDTO, 
 				newBranchHistoryDTO.getBoard_id(), newBranchHistoryDTO.getVersion());

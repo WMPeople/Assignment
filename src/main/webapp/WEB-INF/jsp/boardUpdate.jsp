@@ -38,9 +38,7 @@
 					<li class="opt_file">
 						<h3 class="tx">파일첨부</h3> <c:if test="${param.file_name != ''}">
 							<span class="date" id="test">첨부 파일 : <a
-								href="${path}/Assignment/boards/download/${param.board_id}/
-						${param.version}/
-						${param.branch}"
+								href="${path}/Assignment/boards/download/${param.file_id}/"
 								name="file">${param.file_name} </a> (${param.file_size})
 								<button type="button" id="fileUpdate" class="btn tx_point _save">파일
 									수정</button>
