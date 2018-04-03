@@ -49,9 +49,13 @@
 			dmp.diff_cleanupSemantic(d);
 
 			var ds = dmp.diff_prettyHtml(d);
-			//console.log(ds);
-			document.getElementById('outputdiv').innerHTML = ds + '<BR>Time: '
-					+ (ms_end - ms_start) / 1000 + 's';
+			
+			//시간 출력
+// 			document.getElementById('outputdiv').innerHTML = ds + '<BR>Time: '
+// 					+ (ms_end - ms_start) / 1000 + 's';
+			
+			document.getElementById('outputdivLeft').innerHTML = ds[0]
+			document.getElementById('outputdivRight').innerHTML = ds[1]
 			
 			
 		}
@@ -74,7 +78,8 @@
 		</P>
 	</FORM>
 
-	<DIV ID="outputdiv"></DIV>
+	<DIV ID="outputdivLeft" style="float: left; width: 50%;"></DIV>
+	<DIV ID="outputdivRight"style="float: right; width: 50%;">></DIV>
 </BODY>
 </HTML>
 

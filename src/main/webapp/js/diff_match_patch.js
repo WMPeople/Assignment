@@ -1264,6 +1264,7 @@ diff_match_patch.prototype.diff_xIndex = function(diffs, loc) {
 diff_match_patch.prototype.diff_prettyHtml = function(diffs) {
   var html1 = [];
   var html2 = [];
+  var returnHtml = [];
   var pattern_amp = /&/g;
   var pattern_lt = /</g;
   var pattern_gt = />/g;
@@ -1290,9 +1291,10 @@ diff_match_patch.prototype.diff_prettyHtml = function(diffs) {
         
     }
   
+  returnHtml.push(html1.join(''));
+  returnHtml.push(html2.join(''));
   
-  html1.push('<br>-----------------------------------------------------</br>');
-  return html1.join('')+html2.join('');
+  return returnHtml;
 };
 
 
