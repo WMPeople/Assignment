@@ -22,7 +22,6 @@ import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
-import com.worksmobile.Assignment.Mapper.BoardTempMapper;
 import com.worksmobile.Assignment.util.Utils;
 
 @RunWith(SpringRunner.class)
@@ -38,9 +37,6 @@ public class VersionManagementTest {
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
 
-	@Autowired
-	BoardTempMapper boardTempMapper;
-	
 	private BoardDTO defaultBoardDTO;
 	
 	private BoardHistoryDTO defaultCreatedDTO;

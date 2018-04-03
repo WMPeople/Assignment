@@ -9,11 +9,9 @@ import lombok.Setter;
 public class DiffNodePtrDTO {
 	@Getter @Setter private int board_id1;
 	@Getter @Setter private int version1;
-	@Getter @Setter private int branch1;
 	
 	@Getter @Setter private int board_id2;
 	@Getter @Setter private int version2;
-	@Getter @Setter private int branch2;
 	
 	@Override
 	public String toString() {
@@ -25,11 +23,11 @@ public class DiffNodePtrDTO {
 	}
 	
 	public NodePtrDTO getLeftPtrDTO() {
-		return new NodePtrDTO(board_id1, version1, branch1);
+		return new NodePtrDTO(board_id1, version1);
 	}
 	
 	public NodePtrDTO getRightPtrDTO() {
-		return new NodePtrDTO(board_id2, version2, branch2);
+		return new NodePtrDTO(board_id2, version2);
 	}
 }
 

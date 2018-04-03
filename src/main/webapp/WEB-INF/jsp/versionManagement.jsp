@@ -24,10 +24,8 @@
 	<form method="post" name="diffForm">
 		<input name="board_id1" type="text" id="board_id1"value="0" style="display:none;">
 		<input name="version1" type="text" id="version1" value="0" style="display:none;">
-		<input name="branch1" type="text" id="branch1" value="0" style="display:none;">
         <input name="board_id2" type="text" id="board_id2" value="2" style="display:none;">
         <input name="version2" type="text" id="version2" value="1" style="display:none;">
-        <input name="branch2" type="text" id="branch2" value="1" style="display:none;">
         <button class="btn btn-primary" type="button"  onclick="btnDiff();">비교</button>
 	</form>
 
@@ -36,7 +34,6 @@
             <th>체크박스</th>
             <th>게시물번호</th>
             <th>버전</th>
-            <th>브랜치</th>
             <th>제목</th>
             <th>날짜</th>
             <th>상태</th>
@@ -45,12 +42,11 @@
         <c:forEach var="boardHistory" items="${list}" varStatus="index">
         <tr>
             <td><input type="checkbox" name="cbox[]" 
-            value="${boardHistory.board_id}-${boardHistory.version}-${boardHistory.branch}" 
+            value="${boardHistory.board_id}-${boardHistory.version}"
             onchange="cbox.remain_two(this);"></td>
             <td>${boardHistory.board_id}</td>
             <td>${boardHistory.version}</td>
-            <td>${boardHistory.branch}</td>
-            <td><a href="${path}/Assignment/history/${boardHistory.board_id}/${boardHistory.version}/${boardHistory.branch}">${boardHistory.history_subject}</a></td>
+            <td><a href="${path}/Assignment/history/${boardHistory.board_id}/${boardHistory.version}">${boardHistory.history_subject}</a></td>
             <td>${boardHistory.created}</td>
             <td>${boardHistory.status}</td>
        		<td>
@@ -58,13 +54,13 @@
             <c:choose>
 	               <c:when test="${!index.first }"> 
 	               		<button class="btn btn-primary" id="btnVersionDelete" 
-			       		onclick="btnVersionDelete(${boardHistory.board_id},${boardHistory.version},${boardHistory.branch})">삭제</button>
+			       		onclick="btnVersionDelete(${boardHistory.board_id},${boardHistory.version})">삭제</button>
 	               		<button class="btn btn-primary" id="btnRecover" 
-       					onclick="btnRecover(${boardHistory.board_id},${boardHistory.version},${boardHistory.branch})">복원</button>   
+       					onclick="btnRecover(${boardHistory.board_id},${boardHistory.version})">복원</button>   
 	               </c:when>
 	               	<c:otherwise>
 			       		<button class="btn btn-primary" id="btnDelete" 
-			       		onclick="btnVersionDelete(${boardHistory.board_id},${boardHistory.version},${boardHistory.branch})">삭제</button>
+			       		onclick="btnVersionDelete(${boardHistory.board_id},${boardHistory.version})">삭제</button>
 					</c:otherwise>
 			</c:choose>
        
@@ -115,10 +111,10 @@ function remain_two_obj(prefix){
 }
 var cbox = new remain_two_obj('cbox'); 
 
-function btnVersionDelete(board_id,version,branch){
+function btnVersionDelete(board_id,version){
 	  $.ajax({
 	        type: "DELETE",
-	        url: "${path}/Assignment/boards/version/"+board_id+"/"+version+"/"+branch,
+	        url: "${path}/Assignment/boards/version/"+board_id+"/"+version,
 	        success: function(result){
 	        	if(result == 'success'){
 	        		alert("삭제완료");
@@ -130,10 +126,10 @@ function btnVersionDelete(board_id,version,branch){
 	        }
 	    })
 }
-function btnDelete(board_id,version,branch){
+function btnDelete(board_id,version){
 	  $.ajax({
 	        type: "DELETE",
-	        url: "${path}/Assignment/boards/"+board_id+"/"+version+"/"+branch,
+	        url: "${path}/Assignment/boards/"+board_id+"/"+version,
 	        success: function(result){
 	        	if(result == 'success'){
 	        		alert("삭제완료");
@@ -146,19 +142,18 @@ function btnDelete(board_id,version,branch){
 	    })
 }
 
-function btnRecover(board_id,version,branch){
+function btnRecover(board_id,version){
 	var tableSearch = ${"table"};
 	
 	var leafBoard_id = Number(tableSearch.rows[1].cells[1].innerHTML);
 	var leafVersion = Number(tableSearch.rows[1].cells[2].innerHTML);
-	var leafBranch = Number(tableSearch.rows[1].cells[3].innerHTML);
 	  $.ajax({
 	        type: "GET",
-	        url: "${path}/Assignment/boards/recover/"+board_id+"/"+version+"/"+branch+"/"+leafBoard_id+"/"+leafVersion+"/"+leafBranch,
+	        url: "${path}/Assignment/boards/recover/"+board_id+"/"+version+"/"+leafBoard_id+"/"+leafVersion,
 	        success: function(result){
 	        	if(result.result == 'success'){
 	        		alert("복원완료");
-	        		location.href='${path}/Assignment/boards/management/'+result.board_id+'/'+result.version+'/'+result.branch;
+	        		location.href='${path}/Assignment/boards/management/'+result.board_id+'/'+result.version;
 	        	}
 
 	        	else{
@@ -185,11 +180,9 @@ function btnDiff(){
 	
 	     $("#board_id1").val(Number(firstNode[0]));
 	     $("#version1").val(Number(firstNode[1]));
-	     $("#branch1").val(Number(firstNode[2]));
 	     
 	     $("#board_id2").val(Number(secondNode[0]));
 	     $("#version2").val(Number(secondNode[1]));
-	     $("#branch2").val(Number(secondNode[2]));
 	}
 	var fm = document.diffForm;
 	fm.method='post';

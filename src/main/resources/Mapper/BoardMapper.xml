@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
  
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -16,9 +16,9 @@
 	    
     
     <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
-    	SELECT board_id,version,branch,subject,content,created,file_id
+    	SELECT board_id,version,subject,content,created,file_id
     	FROM board
-    	WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+    	WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
 	<!--  board_history와 동시에 넣어져야함. -->
@@ -26,14 +26,14 @@
        
     	<if test="#{file_id} != null">
         INSERT INTO board
-        (board_id,version,branch,subject,content,created,file_id)
+        (board_id,version,subject,content,created,file_id)
         VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created},#{file_id});
         </if>
         
         <if test="#{file_id} == null">
         INSERT INTO board
-        (board_id,version,branch,subject,content,created)
-        VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created});
+        (board_id,version,subject,content,created)
+        VALUES (#{board_id}, #{version},#{subject},#{content},#{created});
         </if>
     
    
@@ -43,7 +43,7 @@
     <!--  게시물 삭제시 이력 모두 삭제되어야 한다. -->
     <delete id="boardDelete" parameterType="hashmap">
         DELETE FROM board 
-        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+        WHERE board_id = #{board_id} AND version = #{version};
     </delete>
     
     <!--  히스토리 먼저 처리하고 boardUpdate 실행됨 -->
@@ -57,7 +57,7 @@
         <if test="#{file_id} != null">
         file_id = #{file_id}
   		</if>
-        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+        WHERE board_id = #{board_id} AND version = #{version};
     </update>
     
     <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.FileDTO">
@@ -65,7 +65,7 @@
         FROM board as a
         JOIN file as b
         ON a.file_id = b.file_id
-        WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
+        WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
     <select id="getMaxBoardId" resultType="int">

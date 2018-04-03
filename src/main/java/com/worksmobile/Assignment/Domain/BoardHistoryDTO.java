@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Domain;
+﻿package com.worksmobile.Assignment.Domain;
 
 import java.io.IOException;
 
@@ -13,7 +13,6 @@ public class BoardHistoryDTO extends NodePtrDTO{
 
 	@Getter @Setter private Integer parent_board_id = null;
 	@Getter @Setter private Integer parent_version = null;
-	@Getter @Setter private Integer parent_branch = null;
 
 	@Setter@Getter private int file_id;
 	
@@ -32,7 +31,6 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	public BoardHistoryDTO(BoardDTO article, NodePtrDTO nodePtrDTO, String status) {
 		board_id = nodePtrDTO.getBoard_id();
 		version = nodePtrDTO.getVersion() ;
-		branch = nodePtrDTO.getBranch();
 		this.status = status;
 		history_subject = article.getSubject();
 		file_id = article.getFile_id();
@@ -41,10 +39,9 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	public void setParentNodePtr(NodePtrDTO parentNodePtrDTO) {
 		parent_board_id = parentNodePtrDTO.getBoard_id();
 		parent_version = parentNodePtrDTO.getVersion();
-		parent_branch = parentNodePtrDTO.getBranch();
 	}
 	
 	public NodePtrDTO getParentPtrDTO() {
-		return new NodePtrDTO(parent_board_id, parent_version, parent_branch);
+		return new NodePtrDTO(parent_board_id, parent_version);
 	}
 }

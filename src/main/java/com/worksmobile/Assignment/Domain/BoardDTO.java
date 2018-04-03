@@ -28,7 +28,6 @@ public class BoardDTO extends NodePtrDTO{
 	public void setNodePtrDTO(NodePtrDTO nodePtrDTO) {
 		board_id = nodePtrDTO.getBoard_id();
 		version = nodePtrDTO.getVersion();
-		branch = nodePtrDTO.getBranch();
 	}
 	
 }

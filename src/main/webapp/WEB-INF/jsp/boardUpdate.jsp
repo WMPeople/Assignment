@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=utf-8"
+﻿<%@ page language="java" contentType="text/html; charset=utf-8"
 	pageEncoding="utf-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
@@ -59,9 +59,11 @@
 					<!-- 			</p> -->
 					<!-- 			<button type="button" class="btn _temp">임시저장</button> -->
 					<!-- 			<button type="button" class="btn _preview">미리보기</button> -->
-					<input type="text" name="board_id" id="board_id"style="display: none;" value="<%=request.getParameter("board_id")%>"> 
-					<input type="text" name="version" id="version" style="display: none;" value="<%=request.getParameter("version")%>"> 
-					<input type="text" name="branch" id="branch" style="display: none;" value="<%=request.getParameter("branch")%>">
+					<input type="text" name="board_id" id="board_id"
+						style="display: none;"
+						value="<%=request.getParameter("board_id")%>"> <input
+						type="text" name="version" id="version" style="display: none;"
+						value="<%=request.getParameter("version")%>">
 					<button type="button" id="btnUpdate" class="btn tx_point _save">
 						<strong>수정</strong>
 					</button>

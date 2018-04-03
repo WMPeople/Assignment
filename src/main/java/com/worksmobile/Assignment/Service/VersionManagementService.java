@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,13 +25,6 @@ public class VersionManagementService {
 	
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
-	
-	public VersionManagementService() {
-	}
-	
-	@PostConstruct
-	private void init() {
-	}
 	
 	private BoardHistoryDTO getBoardHistory(List<BoardHistoryDTO> historyList, NodePtrDTO nodePtrDTO) {
 		for(BoardHistoryDTO eleHistoryDTO : historyList) {
@@ -77,28 +68,54 @@ public class VersionManagementService {
 		return relatedHistoryList;
 	}
 	
-	// TODO : last_board_id 가 스레드 세이프 한지 확인할 것.
 	/***
 	 * 최초 기록 게시글을 등록합니다. 
 	 * @param article 게시글에 대한 정보.
 	 * @return 새로운 게시글을 가리키는 포인터.
 	 */
 	@Transactional
-	synchronized public BoardHistoryDTO createArticle(BoardDTO article) {
-		int last_board_id = boardMapper.getMaxBoardId();
-		NodePtrDTO newNodePtrDTO = new NodePtrDTO(last_board_id + 1, 1, 1);
-		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article, newNodePtrDTO, BoardHistoryDTO.STATUS_CREATED);
+	public BoardHistoryDTO createArticle(BoardDTO article) {
+		return createArticleAndHistory(article, 1, BoardHistoryDTO.STATUS_CREATED, NodePtrDTO.DEFAULT_NULL_NODE_PTR);
+	}
+
+	/**
+	 *  압축은 충돌영역에서 제외하기위함.
+	 * @param article 등록할 게시물의 제목, 내용, 첨부파일이 사용됩니다.
+	 * @param version 새로운 게시물의 버전
+	 * @param status 게시물 이력의 상태에 들어갈 내용
+	 * @param parentNodePtr 게시물의 부모 노드 포인터
+	 * @return
+	 */
+	private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final NodePtrDTO parentNodePtr) {
+		byte[] compressedContent = null;
 		try {
-			boardHistoryDTO.setHistory_content(Compress.compress(article.getContent()));
+			compressedContent = Compress.compress(article.getContent());
 		} catch(IOException e) {
 			e.printStackTrace();
 			String json = Utils.jsonStringIfExceptionToString(article);
 			throw new RuntimeException("createArticle메소드에서 게시글 내용을 압축에 실패하였습니다. \n게시글 : " + json);
 		}
 
+		return createArticleAndHistory(article, version, status, compressedContent, parentNodePtr);
+	}
+	
+	/***
+	 *  충돌 영역! 게시판 DB 와 이력 DB 에 둘다 등록합니다.
+	 *  게시판 id를 1증가 시켜 작성합니다.
+	 * @param article 등록할 게시물의 제목, 내용, 첨부파일이 사용됩니다.
+	 * @param version 새로운 게시물의 버전
+	 * @param status 게시물 이력의 상태에 들어갈 내용
+	 * @param compressedContent 압축된 내용
+	 * @param parentNodePtr 게시물의 부모 노드 포인터
+	 * @return
+	 */
+	synchronized private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final byte[] compressedContent, final NodePtrDTO parentNodePtr) {
+		int last_board_id = boardMapper.getMaxBoardId();
+		NodePtrDTO newNodePtrDTO = new NodePtrDTO(last_board_id + 1, version);
+		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article, newNodePtrDTO, status);
+		boardHistoryDTO.setHistory_content(compressedContent);
+		boardHistoryDTO.setParentNodePtr(parentNodePtr);
 		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistoryDTO);
-		
-		
 		if(insertedRowCnt == 0) {
 			throw new RuntimeException("createArticle메소드에서 createHistory error" + boardHistoryDTO);
 		}
@@ -118,7 +135,7 @@ public class VersionManagementService {
 	}
 	
 	// TODO : 생성시에 잎 노드 인지 보장을 하지 않음.
-	// TODO : 충돌 관리?? 만약 잎 노드가 아닌경우 새로운 Branch 로 만들어짐을 유의할것.
+	// TODO : 충돌 관리?? 만약 잎 노드가 아닌경우 새로운 게시물 번호로 만들어짐을 유의할것.
 	/***
 	 * 버전 복구 기능입니다. board DB및  boardHistory 둘다 등록 됩니다.
 	 * @param recoverPtr 복구할 버전에 대한 포인터.
@@ -170,40 +187,9 @@ public class VersionManagementService {
 	}
 	
 	private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, final NodePtrDTO parentPtrDTO, final String status) {
-		byte[] compressedContent = null;
-		try {
-			compressedContent = Compress.compress(boardDTO.getContent());
-		} catch(IOException e) {
-			e.printStackTrace();
-			String json = Utils.jsonStringIfExceptionToString(boardDTO);
-			throw new RuntimeException("createVersionWithBranch메소드에서 게시글 내용을 압축에 실패하였습니다. \n게시글 : " + json);
-		}
-		
 		deleteArticleIfIsLeaf(parentPtrDTO);
 		
-		BoardHistoryDTO newBranchHistoryDTO = new BoardHistoryDTO();
-		newBranchHistoryDTO.setBoard_id(parentPtrDTO.getBoard_id());
-		newBranchHistoryDTO.setVersion(parentPtrDTO.getVersion() + 1);
-		newBranchHistoryDTO.setStatus(status);
-		newBranchHistoryDTO.setHistory_subject(boardDTO.getSubject());
-		newBranchHistoryDTO.setHistory_content(compressedContent);
-		newBranchHistoryDTO.setFile_id(boardDTO.getFile_id());
-		newBranchHistoryDTO.setParentNodePtr(parentPtrDTO);
-		newBranchHistoryDTO = createHistoryWithLastBranch(newBranchHistoryDTO, 
-				newBranchHistoryDTO.getBoard_id(), newBranchHistoryDTO.getVersion());
-
-		NodePtrDTO newLeafPtr = newBranchHistoryDTO;
-		newBranchHistoryDTO = boardHistoryMapper.getHistory(newLeafPtr);
-
-		boardDTO.setNodePtrDTO(newLeafPtr);
-		boardDTO.setCreated(newBranchHistoryDTO.getCreated());
-		
-		int createdCnt = boardMapper.boardCreate(boardDTO);
-		if(createdCnt != 1) {
-			throw new RuntimeException("created cnt expected 1 but " + createdCnt);
-		}
-		
-		return newLeafPtr;
+		return createArticleAndHistory(boardDTO, parentPtrDTO.getVersion() + 1, status, parentPtrDTO);
 	}
 	
 	synchronized private void deleteArticleIfIsLeaf(NodePtrDTO nodePtrDTO) {
@@ -226,25 +212,6 @@ public class VersionManagementService {
 		}
 	}
 	
-	/***
-	 * 게시판 이력을 새로운 branch로 만듦. 게시판 이력을 바탕으로 branch 마지막 번호를 판단함.
-	 * @param historyDTO 생성할 내용이 들어 있는 History
-	 * @param board_id
-	 * @param version
-	 * @return 생성 실패시 null 을 반환.
-	 */
-	synchronized private BoardHistoryDTO createHistoryWithLastBranch(BoardHistoryDTO historyDTO, final int board_id, final int version) {
-		int last_branch = boardHistoryMapper.getLastbranch(board_id, version);
-		historyDTO.setBranch(last_branch + 1);
-		int insertedCnt = boardHistoryMapper.createHistory(historyDTO);
-		if(insertedCnt == 0) {
-			return null;
-		}
-		else {
-			return historyDTO;
-		}
-	}
-	
 	private void updateHistoryParentPtr(BoardHistoryDTO boardHistoryDTO) {
 		int updatedCnt = boardHistoryMapper.updateHistoryParent(boardHistoryDTO);
 		if(updatedCnt != 1) {
@@ -264,9 +231,10 @@ public class VersionManagementService {
 	 * 부모의 이력은 삭제되지 않음을 유의 해야 합니다.
 	 * 루트 삭제시에는 루트가 2개 되는 결과를 초래할 수 있습니다.
 	 * @param deletePtrDTO 삭제할 버전에 대한 정보.
+	 * @return 새로운 리프 노드의 주소. 새로운 리프노드를 생성하지 않았으면 null을 반환함.
 	 */
 	@Transactional
-	public void deleteVersion(final NodePtrDTO deletePtrDTO) {
+	public NodePtrDTO deleteVersion(final NodePtrDTO deletePtrDTO) {
 		BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
 		NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrDTO();
 
@@ -300,6 +268,7 @@ public class VersionManagementService {
 					throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
 							"deleteRowCnt : " + deletedCnt + " createdCnt : " + createdCnt);
 				}
+				return parentDTO;
 			}
 		}
 		else {
@@ -313,6 +282,7 @@ public class VersionManagementService {
 				throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
 			}
 		}
+		return null;
 	}
 	
 	public NodePtrDTO findAncestorHaveAnotherChild(NodePtrDTO curPtrDTO) {
@@ -327,7 +297,7 @@ public class VersionManagementService {
 	}
 	
 	/**
-	 * 특정 게시글을 삭제합니다. 연관 브렌치를 모두 삭제합니다. (단, 형제 노드가 존재 할때까지)
+	 * 특정 게시글을 삭제합니다. 부모를 모두 삭제합니다. (단, 형제 노드가 존재 할때까지)
 	 * @param leafPtrDTO 리프 노드만 주어야합니다.
 	 * @throws NotLeafNodeException 리프 노드가 아닌 것을 삭제할때 발생됨.
 	 */
