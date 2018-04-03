@@ -86,7 +86,7 @@ public class VersionManagementService {
 	synchronized public BoardHistoryDTO createArticle(BoardDTO article) {
 		int last_board_id = boardMapper.getMaxBoardId();
 		NodePtrDTO newNodePtrDTO = new NodePtrDTO(last_board_id + 1, 1, 1);
-		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article, newNodePtrDTO, "Created");
+		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article, newNodePtrDTO, BoardHistoryDTO.STATUS_CREATED);
 		try {
 			boardHistoryDTO.setHistory_content(Compress.compress(article.getContent()));
 		} catch(IOException e) {
@@ -151,7 +151,7 @@ public class VersionManagementService {
 			throw new RuntimeException("recoverVersion에서 게시글 내용을 압축해제 중 에러 발생. \nrecoveredBoardDTO : " + json);
 		}
 			
-		return createVersionWithBranch(recoveredBoardDTO, leafPtr, "recovered");
+		return createVersionWithBranch(recoveredBoardDTO, leafPtr, BoardHistoryDTO.STATUS_RECOVERED + recoverPtr.toString());
 	}
 	
 	/***
@@ -162,7 +162,7 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public NodePtrDTO modifyVersion(BoardDTO modifiedBoard, NodePtrDTO parentPtrDTO) {
-		return createVersionWithBranch(modifiedBoard, parentPtrDTO, "Modified");
+		return createVersionWithBranch(modifiedBoard, parentPtrDTO, BoardHistoryDTO.STATUS_MODIFIED);
 	}
 	
 	private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, final NodePtrDTO parentPtrDTO, final String status) {

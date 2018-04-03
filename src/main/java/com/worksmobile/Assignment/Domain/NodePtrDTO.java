@@ -40,9 +40,9 @@ public class NodePtrDTO {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("board_id : ").append(board_id)
-				.append("version : ").append(version)
-				.append("branch : ").append(branch);
+		builder.append(board_id)
+				.append("-").append(version)
+				.append("-").append(branch);
 		return builder.toString();
 	}
 }
