@@ -22,4 +22,6 @@ public interface BoardHistoryMapper {
 	public int updateHistoryParent(BoardHistoryDTO boardHistoryDTO);
 
 	public List<BoardHistoryDTO> getChildren(NodePtrDTO nodePtr);
+	
+	public int getFileCount(int file_id);
 }

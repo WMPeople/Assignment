@@ -35,6 +35,9 @@ public class BoardHistoryMapperTest {
 
 	@Autowired
 	BoardMapper boardMapper;
+	
+	@Autowired
+	FileMapper fileMapper;
 
 	public static final int defaultBoardId = 1;
 	private static BoardHistoryDTO defaultHistoryDTO;
@@ -45,6 +48,7 @@ public class BoardHistoryMapperTest {
 		defaultHistoryDTO = new BoardHistoryDTO();
 		defaultHistoryDTO.setBoard_id(1);
 		defaultHistoryDTO.setVersion(6);
+		defaultHistoryDTO.setFile_id(1000);
 
 		defaultHistoryDTO.setStatus("Created");
 		defaultHistoryDTO.setHistory_subject("sub");
@@ -152,5 +156,19 @@ public class BoardHistoryMapperTest {
 		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(defaultNodePtrDTO);
 		assertNotEquals(0, children.size());
 		assertEquals(boardHistoryDTO, children.get(0));
+	}
+	
+	@Test
+	public void testGetFileCount() {
+		BoardHistoryDTO boardHistoryDTO = null;
+		boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+		if (boardHistoryDTO == null) {
+			boardHistoryMapper.createHistory(defaultHistoryDTO);
+			boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+		}
+		assertNotNull(boardHistoryDTO);
+		int file_id = boardHistoryDTO.getFile_id();
+		int fileCount = boardHistoryMapper.getFileCount(file_id);
+		assertEquals(1,fileCount);	
 	}
 }

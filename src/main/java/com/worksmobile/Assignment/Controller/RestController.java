@@ -31,6 +31,7 @@ import com.worksmobile.Assignment.Mapper.FileMapper;
 import com.worksmobile.Assignment.Service.Compress;
 import com.worksmobile.Assignment.Service.Paging;
 import com.worksmobile.Assignment.Service.VersionManagementService;
+import com.worksmobile.Assignment.util.Utils;
 
 @org.springframework.web.bind.annotation.RestController
 public class RestController {
@@ -103,6 +104,10 @@ public class RestController {
 		params.put("version", version);
 		
 		BoardDTO board = boardMapper.viewDetail(params);
+		if(board == null) {
+			String json = Utils.jsonStringIfExceptionToString(board);
+			throw new RuntimeException("show 메소드에서 viewDetail 메소드 실행 에러" + json);
+		}
 		FileDTO file = fileMapper.getFile(board.getFile_id());
 		
 		ModelAndView modelAndView = new ModelAndView();
@@ -185,6 +190,7 @@ public class RestController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			System.out.println("에러");
+			e.printStackTrace();
 		}
 		return 0;
 	}
@@ -225,10 +231,7 @@ public class RestController {
 		
 		try {
 			if(mFile!=null) {
-				if(mFile.getOriginalFilename().equals("")) {
-					board.setFile_id(0);
-				}
-				else {
+				if(!mFile.getOriginalFilename().equals("")) {
 					FileDTO file = new FileDTO();
 					file.setFile_name(mFile.getOriginalFilename());
 					file.setFile_data(mFile.getBytes());
@@ -247,6 +250,7 @@ public class RestController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			System.out.println("에러");
+			e.printStackTrace();
 		}
 		return 0;
 
@@ -268,6 +272,10 @@ public class RestController {
 		params.put("version", board.getVersion());
 		
 		pastBoard = boardMapper.viewDetail(params);	
+		if(pastBoard == null) {
+			String json = Utils.jsonStringIfExceptionToString(pastBoard);
+			throw new RuntimeException("update3 메소드에서 viewDetail 메소드 실행 에러" + json);
+		}
 		board.setFile_id(pastBoard.getFile_id());
 		
 		NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion());
@@ -299,7 +307,19 @@ public class RestController {
 			@PathVariable(value = "version") int version) throws Exception {
 
 		NodePtrDTO deletePtrDTO = new NodePtrDTO(board_id,version);
-			versionManagementService.deleteVersion(deletePtrDTO);
+		BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
+		int file_id = deleteHistoryDTO.getFile_id();
+		int fileCount =0;
+		if(file_id !=0) {
+			fileCount = boardHistoryMapper.getFileCount(file_id);
+		}
+		if(fileCount ==1) {
+			int deletedCnt2 = fileMapper.deleteFile(file_id);
+			if(deletedCnt2 != 1) {
+				throw new RuntimeException("파일 삭제 에러");
+			};
+		}
+		versionManagementService.deleteVersion(deletePtrDTO);
 		return "success";
 	}
 	

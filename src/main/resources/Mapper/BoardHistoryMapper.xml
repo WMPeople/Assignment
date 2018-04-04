@@ -29,7 +29,7 @@
     
      <insert id="createHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
         INSERT INTO board_history(board_id, version, status, history_subject,
-        						history_content, file_id,
+        						history_content,file_id,
         						parent_board_id, parent_version)
 		VALUES(#{board_id}, #{version}, #{status}, #{history_subject},
 				#{history_content}, #{file_id}, #{parent_board_id}, #{parent_version});
@@ -51,4 +51,10 @@
 		FROM board_history
 		WHERE parent_board_id = #{board_id} AND parent_version = #{version};
     </select>
+    
+    <select id="getFileCount" parameterType ="int" resultType="int">
+		SELECT count(*)
+		FROM board_history
+		WHERE file_id = #{file_id};  
+	</select>
 </mapper>

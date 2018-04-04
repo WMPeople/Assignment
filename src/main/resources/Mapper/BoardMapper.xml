@@ -23,21 +23,9 @@
     
 	<!--  board_history와 동시에 넣어져야함. -->
     <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
-       
-    	<if test="#{file_id} != null">
         INSERT INTO board
         (board_id,version,subject,content,created,file_id)
         VALUES (#{board_id}, #{version},#{subject},#{content},#{created},#{file_id});
-        </if>
-        
-        <if test="#{file_id} == null">
-        INSERT INTO board
-        (board_id,version,subject,content,created)
-        VALUES (#{board_id}, #{version},#{subject},#{content},#{created});
-        </if>
-    
-   
-    
     </insert>
     
     <!--  게시물 삭제시 이력 모두 삭제되어야 한다. -->
@@ -47,16 +35,13 @@
     </delete>
     
     <!--  히스토리 먼저 처리하고 boardUpdate 실행됨 -->
-    <!--  우선 업데이트시 파일은 건드리지 않는다. -->
     <update id="boardUpdate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
         UPDATE board 
         SET 
         subject = #{subject},
         content = #{content},
         created = CURRENT_TIMESTAMP,
-        <if test="#{file_id} != null">
         file_id = #{file_id}
-  		</if>
         WHERE board_id = #{board_id} AND version = #{version};
     </update>
     

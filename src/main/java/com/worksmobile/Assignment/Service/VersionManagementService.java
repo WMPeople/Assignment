@@ -15,6 +15,7 @@ import com.worksmobile.Assignment.Domain.FileDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
+import com.worksmobile.Assignment.Mapper.FileMapper;
 import com.worksmobile.Assignment.util.Utils;
 
 @Service
@@ -25,6 +26,9 @@ public class VersionManagementService {
 	
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
+	
+	@Autowired
+	FileMapper fileMapper;
 	
 	private BoardHistoryDTO getBoardHistory(List<BoardHistoryDTO> historyList, NodePtrDTO nodePtrDTO) {
 		for(BoardHistoryDTO eleHistoryDTO : historyList) {
@@ -119,7 +123,6 @@ public class VersionManagementService {
 		if(insertedRowCnt == 0) {
 			throw new RuntimeException("createArticle메소드에서 createHistory error" + boardHistoryDTO);
 		}
-		
 		NodePtrDTO nodePtr = boardHistoryDTO;
 		boardHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
 
@@ -130,7 +133,6 @@ public class VersionManagementService {
 		if(insertedRowCnt == 0) {
 			throw new RuntimeException("createArticle메소드에서 boardCreate error" + boardHistoryDTO);
 		}
-		
 		return boardHistoryDTO;
 	}
 	
@@ -319,12 +321,21 @@ public class VersionManagementService {
 				break;
 			}
 			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrDTO();
-
+			int file_id = deleteHistoryDTO.getFile_id();
+			int fileCount =0;
+			if(file_id !=0) {
+				fileCount = boardHistoryMapper.getFileCount(file_id);
+			}
+			if(fileCount ==1) {
+				int deletedCnt2 = fileMapper.deleteFile(file_id);
+				if(deletedCnt2 != 1) {
+					throw new RuntimeException("파일 삭제 에러");
+				};
+			}
 			deletedCnt = boardHistoryMapper.deleteHistory(leafPtrDTO);
 			if(deletedCnt == 0) {
 				throw new RuntimeException("deleteArticle메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt);
 			}
-			
 			List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(parentPtrDTO);
 			
 			if(children.size() >= 1) {

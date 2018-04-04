@@ -16,4 +16,6 @@ public interface FileMapper {
 	public int createFile(FileDTO file);
 	
 	public int deleteFile(int file_id);
+	
+	
 }
