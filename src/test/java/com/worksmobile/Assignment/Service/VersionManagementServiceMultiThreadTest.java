@@ -4,8 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.junit.After;
 import org.junit.Before;
@@ -40,7 +42,7 @@ public class VersionManagementServiceMultiThreadTest {
 	
 	private BoardDTO defaultBoardDTO;
 	private BoardHistoryDTO defaultCreatedDTO;
-	private List<Thread> threadList = new ArrayList<>();
+	private List<Thread> threadList = new ArrayList<>(THREAD_COUNT);
 	
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
@@ -122,11 +124,57 @@ public class VersionManagementServiceMultiThreadTest {
 			Thread thread = new Thread(()-> {
 				try {
 					for(int j = 0; j < 10; j++) {
-						NodePtrDTO child = this.makeChild(versionManagementService, boardMapper, defaultCreatedDTO);
+						NodePtrDTO child = VersionManagementServiceMultiThreadTest.makeChild(versionManagementService, boardMapper, defaultCreatedDTO);
 					}
 				} catch (JsonProcessingException e) {
 					e.printStackTrace();
 				}
+			});
+			threadList.add(thread);
+		}
+	}
+	
+	@Test
+	public void testModifyAndDeleteVersion() throws JsonProcessingException {
+		int generationCnt = THREAD_COUNT;
+		List<NodePtrDTO> generation = new ArrayList<>(generationCnt);
+		generation.add(defaultCreatedDTO);
+		for(int i = 1; i < generationCnt; i++) {
+			NodePtrDTO parentPtr = generation.get(i - 1);
+			NodePtrDTO child = VersionManagementServiceMultiThreadTest.makeChild(versionManagementService, boardMapper, parentPtr);
+			generation.add(child);
+		}
+		
+		BoardDTO modifiedBoardDTO = new BoardDTO();
+		modifiedBoardDTO.setSubject("modifiedSub");
+		modifiedBoardDTO.setSubject("modifiedContent");
+
+		int i = 0;
+		for(; i < THREAD_COUNT / 2; i++) {
+			Thread thread = new Thread(()-> {
+				int randIdx = (int) (Math.random() * THREAD_COUNT);
+				NodePtrDTO nodePtrDTO = generation.get(randIdx);
+
+				versionManagementService.modifyVersion(modifiedBoardDTO, nodePtrDTO);
+			});
+			threadList.add(thread);
+		}
+		
+		HashMap<String, Integer> articleListParams = new HashMap<>();
+		articleListParams.put("offset", 0);
+		articleListParams.put("noOfRecords", Integer.MAX_VALUE);
+		int root_board_id = defaultCreatedDTO.getRoot_board_id();
+
+		for(; i < THREAD_COUNT; i++) {
+			Thread thread = new Thread(()-> {
+				List<BoardDTO> sameRoot = boardMapper.articleList(articleListParams);
+				sameRoot.removeIf(item -> { return item.getRoot_board_id() != root_board_id; } );
+				int maxIdx = sameRoot.size() - 1;
+				int randIdx = (int) (Math.random() * maxIdx);
+
+				NodePtrDTO deletePtrDTO = sameRoot.get(randIdx);
+				
+				versionManagementService.deleteVersion(deletePtrDTO);
 			});
 			threadList.add(thread);
 		}

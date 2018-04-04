@@ -151,4 +151,27 @@ public class BoardHistoryMapperTest {
 		assertNotEquals(0, children.size());
 		assertEquals(boardHistoryDTO, children.get(0));
 	}
+	
+	@Test
+	public void testGetHistoryByRootBoardId() throws JsonProcessingException {
+		int relatedCnt = 6;
+		List<BoardHistoryDTO> createdSameRootList = new ArrayList<>(relatedCnt);
+		boardHistoryDTO = createBoardHistoryIfNotExists();
+		BoardHistoryDTO firstEle = boardHistoryMapper.getHistory(boardHistoryDTO);
+		createdSameRootList.add(firstEle.clone());
+		for(int i = 0; i < relatedCnt - 1; i++) {
+			boardHistoryDTO.setParentNodePtrAndRoot(boardHistoryDTO);
+			boardHistoryDTO.setVersion(boardHistoryDTO.getVersion() + 1);
+			boardHistoryMapper.createHistory(boardHistoryDTO);
+			BoardHistoryDTO dbEle = boardHistoryMapper.getHistory(boardHistoryDTO);
+			createdSameRootList.add(dbEle.clone());
+		}
+		List<BoardHistoryDTO> sameRoot = boardHistoryMapper.getHistoryByRootBoardId(boardHistoryDTO.getRoot_board_id());
+		assertEquals(relatedCnt, sameRoot.size());
+		for(int i = 0; i < relatedCnt; i++) {
+			BoardHistoryDTO createdEle = createdSameRootList.get(i);
+			BoardHistoryDTO mapperEle = sameRoot.get(i);
+			Utils.assertConvertToJsonObject(createdEle, mapperEle);
+		}
+	}
 }
