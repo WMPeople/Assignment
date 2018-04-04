@@ -26,7 +26,7 @@ public class VersionManagementService {
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
 	
-	private BoardHistoryDTO getBoardHistory(List<BoardHistoryDTO> historyList, NodePtrDTO nodePtrDTO) {
+	private BoardHistoryDTO findBoardHistory(List<BoardHistoryDTO> historyList, NodePtrDTO nodePtrDTO) {
 		for(BoardHistoryDTO eleHistoryDTO : historyList) {
 			NodePtrDTO elePtrDTO = eleHistoryDTO;
 			if(elePtrDTO.equals(nodePtrDTO)) {
@@ -48,10 +48,10 @@ public class VersionManagementService {
 			throw new NotLeafNodeException("leaf node 정보" + leafPtrJson);
 		}
 		List<BoardHistoryDTO> boardHistoryList = null;
-		boardHistoryList = boardHistoryMapper.getHistoryByBoardId(leafPtrDTO.getBoard_id());
+		boardHistoryList = boardHistoryMapper.getHistoryByRootBoardId(leafPtrDTO.getRoot_board_id());
 		List<BoardHistoryDTO> relatedHistoryList = new ArrayList<>(boardHistoryList.size());
 		
-		BoardHistoryDTO leafHistoryDTO = getBoardHistory(boardHistoryList, leafPtrDTO);
+		BoardHistoryDTO leafHistoryDTO = findBoardHistory(boardHistoryList, leafPtrDTO);
 		if(leafHistoryDTO == null) {
 			String historyListJson = Utils.jsonStringIfExceptionToString(boardHistoryList);
 			throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + leafPtrDTO + "\n" +
@@ -60,8 +60,8 @@ public class VersionManagementService {
 
 		while(leafHistoryDTO != null) {
 			relatedHistoryList.add(leafHistoryDTO);
-			NodePtrDTO parentPtrDTO = leafHistoryDTO.getParentPtrDTO();
-			BoardHistoryDTO parentHistoryDTO = getBoardHistory(boardHistoryList, parentPtrDTO);
+			NodePtrDTO parentPtrDTO = leafHistoryDTO.getParentPtrAndRoot();
+			BoardHistoryDTO parentHistoryDTO = findBoardHistory(boardHistoryList, parentPtrDTO);
 			leafHistoryDTO = parentHistoryDTO;
 		}
 		
@@ -110,11 +110,14 @@ public class VersionManagementService {
 	 * @return
 	 */
 	synchronized private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final byte[] compressedContent, final NodePtrDTO parentNodePtr) {
-		int last_board_id = boardMapper.getMaxBoardId();
-		NodePtrDTO newNodePtrDTO = new NodePtrDTO(last_board_id + 1, version);
+		int last_board_id = boardMapper.getMaxBoardId() + 1;
+		NodePtrDTO newNodePtrDTO = new NodePtrDTO(last_board_id, version);
+		if(parentNodePtr.getRoot_board_id() == 0) {
+			parentNodePtr.setRoot_board_id(last_board_id);
+		}
 		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article, newNodePtrDTO, status);
 		boardHistoryDTO.setHistory_content(compressedContent);
-		boardHistoryDTO.setParentNodePtr(parentNodePtr);
+		boardHistoryDTO.setParentNodePtrAndRoot(parentNodePtr);
 		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistoryDTO);
 		if(insertedRowCnt == 0) {
 			throw new RuntimeException("createArticle메소드에서 createHistory error" + boardHistoryDTO);
@@ -186,7 +189,7 @@ public class VersionManagementService {
 		return createVersionWithBranch(modifiedBoard, parentPtrDTO, BoardHistoryDTO.STATUS_MODIFIED);
 	}
 	
-	private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, final NodePtrDTO parentPtrDTO, final String status) {
+	synchronized private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, final NodePtrDTO parentPtrDTO, final String status) {
 		deleteArticleIfIsLeaf(parentPtrDTO);
 		
 		return createArticleAndHistory(boardDTO, parentPtrDTO.getVersion() + 1, status, parentPtrDTO);
@@ -202,9 +205,9 @@ public class VersionManagementService {
 	}
 	
 	private boolean isLeaf(final NodePtrDTO nodePtrDTO) {
-		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(nodePtrDTO);
+		BoardDTO board = boardMapper.viewDetail(nodePtrDTO.toMap());
 		
-		if(children.size() == 0) {
+		if(board != null) {
 			return true;
 		}
 		else {
@@ -213,7 +216,7 @@ public class VersionManagementService {
 	}
 	
 	private void updateHistoryParentPtr(BoardHistoryDTO boardHistoryDTO) {
-		int updatedCnt = boardHistoryMapper.updateHistoryParent(boardHistoryDTO);
+		int updatedCnt = boardHistoryMapper.updateHistoryParentAndRoot(boardHistoryDTO);
 		if(updatedCnt != 1) {
 			String json;
 			try {
@@ -236,20 +239,12 @@ public class VersionManagementService {
 	@Transactional
 	public NodePtrDTO deleteVersion(final NodePtrDTO deletePtrDTO) {
 		BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
-		NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrDTO();
-
+		NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrAndRoot();
+		
 		List<BoardHistoryDTO> deleteNodeChildren = boardHistoryMapper.getChildren(deletePtrDTO);
-		if(deleteNodeChildren.size() == 0) {
+		if(deleteNodeChildren.size() == 0) {	// 리프 노드라면
 			BoardHistoryDTO parentHistoryDTO = boardHistoryMapper.getHistory(parentPtrDTO);
 			BoardDTO parentDTO = new BoardDTO(parentHistoryDTO);
-			try {
-				String content = Compress.deCompress(parentHistoryDTO.getHistory_content());
-				parentDTO.setContent(content);
-			} catch(IOException e) {
-				e.printStackTrace();
-				String history = Utils.jsonStringIfExceptionToString(parentHistoryDTO);
-				throw new RuntimeException("deleteVersion메소드에서 압축 해제 실패 \nhistoryDTO : " + history);
-			}
 			
 			int deletedCnt = boardMapper.boardDelete(deletePtrDTO.toMap());
 			if(deletedCnt != 1) {
@@ -262,7 +257,17 @@ public class VersionManagementService {
 				String json = Utils.jsonStringIfExceptionToString(deletePtrDTO);
 				throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
 			}
-			if(isLeaf(parentDTO)) {
+
+			List<BoardHistoryDTO> parentChildren = boardHistoryMapper.getChildren(parentDTO);
+			if(parentChildren.size() == 0) {	// 리프 노드는 게시물 게시판에 존재해야 함.
+				try {
+					String content = Compress.deCompress(parentHistoryDTO.getHistory_content());
+					parentDTO.setContent(content);
+				} catch(IOException e) {
+					e.printStackTrace();
+					String history = Utils.jsonStringIfExceptionToString(parentHistoryDTO);
+					throw new RuntimeException("deleteVersion메소드에서 압축 해제 실패 \nhistoryDTO : " + history);
+				}
 				int createdCnt = boardMapper.boardCreate(parentDTO);
 				if(createdCnt == 0) {
 					throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
@@ -273,7 +278,7 @@ public class VersionManagementService {
 		}
 		else {
 			for(BoardHistoryDTO childHistoryDTO : deleteNodeChildren) {
-				childHistoryDTO.setParentNodePtr(parentPtrDTO);
+				childHistoryDTO.setParentNodePtrAndRoot(parentPtrDTO);
 				updateHistoryParentPtr(childHistoryDTO);
 			}
 			int deletedCnt = boardHistoryMapper.deleteHistory(deletePtrDTO);
@@ -289,7 +294,7 @@ public class VersionManagementService {
 		List<BoardHistoryDTO> children;
 		do {
 			BoardHistoryDTO boardHistoryDTO = boardHistoryMapper.getHistory(curPtrDTO);
-			curPtrDTO = boardHistoryDTO.getParentPtrDTO();
+			curPtrDTO = boardHistoryDTO.getParentPtrAndRoot();
 			children = boardHistoryMapper.getChildren(curPtrDTO);
 		} while(children.size() != 1);
 		
@@ -318,7 +323,7 @@ public class VersionManagementService {
 			if(deleteHistoryDTO == null) {
 				break;
 			}
-			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrDTO();
+			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrAndRoot();
 
 			deletedCnt = boardHistoryMapper.deleteHistory(leafPtrDTO);
 			if(deletedCnt == 0) {
