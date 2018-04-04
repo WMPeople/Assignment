@@ -2,12 +2,17 @@ package com.worksmobile.Assignment.Domain;
 
 import java.util.HashMap;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+@Data
+@AllArgsConstructor
 public class NodePtrDTO {
 	@Getter @Setter protected Integer board_id = null;
 	@Getter @Setter protected Integer version = null;
+	@Getter @Setter protected int root_board_id;
 	
 	public static final NodePtrDTO DEFAULT_NULL_NODE_PTR = new NodePtrDTO();
 	
@@ -24,20 +29,14 @@ public class NodePtrDTO {
 		return map;
 	}
 	
-	private static boolean checkEquals(Integer lhs, Integer rhs) {
-		return lhs == null ? (rhs == null ? true : false) : lhs.equals(rhs);
-	}
-	
-	@Override
-	public boolean equals(Object arg0) {
-		NodePtrDTO dto = (NodePtrDTO)arg0;
-		return	checkEquals(board_id, dto.board_id) &&
-				checkEquals(version, dto.version);
-	}
 	
 	@Override
 	public String toString() {
 		return String.format("%d-%d", board_id, version);
+	}
+	
+	public boolean isRoot() {
+		return (Integer)root_board_id == board_id;
 	}
 }
 

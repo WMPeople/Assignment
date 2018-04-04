@@ -11,7 +11,7 @@ import com.worksmobile.Assignment.Domain.NodePtrDTO;
 @Mapper
 public interface BoardHistoryMapper {
 
-	public List<BoardHistoryDTO> getHistoryByBoardId(@Param("board_id")int board_id);
+	public List<BoardHistoryDTO> getHistoryByRootBoardId(@Param("root_board_id")int root_board_id);
 	
 	public BoardHistoryDTO getHistory(NodePtrDTO nodePtr);
 			
@@ -19,7 +19,7 @@ public interface BoardHistoryMapper {
 	
 	public int createHistory(BoardHistoryDTO boardHistoryDTO);
 
-	public int updateHistoryParent(BoardHistoryDTO boardHistoryDTO);
+	public int updateHistoryParentAndRoot(BoardHistoryDTO boardHistoryDTO);
 
 	public List<BoardHistoryDTO> getChildren(NodePtrDTO nodePtr);
 	

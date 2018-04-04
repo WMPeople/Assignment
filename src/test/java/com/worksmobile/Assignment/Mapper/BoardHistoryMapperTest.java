@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Mapper;
+﻿package com.worksmobile.Assignment.Mapper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
@@ -39,12 +40,12 @@ public class BoardHistoryMapperTest {
 	@Autowired
 	FileMapper fileMapper;
 
-	public static final int defaultBoardId = 1;
 	private static BoardHistoryDTO defaultHistoryDTO;
 	private static NodePtrDTO defaultNodePtrDTO;
+	private BoardHistoryDTO boardHistoryDTO = null;
 
 	public BoardHistoryMapperTest() {
-		defaultNodePtrDTO = new NodePtrDTO(1, 6);
+		defaultNodePtrDTO = new NodePtrDTO(1, 6, 1);
 		defaultHistoryDTO = new BoardHistoryDTO();
 		defaultHistoryDTO.setBoard_id(1);
 		defaultHistoryDTO.setVersion(6);
@@ -66,11 +67,11 @@ public class BoardHistoryMapperTest {
 
 		assertNotNull(historyDTO);
 	}
-
+	
 	@Test
 	public void testCreateHistory() throws IOException {
 		BoardDTO article = new BoardDTO();
-		article.setBoard_id(defaultBoardId);
+		article.setBoard_id(defaultNodePtrDTO.getBoard_id());
 		article.setSubject("testInsert");
 		article.setContent("testContent");
 
@@ -81,7 +82,8 @@ public class BoardHistoryMapperTest {
 		if (check != null) {
 			boardHistoryMapper.deleteHistory(defaultNodePtrDTO);
 		}
-		boardHistoryMapper.createHistory(createdHistoryDTO);
+		int createdCnt = boardHistoryMapper.createHistory(createdHistoryDTO);
+		assertEquals(1, createdCnt);
 
 		BoardHistoryDTO insertedDTO = null;
 		insertedDTO = boardHistoryMapper.getHistory(createdHistoryDTO);
@@ -90,29 +92,37 @@ public class BoardHistoryMapperTest {
 		insertedDTO.setCreated(null);
 		Utils.assertConvertToJsonObject(createdHistoryDTO, insertedDTO);
 	}
+	
+	private  BoardHistoryDTO createBoardHistoryIfNotExists() {
+		boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+		if (boardHistoryDTO == null) {
+			boardHistoryMapper.createHistory(defaultHistoryDTO);
+			boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
+		}
+		assertNotNull(boardHistoryDTO);
+		return boardHistoryDTO;
+	}
 
 	@Test
 	public void testUpdateHistory() throws JsonProcessingException {
-		BoardHistoryDTO beforeHistoryDTO = null;
-		beforeHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
-		if (beforeHistoryDTO == null) {
-			boardHistoryMapper.createHistory(defaultHistoryDTO);
-			beforeHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
-		}
-
-		BoardHistoryDTO afterHistoryDTO = beforeHistoryDTO;
-		if (beforeHistoryDTO.getParent_version() == null) {
-			beforeHistoryDTO.setParent_version(1);
+		boardHistoryDTO = createBoardHistoryIfNotExists();
+		
+		if (boardHistoryDTO.getParent_version() != null) {
+			boardHistoryDTO.setParent_version(null);
 		} else {
-			beforeHistoryDTO.setParent_version(null);
+			boardHistoryDTO.setParent_version(1);
+		}
+		if(boardHistoryDTO.getRoot_board_id() != 1) {
+			boardHistoryDTO.setRoot_board_id(1);
+		} else {
+			boardHistoryDTO.setRoot_board_id(0);
 		}
 
-		int updateRtn = boardHistoryMapper.updateHistoryParent(afterHistoryDTO);
+		int updateRtn = boardHistoryMapper.updateHistoryParentAndRoot(boardHistoryDTO);
 		assertEquals(1, updateRtn);
 
 		BoardHistoryDTO dbHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
-		Utils.assertConvertToJsonObject(afterHistoryDTO, dbHistoryDTO);
-		;
+		Utils.assertConvertToJsonObject(boardHistoryDTO, dbHistoryDTO);
 	}
 
 	// TODO : testUpdate 와 동일 하다는 결론이면 삭제할것.
@@ -123,12 +133,7 @@ public class BoardHistoryMapperTest {
 
 	@Test
 	public void testDeleteSpecificOne() {
-		BoardHistoryDTO boardHistoryDTO = null;
-		boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
-
-		if (boardHistoryDTO == null) {
-			boardHistoryMapper.createHistory(defaultHistoryDTO);
-		}
+		boardHistoryDTO = createBoardHistoryIfNotExists();
 		boardMapper.boardDelete(defaultNodePtrDTO.toMap());
 		int deletedColCnt = boardHistoryMapper.deleteHistory(defaultNodePtrDTO);
 
@@ -141,15 +146,8 @@ public class BoardHistoryMapperTest {
 	
 	@Test
 	public void testGetChildren() {
-		BoardHistoryDTO boardHistoryDTO = null;
-		boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
-
-		if (boardHistoryDTO == null) {
-			boardHistoryMapper.createHistory(defaultHistoryDTO);
-			boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
-		}
-		assertNotNull(boardHistoryDTO);
-		boardHistoryDTO.setParentNodePtr(boardHistoryDTO);
+		boardHistoryDTO = createBoardHistoryIfNotExists();
+		boardHistoryDTO.setParentNodePtrAndRoot(boardHistoryDTO);
 		boardHistoryDTO.setVersion(boardHistoryDTO.getVersion() + 1);
 		boardHistoryMapper.createHistory(boardHistoryDTO);
 		
@@ -170,5 +168,28 @@ public class BoardHistoryMapperTest {
 		int file_id = boardHistoryDTO.getFile_id();
 		int fileCount = boardHistoryMapper.getFileCount(file_id);
 		assertEquals(1,fileCount);	
+	}
+
+	@Test
+	public void testGetHistoryByRootBoardId() throws JsonProcessingException {
+		int relatedCnt = 6;
+		List<BoardHistoryDTO> createdSameRootList = new ArrayList<>(relatedCnt);
+		boardHistoryDTO = createBoardHistoryIfNotExists();
+		BoardHistoryDTO firstEle = boardHistoryMapper.getHistory(boardHistoryDTO);
+		createdSameRootList.add(firstEle.clone());
+		for(int i = 0; i < relatedCnt - 1; i++) {
+			boardHistoryDTO.setParentNodePtrAndRoot(boardHistoryDTO);
+			boardHistoryDTO.setVersion(boardHistoryDTO.getVersion() + 1);
+			boardHistoryMapper.createHistory(boardHistoryDTO);
+			BoardHistoryDTO dbEle = boardHistoryMapper.getHistory(boardHistoryDTO);
+			createdSameRootList.add(dbEle.clone());
+		}
+		List<BoardHistoryDTO> sameRoot = boardHistoryMapper.getHistoryByRootBoardId(boardHistoryDTO.getRoot_board_id());
+		assertEquals(relatedCnt, sameRoot.size());
+		for(int i = 0; i < relatedCnt; i++) {
+			BoardHistoryDTO createdEle = createdSameRootList.get(i);
+			BoardHistoryDTO mapperEle = sameRoot.get(i);
+			Utils.assertConvertToJsonObject(createdEle, mapperEle);
+		}
 	}
 }

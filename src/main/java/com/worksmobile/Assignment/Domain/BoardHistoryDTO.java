@@ -36,12 +36,31 @@ public class BoardHistoryDTO extends NodePtrDTO{
 		file_id = article.getFile_id();
 	}
 	
-	public void setParentNodePtr(NodePtrDTO parentNodePtrDTO) {
+	public void setParentNodePtrAndRoot(NodePtrDTO parentNodePtrDTO) {
 		parent_board_id = parentNodePtrDTO.getBoard_id();
 		parent_version = parentNodePtrDTO.getVersion();
+		root_board_id = parentNodePtrDTO.getRoot_board_id();
 	}
 	
-	public NodePtrDTO getParentPtrDTO() {
-		return new NodePtrDTO(parent_board_id, parent_version);
+	public NodePtrDTO getParentPtrAndRoot() {
+		return new NodePtrDTO(parent_board_id, parent_version, root_board_id);
+	}
+	
+	@Override
+	public BoardHistoryDTO clone() {
+		BoardHistoryDTO rtn = new BoardHistoryDTO();
+		rtn.board_id = board_id;
+		rtn.version = version;
+		rtn.created = created;
+		rtn.status = status;
+		rtn.history_subject = history_subject;
+		if(history_content != null) {
+			rtn.history_content = history_content.clone();
+		}
+		rtn.parent_board_id = parent_board_id;
+		rtn.parent_version = parent_version;
+		rtn.root_board_id = root_board_id;
+		rtn.file_id = file_id;
+		return rtn;
 	}
 }

@@ -7,7 +7,7 @@ public class BoardDTO extends NodePtrDTO{
 	@Setter @Getter private String subject;
 	@Setter @Getter private String content;
 	@Setter @Getter private String created;
-	@Setter@Getter private int file_id;
+	@Setter @Getter private int file_id;
 	
 	public BoardDTO() { }
 	/***
