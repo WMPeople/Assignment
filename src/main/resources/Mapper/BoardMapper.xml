@@ -16,7 +16,7 @@
 	    
     
     <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
-    	SELECT board_id,version,subject,content,created,file_id
+    	SELECT board_id,version,subject,content,created,file_id,root_board_id
     	FROM board
     	WHERE board_id = #{board_id} AND version = #{version};
     </select>
@@ -24,8 +24,8 @@
 	<!--  board_history와 동시에 넣어져야함. -->
     <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
         INSERT INTO board
-        (board_id,version,subject,content,created,file_id)
-        VALUES (#{board_id}, #{version},#{subject},#{content},#{created},#{file_id});
+        (board_id,version,subject,content,created,file_id,root_board_id)
+        VALUES (#{board_id}, #{version},#{subject},#{content},#{created},#{file_id},#{root_board_id});
     </insert>
     
     <!--  게시물 삭제시 이력 모두 삭제되어야 한다. -->
