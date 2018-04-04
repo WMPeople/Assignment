@@ -4,20 +4,20 @@
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
  
 <mapper namespace="com.worksmobile.Assignment.Mapper.BoardHistoryMapper">
-	<select id="getHistoryByBoardId"
+	<select id="getHistoryByRootBoardId"
     resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-        SELECT board_id, version, created, status, history_subject, 
-        		history_content, file_id, parent_board_id,
-        		parent_version
+        SELECT board_id, version, created, status,
+        		history_subject, history_content, file_id, 
+        		parent_board_id, parent_version,  root_board_id
 		FROM board_history
-		WHERE board_id = #{board_id};
+		WHERE root_board_id = #{root_board_id};
     </select>
 
     <select id="getHistory" 
     resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-        SELECT board_id, version, created, status, history_subject, 
-        		history_content, file_id, parent_board_id,
-        		parent_version
+        SELECT board_id, version, created, status, 
+        		history_subject, history_content, file_id, 
+        		parent_board_id, parent_version, root_board_id
 		FROM board_history
 		WHERE board_id = #{board_id} AND version = #{version};
     </select>
@@ -28,26 +28,26 @@
     </delete>
     
      <insert id="createHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-        INSERT INTO board_history(board_id, version, status, history_subject,
-        						history_content, file_id,
-        						parent_board_id, parent_version)
+        INSERT INTO board_history(board_id, version, status,
+        						history_subject, history_content, file_id,
+        						parent_board_id, parent_version, root_board_id)
 		VALUES(#{board_id}, #{version}, #{status}, #{history_subject},
-				#{history_content}, #{file_id}, #{parent_board_id}, #{parent_version});
+				#{history_content}, #{file_id}, #{parent_board_id}, #{parent_version}, #{root_board_id});
     </insert>
 
-    <update id="updateHistoryParent" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+    <update id="updateHistoryParentAndRoot" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
 		UPDATE board_history
 		SET
-		  parent_board_id = #{parent_board_id}, parent_version = #{parent_version}
+		  parent_board_id = #{parent_board_id}, parent_version = #{parent_version}, root_board_id = #{root_board_id}
 		WHERE
 		  board_id = #{board_id} AND version = #{version};
     </update>
 
      <select id="getChildren" 
     resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-        SELECT board_id, version, created, status, history_subject, 
-        		history_content, file_id, parent_board_id,
-        		parent_version
+        SELECT board_id, version, created, status,
+        		history_subject, history_content, file_id,
+        		parent_board_id, parent_version, root_board_id
 		FROM board_history
 		WHERE parent_board_id = #{board_id} AND parent_version = #{version};
     </select>

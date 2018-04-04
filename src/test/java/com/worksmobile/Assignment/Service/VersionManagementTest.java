@@ -15,6 +15,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.worksmobile.Assignment.Domain.BoardDTO;
@@ -179,7 +180,7 @@ public class VersionManagementTest {
 		versionManagementService.deleteVersion(middlePtrDTO);
 		
 		BoardHistoryDTO childHistoryDTO = boardHistoryMapper.getHistory(childPtrDTO);
-		NodePtrDTO childParentPtrDTO = childHistoryDTO.getParentPtrDTO();
+		NodePtrDTO childParentPtrDTO = childHistoryDTO.getParentPtrAndRoot();
 		
 		assertEquals(rootPtrDTO, childParentPtrDTO);
 	}
@@ -200,7 +201,7 @@ public class VersionManagementTest {
 		
 		for(NodePtrDTO child : childrenList) {
 			BoardHistoryDTO historyDTO = boardHistoryMapper.getHistory(child);
-			NodePtrDTO parentPtrDTO = historyDTO.getParentPtrDTO();
+			NodePtrDTO parentPtrDTO = historyDTO.getParentPtrAndRoot();
 			assertEquals(rootPtrDTO, parentPtrDTO);
 		}
 	}
@@ -256,6 +257,7 @@ public class VersionManagementTest {
 			generationList.add(makeChild(generationList.get(i - 1)));
 		}
 		
+		@SuppressWarnings("unused")
 		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(generationList.get(0));
 	}
 	
@@ -286,5 +288,10 @@ public class VersionManagementTest {
 			NodePtrDTO eleNodePtr = eleHistoryDTO;
 			assertTrue(nodePtrList.contains(eleNodePtr));
 		}
+	}
+	
+	@Test
+	public void testGetRelatedHistoryWhenDifferentBoardId() {
+		
 	}
 }
