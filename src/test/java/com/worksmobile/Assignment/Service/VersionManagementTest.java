@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -15,7 +16,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.worksmobile.Assignment.Domain.BoardDTO;
@@ -39,8 +39,11 @@ public class VersionManagementTest {
 	BoardHistoryMapper boardHistoryMapper;
 
 	private BoardDTO defaultBoardDTO;
-	
 	private BoardHistoryDTO defaultCreatedDTO;
+	private Comparator<NodePtrDTO> compareNodePtrDTO = Comparator
+					.comparing(NodePtrDTO::getRoot_board_id)
+					.thenComparing(NodePtrDTO::getBoard_id)
+					.thenComparing(NodePtrDTO::getVersion);
 	
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
@@ -280,8 +283,10 @@ public class VersionManagementTest {
 		NodePtrDTO hasChildPtrDTO = childrenList.get(0);
 		NodePtrDTO leapPtrDTO = makeChild(hasChildPtrDTO);
 		nodePtrList.add(leapPtrDTO);
+		NodePtrDTO leapPtrDTOWithoutRootBoardId = new NodePtrDTO(leapPtrDTO.getBoard_id(), leapPtrDTO.getVersion());
 		
-		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(leapPtrDTO);
+		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(leapPtrDTOWithoutRootBoardId);
+		assertEquals(relatedHistoryList.size(), nodePtrList.size());
 		assertNotNull(relatedHistoryList);
 		for(BoardHistoryDTO eleHistoryDTO : relatedHistoryList) {
 			assertNotNull(eleHistoryDTO);
@@ -291,7 +296,30 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testGetRelatedHistoryWhenDifferentBoardId() {
+	public void testGetRelatedHistoryWhenDifferentBoardId() throws JsonProcessingException, NotLeafNodeException {
+		List<NodePtrDTO> leafToRoot = new ArrayList<>();
+		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
+		leafToRoot.add(rootPtrDTO);
 		
+		@SuppressWarnings("unused")
+		NodePtrDTO middle1 = makeChild(rootPtrDTO);
+		NodePtrDTO middle2 = makeChild(rootPtrDTO);
+		leafToRoot.add(middle2);
+		
+		NodePtrDTO child = makeChild(middle2);
+		leafToRoot.add(child);
+		
+		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(child);
+		
+		assertEquals(relatedHistoryList.size(), leafToRoot.size());
+		
+		leafToRoot.sort(compareNodePtrDTO);
+		relatedHistoryList.sort(compareNodePtrDTO);
+
+		for(int i = 0; i < relatedHistoryList.size(); i++) {
+			NodePtrDTO relatedEle = relatedHistoryList.get(i);
+			NodePtrDTO addedEle = leafToRoot.get(i);
+			assertEquals(relatedEle, addedEle);
+		}
 	}
 }
