@@ -47,19 +47,21 @@ public class VersionManagementService {
 	 * @throws NotLeafNodeException 리프 노드가 아닌 것을 삭제할때 발생됩.
 	 */
 	public List<BoardHistoryDTO> getRelatedHistory(final NodePtrDTO leafPtrDTO) throws NotLeafNodeException{
-		if(!isLeaf(leafPtrDTO)) {
+		BoardDTO board = boardMapper.viewDetail(leafPtrDTO.toMap());
+		
+		if(board == null) {
 			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtrDTO);
 			throw new NotLeafNodeException("leaf node 정보" + leafPtrJson);
 		}
 		List<BoardHistoryDTO> boardHistoryList = null;
-		boardHistoryList = boardHistoryMapper.getHistoryByRootBoardId(leafPtrDTO.getRoot_board_id());
+		boardHistoryList = boardHistoryMapper.getHistoryByRootBoardId(board.getRoot_board_id());
 		List<BoardHistoryDTO> relatedHistoryList = new ArrayList<>(boardHistoryList.size());
 		
-		BoardHistoryDTO leafHistoryDTO = findBoardHistory(boardHistoryList, leafPtrDTO);
+		BoardHistoryDTO leafHistoryDTO = findBoardHistory(boardHistoryList, board);
 		if(leafHistoryDTO == null) {
 			String historyListJson = Utils.jsonStringIfExceptionToString(boardHistoryList);
-			throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + leafPtrDTO + "\n" +
-										"listCnt : " + boardHistoryList.size() + "content : " + historyListJson);
+			throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + board + "\n" +
+										"listCnt : " + boardHistoryList.size() + ", content : " + historyListJson);
 		}
 
 		while(leafHistoryDTO != null) {
