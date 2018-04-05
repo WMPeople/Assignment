@@ -63,4 +63,10 @@ public class BoardHistoryDTO extends NodePtrDTO{
 		rtn.file_id = file_id;
 		return rtn;
 	}
+
+	public boolean isRoot() {
+		return (Integer)root_board_id == board_id &&
+				parent_board_id == null &&
+				parent_version == null;
+	}
 }

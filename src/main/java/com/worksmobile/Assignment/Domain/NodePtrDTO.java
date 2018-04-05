@@ -1,6 +1,8 @@
 package com.worksmobile.Assignment.Domain;
 
+import java.util.AbstractMap;
 import java.util.HashMap;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,8 +37,8 @@ public class NodePtrDTO {
 		return String.format("%d-%d", board_id, version);
 	}
 	
-	public boolean isRoot() {
-		return (Integer)root_board_id == board_id;
+	public Map.Entry<Integer, Integer> toBoardIdAndVersionEntry() {
+		return new AbstractMap.SimpleEntry<>(board_id, version);
 	}
 }
 

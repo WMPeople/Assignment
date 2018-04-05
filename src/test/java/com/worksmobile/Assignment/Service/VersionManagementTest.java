@@ -5,9 +5,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Before;
@@ -280,13 +283,13 @@ public class VersionManagementTest {
 		}
 		nodePtrList.addAll(childrenList);
 		
-		NodePtrDTO hasChildPtrDTO = childrenList.get(0);
+		NodePtrDTO hasChildPtrDTO = childrenList.get(childrenCnt - 1);
 		NodePtrDTO leapPtrDTO = makeChild(hasChildPtrDTO);
 		nodePtrList.add(leapPtrDTO);
 		NodePtrDTO leapPtrDTOWithoutRootBoardId = new NodePtrDTO(leapPtrDTO.getBoard_id(), leapPtrDTO.getVersion());
 		
 		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(leapPtrDTOWithoutRootBoardId);
-		assertEquals(relatedHistoryList.size(), nodePtrList.size());
+		assertEquals(relatedHistoryList.size(), nodePtrList.size() - (childrenCnt - 1));	// childrenList에서 1개만 사용
 		assertNotNull(relatedHistoryList);
 		for(BoardHistoryDTO eleHistoryDTO : relatedHistoryList) {
 			assertNotNull(eleHistoryDTO);
@@ -321,5 +324,17 @@ public class VersionManagementTest {
 			NodePtrDTO addedEle = leafToRoot.get(i);
 			assertEquals(relatedEle, addedEle);
 		}
+	}
+	
+	@Test
+	public void testListToMap() {
+		List<BoardHistoryDTO>list = boardHistoryMapper.getHistoryByRootBoardId(1);
+		Map<Map.Entry<Integer, Integer>, BoardHistoryDTO>map = new HashMap<>();
+		for(BoardHistoryDTO ele : list) {
+			Map.Entry<Integer, Integer> boardAndVersion = new AbstractMap.SimpleEntry<>(ele.getBoard_id(), ele.getVersion());
+			map.put(boardAndVersion, ele);
+		}
+		
+		System.out.println(map);
 	}
 }
