@@ -192,7 +192,7 @@ public class VersionManagementService {
 	
 	synchronized private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, final NodePtrDTO parentPtrDTO, final String status) {
 		BoardDTO board = boardMapper.viewDetail(parentPtrDTO.toMap());
-		if(board == null) {
+		if(board != null) {
 			int deletedCnt = boardMapper.boardDelete(parentPtrDTO.toMap());
 			if(deletedCnt != 1) {
 				throw new RuntimeException("delete cnt expected 1 but " + deletedCnt);
