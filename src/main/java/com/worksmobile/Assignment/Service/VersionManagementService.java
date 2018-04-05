@@ -194,18 +194,15 @@ public class VersionManagementService {
 	}
 	
 	synchronized private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, final NodePtrDTO parentPtrDTO, final String status) {
-		deleteArticleIfIsLeaf(parentPtrDTO);
-		
-		return createArticleAndHistory(boardDTO, parentPtrDTO.getVersion() + 1, status, parentPtrDTO);
-	}
-	
-	synchronized private void deleteArticleIfIsLeaf(NodePtrDTO nodePtrDTO) {
-		if(isLeaf(nodePtrDTO)) {
-			int deletedCnt = boardMapper.boardDelete(nodePtrDTO.toMap());
+		BoardDTO board = boardMapper.viewDetail(parentPtrDTO.toMap());
+		if(board == null) {
+			int deletedCnt = boardMapper.boardDelete(parentPtrDTO.toMap());
 			if(deletedCnt != 1) {
 				throw new RuntimeException("delete cnt expected 1 but " + deletedCnt);
 			}
 		}
+		
+		return createArticleAndHistory(boardDTO, parentPtrDTO.getVersion() + 1, status, board);
 	}
 	
 	private boolean isLeaf(final NodePtrDTO nodePtrDTO) {
