@@ -26,7 +26,7 @@
             <th>제목</th>
             <th>최종수정시간</th>
             <th>삭제</th>
-            
+        </tr>
             <c:forEach var="board" items="${board}">
         <tr>
             <td>${board.board_id}</td>
@@ -75,24 +75,25 @@
 		</c:when>
 		</c:choose>
 <script>
-$(document).ready(function(){
-    /* 게시글 관련 */
-    // 1. 게시글 수정
- });
- 
+
 function btnDelete(board_id,version){
     $.ajax({
         type: "DELETE",
         url: "${path}/Assignment/boards/"+board_id+"/"+version,
         success: function(result){
-        	if(result == 'success'){
+        	if(result.result == 'success'){
         		alert("삭제완료");
         		location.href = "/Assignment/";
         	}
         	else{
-        		alert("삭제실패");
+        		alert(result.result);
         	}
-        }
+        },
+        error : function(xhr, status, error) {
+    		alert(error);
+    	}
+        
+        
     })
 }
 
