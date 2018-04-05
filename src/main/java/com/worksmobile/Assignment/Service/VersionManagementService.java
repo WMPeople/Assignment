@@ -2,7 +2,9 @@
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
-import com.worksmobile.Assignment.Domain.FileDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
@@ -30,47 +31,43 @@ public class VersionManagementService {
 	@Autowired
 	FileMapper fileMapper;
 	
-	private BoardHistoryDTO findBoardHistory(List<BoardHistoryDTO> historyList, NodePtrDTO nodePtrDTO) {
-		for(BoardHistoryDTO eleHistoryDTO : historyList) {
-			NodePtrDTO elePtrDTO = eleHistoryDTO;
-			if(elePtrDTO.equals(nodePtrDTO)) {
-				return eleHistoryDTO;
-			}
+	private Map<Map.Entry<Integer, Integer>, BoardHistoryDTO> getHistoryMap(int root_board_id) {
+		List<BoardHistoryDTO> historyList = boardHistoryMapper.getHistoryByRootBoardId(root_board_id);
+		Map<Map.Entry<Integer, Integer>, BoardHistoryDTO> historyMap = new HashMap<>();
+		for(BoardHistoryDTO ele : historyList) {
+			historyMap.put(ele.toBoardIdAndVersionEntry(), ele);
 		}
-		return null;
+		return historyMap;
 	}
 	
 	/***
 	 * 한 게시글과 연관된 모든 게시글 이력을 반환합니다.
-	 * @param leafPtrDTO 가져올 리프 노드 포인터.
+	 * @param leafPtrDTO 가져올 리프 노드 포인터.(board_id, version만 사용)
 	 * @return 연관된 게시글 히스토리들
 	 * @throws NotLeafNodeException 리프 노드가 아닌 것을 삭제할때 발생됩.
 	 */
-	public List<BoardHistoryDTO> getRelatedHistory(final NodePtrDTO leafPtrDTO) throws NotLeafNodeException{
+	public List<BoardHistoryDTO> getRelatedHistory(NodePtrDTO leafPtrDTO) throws NotLeafNodeException{
 		BoardDTO board = boardMapper.viewDetail(leafPtrDTO.toMap());
 		
 		if(board == null) {
 			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtrDTO);
 			throw new NotLeafNodeException("leaf node 정보" + leafPtrJson);
 		}
-		List<BoardHistoryDTO> boardHistoryList = null;
-		boardHistoryList = boardHistoryMapper.getHistoryByRootBoardId(board.getRoot_board_id());
-		List<BoardHistoryDTO> relatedHistoryList = new ArrayList<>(boardHistoryList.size());
+		Map<Map.Entry<Integer, Integer>, BoardHistoryDTO> boardHisotryMap = getHistoryMap(board.getRoot_board_id());
+		List<BoardHistoryDTO> relatedHistoryList = new ArrayList<>(boardHisotryMap.size());
 		
-		BoardHistoryDTO leafHistoryDTO = findBoardHistory(boardHistoryList, board);
-		if(leafHistoryDTO == null) {
-			String historyListJson = Utils.jsonStringIfExceptionToString(boardHistoryList);
-			throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + board + "\n" +
-										"listCnt : " + boardHistoryList.size() + ", content : " + historyListJson);
-		}
-
-		while(leafHistoryDTO != null) {
+		NodePtrDTO curPosPtrDTO = leafPtrDTO;
+		do {
+			BoardHistoryDTO leafHistoryDTO = boardHisotryMap.get(curPosPtrDTO .toBoardIdAndVersionEntry());
+			if(leafHistoryDTO == null) {
+				String historyListJson = Utils.jsonStringIfExceptionToString(boardHisotryMap);
+				throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + curPosPtrDTO  + "\n" +
+											"listCnt : " + relatedHistoryList.size() + ", content : " + historyListJson);
+			}
 			relatedHistoryList.add(leafHistoryDTO);
-			NodePtrDTO parentPtrDTO = leafHistoryDTO.getParentPtrAndRoot();
-			BoardHistoryDTO parentHistoryDTO = findBoardHistory(boardHistoryList, parentPtrDTO);
-			leafHistoryDTO = parentHistoryDTO;
+			curPosPtrDTO = leafHistoryDTO.getParentPtrAndRoot();
 		}
-		
+		while(curPosPtrDTO.getBoard_id() != null);
 		return relatedHistoryList;
 	}
 	
@@ -90,7 +87,7 @@ public class VersionManagementService {
 	 * @param version 새로운 게시물의 버전
 	 * @param status 게시물 이력의 상태에 들어갈 내용
 	 * @param parentNodePtr 게시물의 부모 노드 포인터
-	 * @return
+	 * @return 새롭게 생성된 게시글 이력 DTO
 	 */
 	private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final NodePtrDTO parentNodePtr) {
 		byte[] compressedContent = null;
@@ -113,7 +110,7 @@ public class VersionManagementService {
 	 * @param status 게시물 이력의 상태에 들어갈 내용
 	 * @param compressedContent 압축된 내용
 	 * @param parentNodePtr 게시물의 부모 노드 포인터
-	 * @return
+	 * @return 새롭게 생성된 게시글 이력 DTO
 	 */
 	synchronized private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final byte[] compressedContent, final NodePtrDTO parentNodePtr) {
 		int last_board_id = boardMapper.getMaxBoardId() + 1;
@@ -230,6 +227,7 @@ public class VersionManagementService {
 		}
 	}
 
+	// TODO : 루트 삭제시
 	/***
 	 * 특정 버전에 대한 이력 1개를 삭제합니다. leaf노드이면 게시글도 삭제 됩니다. 
 	 * 부모의 이력은 삭제되지 않음을 유의 해야 합니다.
@@ -277,7 +275,11 @@ public class VersionManagementService {
 				return parentDTO;
 			}
 		}
-		else {
+		else if(deleteHistoryDTO.isRoot()) {
+			throw new RuntimeException("루트는 삭제할 수 없습니다.");
+			// TODO : 한꺼번에 업데이트 하는 방법?
+		}
+		else {// 중간노드 일 경우
 			for(BoardHistoryDTO childHistoryDTO : deleteNodeChildren) {
 				childHistoryDTO.setParentNodePtrAndRoot(parentPtrDTO);
 				updateHistoryParentPtr(childHistoryDTO);
@@ -326,15 +328,14 @@ public class VersionManagementService {
 			}
 			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrAndRoot();
 			int file_id = deleteHistoryDTO.getFile_id();
-			int fileCount =0;
-			if(file_id !=0) {
-				fileCount = boardHistoryMapper.getFileCount(file_id);
-			}
-			if(fileCount ==1) {
-				int deletedCnt2 = fileMapper.deleteFile(file_id);
-				if(deletedCnt2 != 1) {
-					throw new RuntimeException("파일 삭제 에러");
-				};
+			if(file_id != 0) {
+				int fileCount = boardHistoryMapper.getFileCount(file_id);
+				if(fileCount ==1) {
+					deletedCnt = fileMapper.deleteFile(file_id);
+					if(deletedCnt != 1) {
+						throw new RuntimeException("파일 삭제 에러");
+					};
+				}
 			}
 			deletedCnt = boardHistoryMapper.deleteHistory(leafPtrDTO);
 			if(deletedCnt == 0) {
