@@ -8,12 +8,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.logging.LogLevel;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -34,6 +37,8 @@ import com.worksmobile.Assignment.Service.Paging;
 import com.worksmobile.Assignment.Service.VersionManagementService;
 import com.worksmobile.Assignment.util.Utils;
 
+
+
 @org.springframework.web.bind.annotation.RestController
 public class RestController {
 
@@ -52,35 +57,59 @@ public class RestController {
     final static int CURRENT_PAGE_NO = 1;
     final static int MAX_POST = 10;
     
+    // TODO : thread-safe
+    static int publishedNameMax = 1;
+    
+    // TODO : 리팩터링
+    public static Cookie getCookie(HttpServletRequest req) {
+    	Cookie[] getCookie =req.getCookies();
+    	Cookie curCookie= null ;
+		for(int i=0; i<getCookie.length; i++){
+			Cookie c = getCookie[i];
+			if(c.getName().equals("name")) {
+				curCookie = c;
+				break;
+			}
+		}	
+    	return curCookie;
+    }
+    // TODO : 리팩터링    
+    public static Cookie creteCookie(HttpServletResponse res) {
+    	Cookie setCookie = null;
+    	setCookie = new Cookie("name",Integer.toString(publishedNameMax));
+    	res.addCookie(setCookie);
+    	publishedNameMax++;
+    	return setCookie;
+    }
 	/***
 	 * 첫 화면으로, 사용자가 요청한 페이지에 해당하는 게시물을 보여줍니다.
 	 * @param req pages 파라미터에 사용자가 요청한 페이지 번호가 있습니다.
 	 */	
     @RequestMapping(value = "/", method = RequestMethod.GET)
     @ResponseBody
-	public ModelAndView boardList(HttpServletRequest req) throws Exception{
-		
-    	int currentPageNo = CURRENT_PAGE_NO; // /(localhost:8080)페이지로 오면 처음에 표시할 페이지 (1 = 첫번째 페이지)
-		int maxPost = MAX_POST;	// 페이지당 표시될 게시물  최대 갯수
-		
-		if(req.getParameter("pages") != null)								//게시물이 1개도없으면(=페이지가 생성이 안되었으면)이 아니라면 == 페이징이 생성되었다면							 
-			currentPageNo = Integer.parseInt(req.getParameter("pages")); 	//pages에있는 string 타입 변수를 int형으로 바꾸어서 currentPageNo에 담는다.
-		
-		Paging paging = new Paging(currentPageNo, maxPost); //Paging.java에있는 currentPageNo, maxPost를 paging변수에 담는다.
-		
+	public ModelAndView boardList(HttpServletRequest req, HttpServletResponse res) throws Exception{
+    	if(req.getCookies()==null || req.getCookies().length == 0) {
+    		creteCookie(res);
+    	}
+    	else {
+    		getCookie(req);
+    	}
+
+    	int currentPageNo = CURRENT_PAGE_NO;
+		int maxPost = MAX_POST;
+		if(req.getParameter("pages") != null)													 
+			currentPageNo = Integer.parseInt(req.getParameter("pages")); 	
+		Paging paging = new Paging(currentPageNo, maxPost); 
 		int offset = (paging.getCurrentPageNo() -1) * paging.getmaxPost(); 
-		// 현재 3페이지 이고, 그 페이지에 게시물이 10개가 있다면 offset값은 (3-1) * 10 = 20이 된다. 
-		
-		ArrayList<BoardDTO> board = new ArrayList<BoardDTO>(); // BoardDTO에 있는 변수들을 ArrayList 타입의 배열로 둔 다음 이를 page라는 변수에 담는다.
+		ArrayList<BoardDTO> board = new ArrayList<BoardDTO>(); 
 		
 		HashMap<String, Integer> params = new HashMap<String, Integer>(); 
 		params.put("offset", offset); 
 		params.put("noOfRecords", paging.getmaxPost()); 
 		
 		board = (ArrayList<BoardDTO>) boardMapper.articleList(params); 
-		//writeService.java에 있는 articleList 함수를 이용하여 offset값과 maxPost값을 ArrayList 타입의 배열로 담고, 이 배열 자체를 page 변수에 담는다.																							
-		
-		paging.setNumberOfRecords(boardMapper.articleGetCount()); // 페이지를 표시하기 위해 전체 게시물 수를 파악하기 위한것
+
+		paging.setNumberOfRecords(boardMapper.articleGetCount()); 
 		paging.makePaging(); 
 		
 		ModelAndView modelAndView = new ModelAndView();
@@ -90,7 +119,7 @@ public class RestController {
 		
 		return modelAndView;
 	}
-
+    
 	/***
 	 * 게시물 상세보기 입니다.
 	 * @param board_id 상세 조회 할 게시물의 board_id
@@ -197,7 +226,7 @@ public class RestController {
 	 */
 	@RequestMapping(value = "/boards/update2", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String,Object> updateWithoutAttachment(BoardDTO board, MultipartHttpServletRequest attachment) 
+	public Map<String,Object> updateWithoutAttachment(BoardDTO board, MultipartHttpServletRequest attachment, HttpServletRequest req) 
 	{
 		Map<String,Object> resultMap = new HashMap<>();
 		MultipartFile mFile = null;
@@ -219,7 +248,7 @@ public class RestController {
 				}
 			}
 			NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion());
-			NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
+			NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO,getCookie(req).getValue());	
 			
 			if(newNode== null) {
 				resultMap.put("result", "수정 실패");
@@ -237,6 +266,8 @@ public class RestController {
 
 	}
 	
+	
+	
 	/***
 	 * 게시물에 첨부파일을 유지하고 싶은 경우를 글수정 데이터를 받아 DB에 등록합니다.
 	 * @param board 사용자가 수정한 board 데이터를 받습니다.
@@ -244,7 +275,7 @@ public class RestController {
 	 */
 	@RequestMapping(value = "/boards/update3", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String,Object> updateMaintainAttachment(BoardDTO board) {
+	public Map<String,Object> updateMaintainAttachment(BoardDTO board, HttpServletRequest req) {
 		
 		Map<String,Object> resultMap = new HashMap<String,Object>();
 		try {
@@ -262,7 +293,7 @@ public class RestController {
 			board.setFile_id(pastBoard.getFile_id());
 			
 			NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion());
-			NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
+			NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO, getCookie(req).getValue());	
 			if(newNode== null) {
 				resultMap.put("result","버전 수정 실패");
 			}
@@ -416,7 +447,8 @@ public class RestController {
 			deCompreesedContent = "압축 해제 실패";
 			throw new RuntimeException(e);
 		}
-		board.setContent(deCompreesedContent);
+		String clean = XssPreventer.escape(deCompreesedContent);
+		board.setContent(clean);
 		
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("board", board);

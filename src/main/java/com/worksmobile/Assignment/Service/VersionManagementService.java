@@ -186,7 +186,8 @@ public class VersionManagementService {
 	 * @return 새롭게 생성된 리프 노드를 가리킵니다.
 	 */
 	@Transactional
-	public NodePtrDTO modifyVersion(BoardDTO modifiedBoard, NodePtrDTO parentPtrDTO) {
+	public NodePtrDTO modifyVersion(BoardDTO modifiedBoard, NodePtrDTO parentPtrDTO, String value) {
+		System.out.println(value);
 		return createVersionWithBranch(modifiedBoard, parentPtrDTO, BoardHistoryDTO.STATUS_MODIFIED);
 	}
 	

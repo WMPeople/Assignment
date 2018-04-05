@@ -60,12 +60,6 @@
 					style="min-height: 500px; min-width: 700px;">${param.content}</textarea>
 				
 				<div class="btn_area _btn_area">
-					<!-- 			<p class="next"> -->
-					<!-- 				<button type="button" class="btn _cancel">작성취소</button> -->
-					<!-- 				<button type="button" class="btn _atc_delete">삭제</button> -->
-					<!-- 			</p> -->
-					<!-- 			<button type="button" class="btn _temp">임시저장</button> -->
-					<!-- 			<button type="button" class="btn _preview">미리보기</button> -->
 					<input type="text" name="board_id" id="board_id"
 						style="display: none;"
 						value="<%=request.getParameter("board_id")%>"> <input
