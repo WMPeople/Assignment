@@ -68,36 +68,23 @@
         </c:forEach>
     </table>
 <script>
-$(document).ready(function(){
-	
- });
- 
-
 function remain_two_obj(prefix){
-	 
 	this.old = new Array();
 	this.prefix = prefix;
-	
 	this.remain_two = function(cur){
-	
 		items = document.getElementsByName(this.prefix + '[]');
 		for( i = 0, count = 0 ; i < items.length; i++ )
 			if( items[i].checked )
-				count++;
-				
+				count++;	
 		if( count > 0 && cur.checked == false && this.old[0] == cur.value )
 			this.old[0] = this.old[1];
-			
 		if( cur.checked == false )
 			return;
-			
 		if( count < 2 )
 			this.old[count] = cur.value;
-			
 		else {
 			this.old[0] = this.old[1];
 			this.old[1] = cur.value;
-			
 			items = document.getElementsByName(this.prefix + '[]');
 			for( j = 0 ; j < items.length ; j++ ){
 				if( items[j].value != this.old[0] && items[j].value != this.old[1] )
@@ -107,20 +94,22 @@ function remain_two_obj(prefix){
 	}
 }
 var cbox = new remain_two_obj('cbox'); 
-
 function btnVersionDelete(board_id,version){
 	  $.ajax({
 	        type: "DELETE",
 	        url: "${path}/Assignment/boards/version/"+board_id+"/"+version,
 	        success: function(result){
-	        	if(result == 'success'){
+	        	if(result.result == 'success'){
 	        		alert("삭제완료");
 	        		location.reload();
 	        	}
 	        	else{
 	        		alert("삭제실패");
 	        	}
-	        }
+	        },
+	        error : function(xhr, status, error) {
+				alert(error);
+			}
 	    })
 }
 function btnDelete(board_id,version){
@@ -128,14 +117,17 @@ function btnDelete(board_id,version){
 	        type: "DELETE",
 	        url: "${path}/Assignment/boards/"+board_id+"/"+version,
 	        success: function(result){
-	        	if(result == 'success'){
+	        	if(result.result == 'success'){
 	        		alert("삭제완료");
 	        		location.href = "/Assignment/";
 	        	}
 	        	else{
-	        		alert("삭제실패");
+	        		alert(result.result);
 	        	}
-	        }
+	        },
+	        error : function(xhr, status, error) {
+				alert(error);
+			}
 	    })
 }
 
@@ -152,11 +144,13 @@ function btnRecover(board_id,version){
 	        		alert("복원완료");
 	        		location.href='${path}/Assignment/boards/management/'+result.board_id+'/'+result.version;
 	        	}
-
 	        	else{
-	        		alert("복원실패");
+	        		alert(result.result);
 	        	}
-	        }
+	        },
+	        error : function(xhr, status, error) {
+				alert(error);
+			}
 	    })
 }
 
@@ -164,12 +158,10 @@ function btnDiff(){
 
 	var num = 0;  
  	var checkArr = [];
- 
  	$(":checkbox[name='cbox[]']:checked").each(function (index){  
     	num += 1;  
    		checkArr.push($(this).val());
  	});  
-
 	if (num==2){
 		
 		 var firstNode = checkArr[0].split('-');
@@ -185,14 +177,7 @@ function btnDiff(){
 	fm.method='post';
 	fm.action='${path}/Assignment/boards/diff';
 	fm.submit();
-
 }
-
-
-    
-
-
-
 </script>
 </body>
 </html>

@@ -16,10 +16,10 @@
 <script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Insert title here</title>
+<title>게시물 상세보기</title>
 </head>
 <body>
-
+	<pre></pre>
 	<div class="board_view">
 		<div class="subject _title_area">
 			<span class="txt_noti _attention_txt_noti" style="display: none;"></span>
@@ -36,22 +36,26 @@
 			<span class="date">최종 수정시간 :  ${board.created}</span>
 			<span class="date">첨부 파일 :   <a href="${path}/Assignment/boards/download/${file.file_id}" name="file">${file.file_name}     </a> (${file.file_size})</span>
 
-		<div class="cont _content translateArea" id="content"><p>
-		<span style="font-family: 나눔고딕, NanumGothic, sans-serif;">
-		<font class="NaverTrans-Parent"><font class="NaverTrans-Child"> 
-		<pre>${board.content}</pre>	
-		</font>
-		</font></span></p>
+		<div class="cont _content translateArea" id="contents">
+				<%
+					pageContext.setAttribute("tab", "	"); 
+					pageContext.setAttribute("nbsp", "&nbsp;"); 
+					pageContext.setAttribute("crcn", "\r\n"); 
+		 			pageContext.setAttribute("br", "<br/>"); 
+				%>
+				<textarea name="content3" id="content3" style="min-height: 500px; min-width: 700px;" readonly>${board.content}</textarea>
+<%-- 			${fn:replace((fn:replace({board.content},crcn,br)),tab,nbsp)} --%>
+			
 		</div>
 		
 		<c:if test="${isHistory eq 0}">
 			<div class="btn_box _btn_area _no_print">
-				<form action="/Assignment/boards/update" method="post" >
+				<form action="/Assignment/boards/update" method="post" style="display: inline;">
 					<input name="board_id" type="text" id="board_id" value="${board.board_id}" style="display:none;">
 					<input name="version" type="text" id="version" value="${board.version}" style="display:none;">
 		            <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">
 		            <input name="created" type="text" id="created" value="${board.created}" style="display:none;">
-		            <input name="content" type="text" id="content" value="${board.content}" style="display:none;">
+		            <textarea name="content" id="content"  style="display:none;"><c:out value="${board.content}" escapeXml="true" /></textarea>
 		            <input name="file_id" type="text" id="file_id" value="${file.file_id}" style="display:none;">
 		            <input name="file_name" type="text" id="file_name" value="${file.file_name}" style="display:none;">
 		            <input name="file_data" type="file" id="file_data" value="${file.file_data}" style="display:none;">
@@ -65,9 +69,6 @@
 </div>
 <script>
 $(document).ready(function(){
-	var text = $('#content > pre').text().replace(/\n/g, "<br>");
-	$('body > div > div.infor._infor > div.btn_box._btn_area._no_print > form > input[type="text"]:nth-child(6)').val(text);
-// 	$('#content').val($('#content > pre').text());
  });
 
 function btnDelete(board_id,version){
@@ -75,11 +76,18 @@ function btnDelete(board_id,version){
         type: "DELETE",
         url: "${path}/Assignment/boards/"+board_id+"/"+version,
         success: function(result){
-        	if(result == 'success'){
+        	if(result.result == 'success'){
         		alert("삭제완료");
         		location.href = "/Assignment/";
         	}
-        }
+        	else{
+        		alert(result.result);
+        		location.href = "/Assignment/";
+        	}
+        },
+        error : function(xhr, status, error) {
+    		alert(error);
+    	}
     })
 }
 

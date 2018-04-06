@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.nhncorp.lucy.security.xss.XssPreventer;
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
 import com.worksmobile.Assignment.Domain.FileDTO;
@@ -48,6 +49,9 @@ public class RestController {
     @Autowired
     private FileMapper fileMapper;
     
+    final static int CURRENT_PAGE_NO = 1;
+    final static int MAX_POST = 10;
+    
 	/***
 	 * 첫 화면으로, 사용자가 요청한 페이지에 해당하는 게시물을 보여줍니다.
 	 * @param req pages 파라미터에 사용자가 요청한 페이지 번호가 있습니다.
@@ -56,8 +60,8 @@ public class RestController {
     @ResponseBody
 	public ModelAndView boardList(HttpServletRequest req) throws Exception{
 		
-    	int currentPageNo = 1; // /(localhost:8080)페이지로 오면 처음에 표시할 페이지 (1 = 첫번째 페이지)
-		int maxPost = 10;	// 페이지당 표시될 게시물  최대 갯수
+    	int currentPageNo = CURRENT_PAGE_NO; // /(localhost:8080)페이지로 오면 처음에 표시할 페이지 (1 = 첫번째 페이지)
+		int maxPost = MAX_POST;	// 페이지당 표시될 게시물  최대 갯수
 		
 		if(req.getParameter("pages") != null)								//게시물이 1개도없으면(=페이지가 생성이 안되었으면)이 아니라면 == 페이징이 생성되었다면							 
 			currentPageNo = Integer.parseInt(req.getParameter("pages")); 	//pages에있는 string 타입 변수를 int형으로 바꾸어서 currentPageNo에 담는다.
@@ -87,7 +91,6 @@ public class RestController {
 		return modelAndView;
 	}
 
-    
 	/***
 	 * 게시물 상세보기 입니다.
 	 * @param board_id 상세 조회 할 게시물의 board_id
@@ -108,6 +111,10 @@ public class RestController {
 			String json = Utils.jsonStringIfExceptionToString(board);
 			throw new RuntimeException("show 메소드에서 viewDetail 메소드 실행 에러" + json);
 		}
+		String dirty = board.getContent();
+		String clean = XssPreventer.escape(dirty);
+		board.setContent(clean);
+		
 		FileDTO file = fileMapper.getFile(board.getFile_id());
 		
 		ModelAndView modelAndView = new ModelAndView();
@@ -143,64 +150,44 @@ public class RestController {
 	}
 	
 	/***
-	 * 게시물 작성입니다. 글쓰기 폼 페이지로 이동합니다.
-	 */
-	@RequestMapping(value = "/boards", method = RequestMethod.GET)
-	public ModelAndView writeForm() throws Exception {
-		return new ModelAndView("boardCreate");
-	}
-	
-	/***
 	 * 글 생성을 합니다. VersionManagementService의 createArticle 함수를 호출하여 board_histry 테이블과 board 테이블에 데이터를 삽입합니다.
 	 * @param board 사용자가 작성한 board 데이터를 받습니다.
 	 * @param attachment 첨부파일 데이터를 받습니다.
 	 */
 	@RequestMapping(value = "/boards", method = RequestMethod.POST)
 	@ResponseBody
-	public int create(BoardDTO board, MultipartHttpServletRequest attachment) {
+	public Map<String,Object> create(BoardDTO board, MultipartHttpServletRequest attachment) {
+		Map<String,Object> resultMap = new HashMap<>();
+		
 		MultipartFile mFile = null;
-		boolean isSuccess = false;
 		Iterator<String> iter = attachment.getFileNames();
 		while(iter.hasNext()) {
 			String uploadFile_name = iter.next();
 			mFile = attachment.getFile(uploadFile_name);
-			String originalFile_name = mFile.getOriginalFilename();
-			String saveFile_name = originalFile_name;
-			if(saveFile_name != null && !saveFile_name.equals("")) {
-				try {
-					isSuccess = true;				
-				} catch (IllegalStateException e) {
-					e.printStackTrace();
-					isSuccess = false;}
-			}
 		}
 		try {
 			if(mFile!=null) {
+				if(!mFile.getOriginalFilename().equals("")) {
+					FileDTO file = new FileDTO();
+					file.setFile_name(mFile.getOriginalFilename());
+					file.setFile_data(mFile.getBytes());
+					file.setFile_size(mFile.getSize());
 				
-				FileDTO file = new FileDTO();
-				file.setFile_name(mFile.getOriginalFilename());
-				file.setFile_data(mFile.getBytes());
-				file.setFile_size(mFile.getSize());
-			
-				fileMapper.createFile(file);
-				board.setFile_id(file.getFile_id());
+					fileMapper.createFile(file);
+					board.setFile_id(file.getFile_id());
+				}
+				else {
+					board.setFile_id(0);
+				}
 			}
 			versionManagementService.createArticle(board);
-			return 1;
+			resultMap.put("result", "success");
 		} catch (Exception e) {
 			// TODO: handle exception
-			System.out.println("에러");
+			resultMap.put("result",e.getMessage());
 			e.printStackTrace();
 		}
-		return 0;
-	}
-	
-	/***
-	 * 게시물 수정입니다. 글수정 폼 페이지로 이동합니다.
-	 */
-	@RequestMapping(value = "/boards/update", method = RequestMethod.POST)
-	public ModelAndView updateForm() throws Exception {
-		return new ModelAndView("boardUpdate");
+		return resultMap;
 	}
 	
 	/***
@@ -210,25 +197,15 @@ public class RestController {
 	 */
 	@RequestMapping(value = "/boards/update2", method = RequestMethod.POST)
 	@ResponseBody
-	public int update2(BoardDTO board, MultipartHttpServletRequest attachment) 
+	public Map<String,Object> updateWithoutAttachment(BoardDTO board, MultipartHttpServletRequest attachment) 
 	{
+		Map<String,Object> resultMap = new HashMap<>();
 		MultipartFile mFile = null;
-		boolean isSuccess = false;
 		Iterator<String> iter = attachment.getFileNames();
 		while(iter.hasNext()) {
 			String uploadFile_name = iter.next();
 			mFile = attachment.getFile(uploadFile_name);
-			String originalFile_name = mFile.getOriginalFilename();
-			String saveFile_name = originalFile_name;
-			if(saveFile_name != null && !saveFile_name.equals("")) {
-				try {
-					isSuccess = true;				
-				} catch (IllegalStateException e) {
-					e.printStackTrace();
-					isSuccess = false;}
-			}
 		}
-		
 		try {
 			if(mFile!=null) {
 				if(!mFile.getOriginalFilename().equals("")) {
@@ -243,16 +220,20 @@ public class RestController {
 			}
 			NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion());
 			NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
-			if(newNode== null)
-				return 0;
-			else return 1;
+			
+			if(newNode== null) {
+				resultMap.put("result", "수정 실패");
+			}
+			else {
+				resultMap.put("result", "success");
+			}
 
 		} catch (Exception e) {
-			// TODO: handle exception
-			System.out.println("에러");
+			resultMap.put("result",e.getMessage());
 			e.printStackTrace();
+			return resultMap;
 		}
-		return 0;
+		return resultMap;
 
 	}
 	
@@ -263,26 +244,38 @@ public class RestController {
 	 */
 	@RequestMapping(value = "/boards/update3", method = RequestMethod.POST)
 	@ResponseBody
-	public int update3(BoardDTO board) {
+	public Map<String,Object> updateMaintainAttachment(BoardDTO board) {
 		
-		BoardDTO pastBoard = new BoardDTO();
-		
-		HashMap<String, Integer> params = new HashMap<String, Integer>();
-		params.put("board_id", board.getBoard_id());
-		params.put("version", board.getVersion());
-		
-		pastBoard = boardMapper.viewDetail(params);	
-		if(pastBoard == null) {
-			String json = Utils.jsonStringIfExceptionToString(pastBoard);
-			throw new RuntimeException("update3 메소드에서 viewDetail 메소드 실행 에러" + json);
+		Map<String,Object> resultMap = new HashMap<String,Object>();
+		try {
+			BoardDTO pastBoard = new BoardDTO();
+			
+			HashMap<String, Integer> params = new HashMap<String, Integer>();
+			params.put("board_id", board.getBoard_id());
+			params.put("version", board.getVersion());
+			
+			pastBoard = boardMapper.viewDetail(params);	
+			if(pastBoard == null) {
+				String json = Utils.jsonStringIfExceptionToString(pastBoard);
+				throw new RuntimeException("update3 메소드에서 viewDetail 메소드 실행 에러" + json);
+			}
+			board.setFile_id(pastBoard.getFile_id());
+			
+			NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion());
+			NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
+			if(newNode== null) {
+				resultMap.put("result","버전 수정 실패");
+			}
+			else {
+				resultMap.put("result","success");
+			}
+			
+
+		}catch (Exception e) {
+			resultMap.put("result",e.getMessage());
+			return resultMap;
 		}
-		board.setFile_id(pastBoard.getFile_id());
-		
-		NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion());
-		NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
-		if(newNode== null)
-			return 0;
-		else return 1;
+		return resultMap;
 	}
 	
 	/***
@@ -292,62 +285,64 @@ public class RestController {
 	 */
 	@RequestMapping(value = "/boards/{board_id}/{version}", method = RequestMethod.DELETE)
 	@ResponseBody
-	public String destroy(@PathVariable(value = "board_id") int board_id,
+	public Map<String,Object> destroy(@PathVariable(value = "board_id") int board_id,
 			@PathVariable(value = "version") int version) throws Exception {
+		Map<String,Object> resultMap = new HashMap<>();
+		try {
+			NodePtrDTO leapPtrDTO = new NodePtrDTO(board_id,version);
+			versionManagementService.deleteArticle(leapPtrDTO);
 
-		NodePtrDTO leapPtrDTO = new NodePtrDTO(board_id,version);
-		versionManagementService.deleteArticle(leapPtrDTO);
-		return "success";
+			resultMap.put("result","success");	
+		} catch (Exception e) {
+			resultMap.put("result",e.getMessage());
+		}
+		return resultMap;
 	}
 	
-	//버전삭제
+	/***
+	 * 버전 삭제시 호출 되는 메쏘드 입니다.
+	 * @param board_id 버전 삭제를 원하는 이력의 board_id
+	 * @param version 버전 삭제를 원하는 이력의 version
+	 * @return 성공 했는지 실패 했는지를 알려주는 Map을 리턴합니다.
+	 */
 	@RequestMapping(value = "/boards/version/{board_id}/{version}", method = RequestMethod.DELETE)
 	@ResponseBody
-	public String versionDestory(@PathVariable(value = "board_id") int board_id,
-			@PathVariable(value = "version") int version) throws Exception {
-
-		NodePtrDTO deletePtrDTO = new NodePtrDTO(board_id,version);
-		BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
-		int file_id = deleteHistoryDTO.getFile_id();
-		int fileCount =0;
-		if(file_id !=0) {
-			fileCount = boardHistoryMapper.getFileCount(file_id);
+	public Map<String,Object> versionDestory(@PathVariable(value = "board_id") int board_id,
+			@PathVariable(value = "version") int version) {
+		
+		Map<String,Object> resultMap = new HashMap<String,Object>();
+		try {
+			NodePtrDTO deletePtrDTO = new NodePtrDTO(board_id,version);
+			BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
+			int file_id = deleteHistoryDTO.getFile_id();
+			int fileCount =0;
+			if(file_id !=0) {
+				fileCount = boardHistoryMapper.getFileCount(file_id);
+			}
+			if(fileCount ==1) {
+				int deletedCnt2 = fileMapper.deleteFile(file_id);
+				if(deletedCnt2 != 1) {
+					throw new RuntimeException("파일 삭제 에러");
+				};
+			}
+			
+			versionManagementService.deleteVersion(deletePtrDTO);
+			resultMap.put("result","success");
+		}catch(Exception e){
+			resultMap.put("result",e.getMessage());
+			return resultMap;
 		}
-		if(fileCount ==1) {
-			int deletedCnt2 = fileMapper.deleteFile(file_id);
-			if(deletedCnt2 != 1) {
-				throw new RuntimeException("파일 삭제 에러");
-			};
-		}
-		versionManagementService.deleteVersion(deletePtrDTO);
-		return "success";
+		
+		return resultMap;
 	}
 	
-	//버전 비교
-	@RequestMapping(value = "/boards/diff", method = RequestMethod.POST)
-	public ModelAndView diff(int board_id1, 
-			 int version1,
-			 int board_id2, 
-			 int version2 ) throws Exception {
-		
-		NodePtrDTO left= new NodePtrDTO(board_id1,version1);
-		NodePtrDTO right= new NodePtrDTO(board_id2,version2);
-		
-		String leftContent = Compress.deCompress(boardHistoryMapper.getHistory(left).getHistory_content());
-		String rightContent = Compress.deCompress(boardHistoryMapper.getHistory(right).getHistory_content());
-		
-		//압출 해결 후 리턴 , 맵으로 리턴
-		ModelAndView modelAndView = new ModelAndView();
-		modelAndView.addObject("leftContent", leftContent);
-		modelAndView.addObject("rightContent", rightContent);
-		modelAndView.setViewName("diff");
-		
-		return modelAndView;
-		
-
-	}
-	
-	//버전 관리 
+	/***
+	 * 버전관리 페이지 이동시 호출되는 메쏘드입니다.
+	 * @param board_id 버전관리를 원하는 LeafNode의 board_id
+	 * @param version 버전관리를 원하는 LeafNode의 version
+	 * @return modelAndView LeafNode의 이력 List를 프론트에 전송합니다.
+	 * @throws Exception
+	 */
 	@RequestMapping(value = "/boards/management/{board_id}/{version}", method = RequestMethod.GET)
 	public ModelAndView versionManagement(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version ) throws Exception {
@@ -355,38 +350,52 @@ public class RestController {
 		NodePtrDTO leapPtrDTO = new NodePtrDTO(board_id,version);
 		List<BoardHistoryDTO> boardHistory = versionManagementService.getRelatedHistory(leapPtrDTO);
 		
-		return new ModelAndView("versionManagement","list",boardHistory);
+		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.addObject("list", boardHistory);
+		modelAndView.setViewName("versionManagement");
+		return modelAndView;
 	}
 	
-	//버전 복원
+	/***
+	 * 버전관리 페이지에서 버전 복구 버튼을 눌렀을 때 호출되는 메쏘드 입니다.
+	 * @param board_id 복원을 원하는 버전 board_id
+	 * @param version 복원을 원하는 버전 version
+	 * @param leafBoard_id 복원을 원하는 버전의 LeafNode의 board_id
+	 * @param leafVersion  복원을 원하는 버전의 LeafNode의 version
+	 * @return resultMap 버전 복구 후 url 주소와 메쏘드 실행 성공 유무를 알려주는 Map을 리턴합니다.
+	 * @throws Exception
+	 */
 	@RequestMapping(value = "/boards/recover/{board_id}/{version}/{leafBoard_id}/{leafVersion}", method = RequestMethod.GET)
-	public HashMap<String,Object> versionRecover(@PathVariable(value = "board_id") int board_id, 
+	public Map<String,Object> versionRecover(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version, 
 			@PathVariable(value = "leafBoard_id") int leafBoard_id, 
 			@PathVariable(value = "leafVersion") int leafVersion) throws Exception { 
 		
-		NodePtrDTO recoverPtr = new NodePtrDTO(board_id,version);	
-		NodePtrDTO leapNodePtr = new NodePtrDTO();
+		Map<String,Object> resultMap = new HashMap<String,Object>();
+		NodePtrDTO newLeapNode = null;
+		try {
+			NodePtrDTO recoverPtr = new NodePtrDTO(board_id,version);	
+			NodePtrDTO leapNodePtr = new NodePtrDTO();
 
-		leapNodePtr.setBoard_id(leafBoard_id);
-		leapNodePtr.setVersion(leafVersion);
-		
-		NodePtrDTO newLeapNode =versionManagementService.recoverVersion(recoverPtr, leapNodePtr);
-		
-		HashMap<String,Object> map = new HashMap<String,Object>();
-		
-		map.put("result","success");
-		map.put("board_id", newLeapNode.getBoard_id());
-		map.put("version", newLeapNode.getVersion());
-		
-		return map;
+			leapNodePtr.setBoard_id(leafBoard_id);
+			leapNodePtr.setVersion(leafVersion);
+			
+			newLeapNode =versionManagementService.recoverVersion(recoverPtr, leapNodePtr);
+			resultMap.put("result","success");
+		}catch (Exception e) {
+			resultMap.put("result",e.getMessage());
+			return resultMap;
+		}
+		resultMap.put("board_id", newLeapNode.getBoard_id());
+		resultMap.put("version", newLeapNode.getVersion());
+		return resultMap;
 	}
 	
 	/***
 	 * 이력 상세보기 입니다.
 	 * @param board_id 상세 조회 할 게시물의 board_id
 	 * @param version 상세 조회 할 게시물의 version
-	 * @return 상세보기 화면과 게시물 내용이 맵 형태로 리턴됩니다.
+	 * @return modelAndView 이력의 상세 내용, board-boardHistory 구분자 , file 데이터 , viewName을 리턴합니다.
 	 */
 	@RequestMapping(value = "/history/{board_id}/{version}", method = RequestMethod.GET)
 	@ResponseBody

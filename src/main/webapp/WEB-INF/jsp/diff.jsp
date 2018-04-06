@@ -17,15 +17,8 @@
 </HEAD>
 
 <BODY>
-	<H3>Diff,<button TYPE="BUTTON" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/Assignment'">홈으로</button></H3> 
+	<button TYPE="BUTTON" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/Assignment'">홈으로</button> 
 	<H2>Demo of Diff</H2>
-
-	<P>Diff takes two texts and finds the differences. This
-		implementation works on a character by character basis. The result of
-		any diff may contain 'chaff', irrelevant small commonalities which
-		complicate the output. A post-diff cleanup algorithm factors out these
-		trivial commonalities.  ${list}  </P>
-
 	<SCRIPT>
 		var dmp = new diff_match_patch();
 
@@ -79,7 +72,7 @@
 	</FORM>
 
 	<DIV ID="outputdivLeft" style="float: left; width: 50%;"></DIV>
-	<DIV ID="outputdivRight"style="float: right; width: 50%;">></DIV>
+	<DIV ID="outputdivRight"style="float: right; width: 50%;"></DIV>
 </BODY>
 </HTML>
 

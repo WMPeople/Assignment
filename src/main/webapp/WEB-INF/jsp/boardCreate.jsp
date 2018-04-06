@@ -36,7 +36,6 @@
 					</div>
 				</li>
 			</ul>
-			
 			<textarea  name="content" id="content" style="min-height: 500px; min-weight: 500px;" ></textarea>
 			<div class="btn_area _btn_area">
 				 <button type="button" id= "btnCreate"class="btn tx_point _save"><strong>확인</strong></button>
@@ -57,17 +56,19 @@ $(document).ready(function(){
             processData: false,
             url: "/Assignment/boards",
             data: formData,
-            success: function(){
-                alert("보드 생성 완료");
-                location.href = "/Assignment/";
-            }
-        	,
+            success: function(result){
+            	if(result.result == "success"){
+            		alert("보드 생성 완료");
+                   	location.href = "/Assignment/";
+            	}
+            	else{
+            		alert(result.result);
+            	}
+            },
         	error : function(xhr, status, error) {
-        		console.log(error);
+        		alert(error);
         	}
         });
-        
-        
     });
 });
 </script>

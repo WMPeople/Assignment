@@ -8,7 +8,7 @@
     resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
         SELECT board_id, version, created, status,
         		history_subject, history_content, file_id, 
-        		parent_board_id, parent_version,  root_board_id
+        		parent_board_id, parent_version, root_board_id
 		FROM board_history
 		WHERE root_board_id = #{root_board_id};
     </select>

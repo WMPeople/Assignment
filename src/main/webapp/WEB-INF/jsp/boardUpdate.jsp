@@ -2,6 +2,7 @@
 	pageEncoding="utf-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <link rel="stylesheet"
@@ -17,7 +18,7 @@
 <script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Insert title here</title>
+<title>게시글 수정</title>
 </head>
 <body>
 
@@ -48,10 +49,16 @@
 						</c:if>
 					</li>
 				</ul>
-
+				<%
+					response.addHeader("X-XSS-Protection","0");
+					pageContext.setAttribute("tab", "	"); 
+					pageContext.setAttribute("nbsp", "&nbsp;"); 
+					pageContext.setAttribute("crcn", "\r\n"); 
+		 			pageContext.setAttribute("br", "<br/>"); 
+				%>
 				<textarea name="content" id="content"
-					style="min-height: 500px; min-weight: 500px;">${param.content} </textarea>
-				<!--      	<input type="text" name="content" id="content" class="itxt content _title"> -->
+					style="min-height: 500px; min-width: 700px;">${param.content}</textarea>
+				
 				<div class="btn_area _btn_area">
 					<!-- 			<p class="next"> -->
 					<!-- 				<button type="button" class="btn _cancel">작성취소</button> -->
@@ -74,11 +81,9 @@
 </body>
 <script>
 $(document).ready(function(){
-	  $("#fileUpdate").click(function(){
+	 $("#fileUpdate").click(function(){
 	    	 document.getElementById('test').innerHTML='<input type="file" id="fileUp" name="fileUp" />'
 	     });
-	  var replaceText = $('#content').val().replace(/<br>/g, '\n');
- 	 $('#content').val(replaceText);
 
 });
 $("#btnUpdate").click(function(){
@@ -88,52 +93,33 @@ $("#btnUpdate").click(function(){
 		}
 		var formData = new FormData($("#fileForm")[0]);
 
+		var urlStr;
 		//원본 게시물에 파일이 있지만 수정하지 않았을 때
 		if (file_name != null && $("#fileUp").val() == null) {
-			$.ajax({
-				type : "POST",
-				contentType : "application/json; charset=UTF-8",
-				data : formData,
-				processData : false,
-				contentType : false,
-				url : "/Assignment/boards/update3",
-				success : function(result) {
-					if (result == 1) {
-						alert("보드 수정 완료");
-						location.href = "/Assignment/";
-					} else {
-						alert("수정 실패");
-					}
-				},
-				error : function(xhr, status, error) {
-					console.log(error);
-					console.log(formData)
-				}
-			});
+			urlStr = "/Assignment/boards/update3";
 		} else {
-
-			$.ajax({
-				type : "POST",
-				contentType : "application/json; charset=UTF-8",
-				data : formData,
-				processData : false,
-				contentType : false,
-				url : "/Assignment/boards/update2",
-				success : function(result) {
-					if (result == 1) {
-						alert("보드 수정 완료");
-						location.href = "/Assignment/";
-					} else {
-						alert("수정 실패");
-					}
-				},
-				error : function(xhr, status, error) {
-					console.log(error);
-					console.log(formData)
-
-				}
-			});
+			urlStr = "/Assignment/boards/update2";
 		}
+		$.ajax({
+			type : "POST",
+			contentType : "application/json; charset=UTF-8",
+			data : formData,
+			processData : false,
+			contentType : false,
+			url : urlStr,
+			success : function(result) {
+				if (result.result == "success") {
+					alert("보드 수정 완료");
+					location.href = "/Assignment/";
+				} else {
+					alert(result.result);
+				}
+			},
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+		});
+	
 	});
 </script>
 </html>
