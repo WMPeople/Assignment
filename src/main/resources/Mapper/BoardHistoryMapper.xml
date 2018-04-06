@@ -28,6 +28,9 @@
     </delete>
     
      <insert id="createHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
+		<selectKey keyProperty="created" resultType="String" order="AFTER">
+			SELECT created FROM board_history WHERE board_id = #{board_id} AND version = #{version}
+		</selectKey>
         INSERT INTO board_history(board_id, version, status,
         						history_subject, history_content, file_id,
         						parent_board_id, parent_version, root_board_id)

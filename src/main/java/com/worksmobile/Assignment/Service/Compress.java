@@ -8,6 +8,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import com.worksmobile.Assignment.Domain.BoardDTO;
+import com.worksmobile.Assignment.util.Utils;
+
 public class Compress {
 
 	// 출처 : https://stackoverflow.com/questions/357851/in-java-how-to-zip-file-from-byte-array
@@ -57,5 +60,17 @@ public class Compress {
 		}
 		byte[] contentByte = Compress.unzip(compressed);
 		return new String(contentByte, StandardCharsets.UTF_8);
+	}
+	
+	public static byte[] compressArticleContent(BoardDTO article) throws RuntimeException {
+		byte[] compressedContent = null;
+		try {
+			compressedContent = Compress.compress(article.getContent());
+		} catch(IOException e) {
+			e.printStackTrace();
+			String json = Utils.jsonStringIfExceptionToString(article);
+			throw new RuntimeException("createArticle메소드에서 게시글 내용을 압축에 실패하였습니다. \n게시글 : " + json);
+		}
+		return compressedContent;
 	}
 }
