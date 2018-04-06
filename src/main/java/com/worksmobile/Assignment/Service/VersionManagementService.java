@@ -57,17 +57,19 @@ public class VersionManagementService {
 		List<BoardHistoryDTO> relatedHistoryList = new ArrayList<>(boardHisotryMap.size());
 		
 		NodePtrDTO curPosPtrDTO = leafPtrDTO;
+		BoardHistoryDTO leafHistoryDTO;
 		do {
-			BoardHistoryDTO leafHistoryDTO = boardHisotryMap.get(curPosPtrDTO .toBoardIdAndVersionEntry());
+			leafHistoryDTO = boardHisotryMap.get(curPosPtrDTO .toBoardIdAndVersionEntry());
 			if(leafHistoryDTO == null) {
+				String curPosJson = Utils.jsonStringIfExceptionToString(curPosPtrDTO);
 				String historyListJson = Utils.jsonStringIfExceptionToString(boardHisotryMap);
-				throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + curPosPtrDTO  + "\n" +
+				throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + curPosJson  + "\n" +
 											"listCnt : " + relatedHistoryList.size() + ", content : " + historyListJson);
 			}
 			relatedHistoryList.add(leafHistoryDTO);
 			curPosPtrDTO = leafHistoryDTO.getParentPtrAndRoot();
 		}
-		while(curPosPtrDTO.getBoard_id() != null);
+		while(leafHistoryDTO.getParent_version() != 0);
 		return relatedHistoryList;
 	}
 	
@@ -78,7 +80,8 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public BoardHistoryDTO createArticle(BoardDTO article) {
-		return createArticleAndHistory(article, 1, BoardHistoryDTO.STATUS_CREATED, NodePtrDTO.DEFAULT_NULL_NODE_PTR);
+		// 버전 0은 안보이는 루트를 위함. 보이는 루트는 1로 지정.
+		return createArticleAndHistory(article, 0, BoardHistoryDTO.STATUS_CREATED, NodePtrDTO.DEFAULT_NULL_NODE_PTR);
 	}
 
 	/**
@@ -90,14 +93,7 @@ public class VersionManagementService {
 	 * @return 새롭게 생성된 게시글 이력 DTO
 	 */
 	private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final NodePtrDTO parentNodePtr) {
-		byte[] compressedContent = null;
-		try {
-			compressedContent = Compress.compress(article.getContent());
-		} catch(IOException e) {
-			e.printStackTrace();
-			String json = Utils.jsonStringIfExceptionToString(article);
-			throw new RuntimeException("createArticle메소드에서 게시글 내용을 압축에 실패하였습니다. \n게시글 : " + json);
-		}
+		byte[] compressedContent = Compress.compressArticleContent(article);
 
 		return createArticleAndHistory(article, version, status, compressedContent, parentNodePtr);
 	}
@@ -118,12 +114,35 @@ public class VersionManagementService {
 		if(parentNodePtr.getRoot_board_id() == 0) {
 			parentNodePtr.setRoot_board_id(last_board_id);
 		}
-		BoardHistoryDTO boardHistoryDTO = new BoardHistoryDTO(article, newNodePtrDTO, status);
-		boardHistoryDTO.setHistory_content(compressedContent);
-		boardHistoryDTO.setParentNodePtrAndRoot(parentNodePtr);
-		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistoryDTO);
-		if(insertedRowCnt == 0) {
-			throw new RuntimeException("createArticle메소드에서 createHistory error" + boardHistoryDTO);
+		BoardHistoryDTO boardHistoryDTO;
+		if(version == 0) {
+			BoardHistoryDTO rootHistoryDTO = new BoardHistoryDTO(new BoardDTO(), newNodePtrDTO, BoardHistoryDTO.STATUS_ROOT);
+			int insertedRowCnt = boardHistoryMapper.createHistory(rootHistoryDTO);
+			if(insertedRowCnt != 1) {
+				String json = Utils.jsonStringIfExceptionToString(rootHistoryDTO);
+				throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\ndeletePtrDTO : " + json);
+			}
+			
+			boardHistoryDTO = new BoardHistoryDTO(article, newNodePtrDTO, status);
+			boardHistoryDTO.setVersion(1);
+			boardHistoryDTO.setHistory_content(compressedContent);
+			boardHistoryDTO.setParentNodePtrAndRoot(rootHistoryDTO);
+			boardHistoryDTO.setRoot_board_id(newNodePtrDTO.getBoard_id());
+			
+			insertedRowCnt = boardHistoryMapper.createHistory(boardHistoryDTO);
+			if(insertedRowCnt != 1) {
+				String json = Utils.jsonStringIfExceptionToString(rootHistoryDTO);
+				throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\ndeletePtrDTO : " + json);
+			}
+		} else {
+			boardHistoryDTO = new BoardHistoryDTO(article, newNodePtrDTO, status);
+			boardHistoryDTO.setHistory_content(compressedContent);
+			boardHistoryDTO.setParentNodePtrAndRoot(parentNodePtr);
+			
+			int insertedRowCnt = boardHistoryMapper.createHistory(boardHistoryDTO);
+			if(insertedRowCnt == 0) {
+				throw new RuntimeException("createArticle메소드에서 createHistory error" + boardHistoryDTO);
+			}
 		}
 		NodePtrDTO nodePtr = boardHistoryDTO;
 		boardHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
@@ -131,7 +150,7 @@ public class VersionManagementService {
 		article.setNodePtrDTO(nodePtr);
 		article.setCreated(boardHistoryDTO.getCreated());
 		
-		insertedRowCnt = boardMapper.boardCreate(article);
+		int insertedRowCnt = boardMapper.boardCreate(article);
 		if(insertedRowCnt == 0) {
 			throw new RuntimeException("createArticle메소드에서 boardCreate error" + boardHistoryDTO);
 		}
@@ -246,7 +265,6 @@ public class VersionManagementService {
 		List<BoardHistoryDTO> deleteNodeChildren = boardHistoryMapper.getChildren(deletePtrDTO);
 		if(deleteNodeChildren.size() == 0) {	// 리프 노드라면
 			BoardHistoryDTO parentHistoryDTO = boardHistoryMapper.getHistory(parentPtrDTO);
-			BoardDTO parentDTO = new BoardDTO(parentHistoryDTO);
 			
 			int deletedCnt = boardMapper.boardDelete(deletePtrDTO.toMap());
 			if(deletedCnt != 1) {
@@ -260,8 +278,16 @@ public class VersionManagementService {
 				throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
 			}
 
+			BoardDTO parentDTO = new BoardDTO(parentHistoryDTO);
 			List<BoardHistoryDTO> parentChildren = boardHistoryMapper.getChildren(parentDTO);
-			if(parentChildren.size() == 0) {	// 리프 노드는 게시물 게시판에 존재해야 함.
+			if(parentChildren.size() == 0 && parentHistoryDTO.isRoot()) {// 루트만 존재하는 경우에는 루트를 지워줍니다.
+				deletedCnt = boardHistoryMapper.deleteHistory(parentHistoryDTO);
+				if(deletedCnt != 1) {
+					String json = Utils.jsonStringIfExceptionToString(parentHistoryDTO);
+					throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
+				}
+			}
+			else if(parentChildren.size() == 0 && !parentHistoryDTO.isRoot()){	// 루트가 아닌 리프 노드는 게시물 게시판에 존재해야 함.
 				try {
 					String content = Compress.deCompress(parentHistoryDTO.getHistory_content());
 					parentDTO.setContent(content);
@@ -277,7 +303,7 @@ public class VersionManagementService {
 				}
 				return parentDTO;
 			}
-		}
+		}	// 리프 노드일때 끝
 		else if(deleteHistoryDTO.isRoot()) {
 			throw new RuntimeException("루트는 삭제할 수 없습니다.");
 			// TODO : 한꺼번에 업데이트 하는 방법?
@@ -329,7 +355,6 @@ public class VersionManagementService {
 			if(deleteHistoryDTO == null) {
 				break;
 			}
-			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrAndRoot();
 			int file_id = deleteHistoryDTO.getFile_id();
 			if(file_id != 0) {
 				int fileCount = boardHistoryMapper.getFileCount(file_id);
@@ -344,6 +369,7 @@ public class VersionManagementService {
 			if(deletedCnt == 0) {
 				throw new RuntimeException("deleteArticle메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt);
 			}
+			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrAndRoot();
 			List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(parentPtrDTO);
 			
 			if(children.size() >= 1) {
@@ -351,5 +377,45 @@ public class VersionManagementService {
 			}
 			leafPtrDTO = parentPtrDTO;
 		}
+	}
+	
+	// TODO : 임시 게시글 만들기.
+	@Transactional
+	public BoardDTO createTempArticleOverwrite(BoardDTO tempArticle) throws IOException {
+		tempArticle.setVersion(0);
+		tempArticle.setRoot_board_id(tempArticle.getBoard_id());			// getHistoryByRootId에서 검색이 가능하도록
+
+		BoardDTO dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
+		if(dbTempArticle != null) {
+			int articleDeletedCnt = boardMapper.boardDelete(tempArticle.toMap());
+			int historyDeletedCnt = boardHistoryMapper.deleteHistory(tempArticle);
+			if(articleDeletedCnt != 1 || historyDeletedCnt != 1) {
+				String json = Utils.jsonStringIfExceptionToString(tempArticle);
+				throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 삭제 에러 tempArticle : " + json + "\n" +
+				"articleDeletedCnt : " + articleDeletedCnt + ", historyDeletedCnt : " + historyDeletedCnt);
+			}
+		}
+		return createTempArticle(tempArticle);
+	}
+	
+	private BoardDTO createTempArticle(BoardDTO tempArticle) throws IOException {
+		BoardHistoryDTO tempHistoryDTO = new BoardHistoryDTO(tempArticle, tempArticle, BoardHistoryDTO.STATUS_TEMP);
+		tempHistoryDTO.setHistory_content(Compress.compressArticleContent(tempArticle));
+		tempHistoryDTO.setParent_board_id(tempArticle.getBoard_id());	// null - null 은 root노드 이므로 방지 하기 위함.
+		tempHistoryDTO.setParent_version(null);									// 자기 자신 참조는 무한 순환을 야기할 수 있음.
+		
+		int createdCnt = boardHistoryMapper.createHistory(tempHistoryDTO);
+		if(createdCnt != 1) {
+			String json = Utils.jsonStringIfExceptionToString(tempHistoryDTO);
+			throw new RuntimeException("createTempArticle에서 게시글 이력 생성 실패 : " + json);
+		}
+		tempArticle.setCreated(tempHistoryDTO.getCreated());
+
+		createdCnt = boardMapper.boardCreate(tempArticle);
+		if(createdCnt != 1) {
+			String json = Utils.jsonStringIfExceptionToString(tempArticle);
+			throw new RuntimeException("createTempArticle에서 게시글 생성 실패 : " + json);
+		}
+		return null;
 	}
 }

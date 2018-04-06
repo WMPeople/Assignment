@@ -5,12 +5,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.AbstractMap;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Before;
@@ -213,6 +211,15 @@ public class VersionManagementTest {
 	}
 	
 	@Test
+	public void testDeleteRootNode() throws JsonProcessingException {
+		NodePtrDTO child = makeChild(defaultCreatedDTO);
+		assertNotNull(child);
+		
+		NodePtrDTO newLeafNodePtr = versionManagementService.deleteVersion(defaultCreatedDTO);
+		assertNotNull(newLeafNodePtr);
+	}
+	
+	@Test
 	public void testDeleteArticle() throws JsonProcessingException, NotLeafNodeException {
 		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
 		
@@ -270,7 +277,9 @@ public class VersionManagementTest {
 	@Test
 	public void testGetRelatedHistory() throws JsonProcessingException, NotLeafNodeException {
 		int childrenCnt = 2;
-		List<NodePtrDTO> nodePtrList = new ArrayList<>(1 + 1 + childrenCnt + 1);
+		int allCnt = 1 + 1 + childrenCnt + 1;
+		int relatedCnt = allCnt - (childrenCnt - 1);	// childrenList에서 1개만 사용
+		List<NodePtrDTO> nodePtrList = new ArrayList<>(allCnt);
 		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
 		nodePtrList.add(rootPtrDTO);
 		
@@ -289,7 +298,7 @@ public class VersionManagementTest {
 		NodePtrDTO leapPtrDTOWithoutRootBoardId = new NodePtrDTO(leapPtrDTO.getBoard_id(), leapPtrDTO.getVersion());
 		
 		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(leapPtrDTOWithoutRootBoardId);
-		assertEquals(relatedHistoryList.size(), nodePtrList.size() - (childrenCnt - 1));	// childrenList에서 1개만 사용
+		assertEquals(relatedHistoryList.size(), relatedCnt);
 		assertNotNull(relatedHistoryList);
 		for(BoardHistoryDTO eleHistoryDTO : relatedHistoryList) {
 			assertNotNull(eleHistoryDTO);
@@ -327,14 +336,21 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testListToMap() {
-		List<BoardHistoryDTO>list = boardHistoryMapper.getHistoryByRootBoardId(1);
-		Map<Map.Entry<Integer, Integer>, BoardHistoryDTO>map = new HashMap<>();
-		for(BoardHistoryDTO ele : list) {
-			Map.Entry<Integer, Integer> boardAndVersion = new AbstractMap.SimpleEntry<>(ele.getBoard_id(), ele.getVersion());
-			map.put(boardAndVersion, ele);
-		}
+	public void testCreateTempArticle() throws IOException {
+		BoardDTO tempArticle = new BoardDTO();
+		tempArticle.setSubject("임시저장중...");
+		tempArticle.setContent("temp article content");
+		tempArticle.setBoard_id(defaultCreatedDTO.getBoard_id());
+
+		versionManagementService.createTempArticleOverwrite(tempArticle);
+		BoardDTO dbTempArticle = boardMapper.viewDetail(new NodePtrDTO(tempArticle.getBoard_id(), 0).toMap());
+		Utils.assertConvertToJsonObject(tempArticle.toMap(), dbTempArticle.toMap());
+		Utils.assertConvertToJsonObject(tempArticle, dbTempArticle);
 		
-		System.out.println(map);
+		BoardHistoryDTO dbTempHistoryDTO = boardHistoryMapper.getHistory(tempArticle);
+		Utils.assertConvertToJsonObject(tempArticle.toMap(), dbTempHistoryDTO.toMap());
+		assertEquals(tempArticle.getSubject(), dbTempHistoryDTO.getHistory_subject());
+		String decompressedContent = Compress.deCompress(dbTempHistoryDTO.getHistory_content());
+		assertEquals(tempArticle.getContent(), decompressedContent);
 	}
 }

@@ -19,6 +19,8 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	public static final String STATUS_CREATED = "Created";
 	public static final String STATUS_MODIFIED = "Modified";
 	public static final String STATUS_RECOVERED= "Recovered";
+	public static final String STATUS_TEMP = "Temp";
+	public static final String STATUS_ROOT = "Root";
 	
 	public BoardHistoryDTO() {};
 	/***
@@ -65,7 +67,7 @@ public class BoardHistoryDTO extends NodePtrDTO{
 	}
 
 	public boolean isRoot() {
-		return (Integer)root_board_id == board_id &&
+		return root_board_id == 0 &&
 				parent_board_id == null &&
 				parent_version == null;
 	}

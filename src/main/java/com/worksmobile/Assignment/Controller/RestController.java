@@ -418,5 +418,16 @@ public class RestController {
 		return modelAndView;
 		
 	}
-	
+
+	@RequestMapping(value = "/boards/temp", method = RequestMethod.POST)
+	@ResponseBody
+	public int tempArticle(BoardDTO board) {	
+		try {
+			versionManagementService.createTempArticleOverwrite(board);
+			return 1;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
 }

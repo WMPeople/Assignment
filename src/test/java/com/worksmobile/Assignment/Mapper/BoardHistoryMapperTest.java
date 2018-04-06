@@ -45,10 +45,10 @@ public class BoardHistoryMapperTest {
 	private BoardHistoryDTO boardHistoryDTO = null;
 
 	public BoardHistoryMapperTest() {
-		defaultNodePtrDTO = new NodePtrDTO(1, 6, 1);
+		defaultNodePtrDTO = new NodePtrDTO(1000, 6, 1);
 		defaultHistoryDTO = new BoardHistoryDTO();
-		defaultHistoryDTO.setBoard_id(1);
-		defaultHistoryDTO.setVersion(6);
+		defaultHistoryDTO.setBoard_id(defaultNodePtrDTO.getBoard_id());
+		defaultHistoryDTO.setVersion(defaultNodePtrDTO.getVersion());
 		defaultHistoryDTO.setFile_id(1000);
 
 		defaultHistoryDTO.setStatus("Created");
@@ -76,7 +76,7 @@ public class BoardHistoryMapperTest {
 		article.setContent("testContent");
 
 		BoardHistoryDTO createdHistoryDTO = new BoardHistoryDTO(article, defaultNodePtrDTO, BoardHistoryDTO.STATUS_CREATED);
-		createdHistoryDTO.setHistory_content(Compress.compress(article.getContent()));
+		createdHistoryDTO.setHistory_content(Compress.compressArticleContent(article));
 
 		BoardHistoryDTO check = boardHistoryMapper.getHistory(defaultNodePtrDTO);
 		if (check != null) {
@@ -88,15 +88,15 @@ public class BoardHistoryMapperTest {
 		BoardHistoryDTO insertedDTO = null;
 		insertedDTO = boardHistoryMapper.getHistory(createdHistoryDTO);
 
-		// ingore created time.
-		insertedDTO.setCreated(null);
 		Utils.assertConvertToJsonObject(createdHistoryDTO, insertedDTO);
 	}
 	
 	private  BoardHistoryDTO createBoardHistoryIfNotExists() {
 		boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
 		if (boardHistoryDTO == null) {
-			boardHistoryMapper.createHistory(defaultHistoryDTO);
+			defaultHistoryDTO.setRoot_board_id(defaultHistoryDTO.getBoard_id());
+			int createdCnt = boardHistoryMapper.createHistory(defaultHistoryDTO);
+			assertEquals(1, createdCnt);
 			boardHistoryDTO = boardHistoryMapper.getHistory(defaultNodePtrDTO);
 		}
 		assertNotNull(boardHistoryDTO);
@@ -167,7 +167,7 @@ public class BoardHistoryMapperTest {
 		assertNotNull(boardHistoryDTO);
 		int file_id = boardHistoryDTO.getFile_id();
 		int fileCount = boardHistoryMapper.getFileCount(file_id);
-		assertEquals(1,fileCount);	
+		assertEquals(1, fileCount);	
 	}
 
 	@Test
