@@ -62,15 +62,13 @@ public class VersionManagementTest {
 
 	@Test
 	public void testCreateArticle() throws InterruptedException, ExecutionException, JsonProcessingException {
-		NodePtrDTO nodePtr = defaultCreatedDTO;
-		BoardHistoryDTO dbHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
+		BoardHistoryDTO dbHistoryDTO = defaultCreatedDTO;
 		
 		Utils.assertConvertToJsonObject(defaultCreatedDTO, dbHistoryDTO);
 		
-		defaultBoardDTO.setNodePtrDTO(nodePtr);
-		defaultBoardDTO.setCreated(dbHistoryDTO.getCreated());
+		defaultBoardDTO.setNodePtrDTO(dbHistoryDTO);
 		
-		BoardDTO dbBoardDTO = boardMapper.viewDetail(nodePtr.toMap());
+		BoardDTO dbBoardDTO = boardMapper.viewDetail(dbHistoryDTO.toMap());
 		Utils.assertConvertToJsonObject(defaultBoardDTO, dbBoardDTO);
 	}
 	
@@ -110,7 +108,6 @@ public class VersionManagementTest {
 		BoardHistoryDTO recoveredHistoryDTO = boardHistoryMapper.getHistory(newLeapPtrDTO);
 		BoardDTO newLeapDTO = boardMapper.viewDetail(newLeapPtrDTO.toMap());
 		
-		prevLeapDTO.setCreated(recoveredHistoryDTO.getCreated());
 		prevLeapDTO.setNodePtrDTO(newLeapPtrDTO);
 		
 		assertNotNull(recoveredHistoryDTO);
@@ -216,7 +213,7 @@ public class VersionManagementTest {
 		assertNotNull(child);
 		
 		NodePtrDTO newLeafNodePtr = versionManagementService.deleteVersion(defaultCreatedDTO);
-		assertNotNull(newLeafNodePtr);
+		assertNull(newLeafNodePtr);
 	}
 	
 	@Test

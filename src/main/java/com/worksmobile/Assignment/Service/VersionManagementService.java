@@ -76,7 +76,7 @@ public class VersionManagementService {
 	/***
 	 * 최초 기록 게시글을 등록합니다. 
 	 * @param article 게시글에 대한 정보.
-	 * @return 새로운 게시글을 가리키는 포인터.
+	 * @return 새로운 게시글의 이력
 	 */
 	@Transactional
 	public BoardHistoryDTO createArticle(BoardDTO article) {
@@ -93,6 +93,9 @@ public class VersionManagementService {
 	 * @return 새롭게 생성된 게시글 이력 DTO
 	 */
 	private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final NodePtrDTO parentNodePtr) {
+		if(parentNodePtr == null) {
+			throw new RuntimeException("createArticleAndHistory메소드 parentNodePtr은 null 이 될 수 없습니다. ");
+		}
 		byte[] compressedContent = Compress.compressArticleContent(article);
 
 		return createArticleAndHistory(article, version, status, compressedContent, parentNodePtr);
@@ -145,7 +148,6 @@ public class VersionManagementService {
 			}
 		}
 		NodePtrDTO nodePtr = boardHistoryDTO;
-		boardHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
 
 		article.setNodePtrDTO(nodePtr);
 		article.setCreated(boardHistoryDTO.getCreated());
@@ -209,16 +211,19 @@ public class VersionManagementService {
 		return createVersionWithBranch(modifiedBoard, parentPtrDTO, BoardHistoryDTO.STATUS_MODIFIED);
 	}
 	
-	synchronized private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, final NodePtrDTO parentPtrDTO, final String status) {
+	synchronized private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, NodePtrDTO parentPtrDTO, final String status) {
 		BoardDTO board = boardMapper.viewDetail(parentPtrDTO.toMap());
 		if(board != null) {
 			int deletedCnt = boardMapper.boardDelete(parentPtrDTO.toMap());
 			if(deletedCnt != 1) {
 				throw new RuntimeException("delete cnt expected 1 but " + deletedCnt);
 			}
+			parentPtrDTO = board;
+		} else {
+			parentPtrDTO = boardHistoryMapper.getHistory(parentPtrDTO);
 		}
 		
-		return createArticleAndHistory(boardDTO, parentPtrDTO.getVersion() + 1, status, board);
+		return createArticleAndHistory(boardDTO, parentPtrDTO.getVersion() + 1, status, parentPtrDTO);
 	}
 	
 	private boolean isLeaf(final NodePtrDTO nodePtrDTO) {
@@ -246,7 +251,6 @@ public class VersionManagementService {
 		}
 	}
 
-	// TODO : 루트 삭제시
 	/***
 	 * 특정 버전에 대한 이력 1개를 삭제합니다. leaf노드이면 게시글도 삭제 됩니다. 
 	 * 부모의 이력은 삭제되지 않음을 유의 해야 합니다.
@@ -337,6 +341,7 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public void deleteArticle(NodePtrDTO leafPtrDTO) throws NotLeafNodeException {
+		boolean deleteFileBoolean = false;
 		if(!isLeaf(leafPtrDTO)) {
 			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtrDTO);
 			throw new NotLeafNodeException("node 정보" + leafPtrJson);
@@ -344,7 +349,7 @@ public class VersionManagementService {
 		int deletedCnt = boardMapper.boardDelete(leafPtrDTO.toMap());
 		if(deletedCnt != 1) {
 			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtrDTO);
-			throw new RuntimeException("node 정보" + leafPtrJson);
+			throw new RuntimeException("deleteArticle에서 게시글 삭제 실패 leafPtrJson : " + leafPtrJson);
 		}
 		
 		while(true) {
@@ -352,21 +357,24 @@ public class VersionManagementService {
 			if(deleteHistoryDTO == null) {
 				break;
 			}
+			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrAndRoot();
 			int file_id = deleteHistoryDTO.getFile_id();
 			if(file_id != 0) {
 				int fileCount = boardHistoryMapper.getFileCount(file_id);
 				if(fileCount ==1) {
-					deletedCnt = fileMapper.deleteFile(file_id);
-					if(deletedCnt != 1) {
-						throw new RuntimeException("파일 삭제 에러");
-					};
+					deleteFileBoolean=true;
 				}
 			}
 			deletedCnt = boardHistoryMapper.deleteHistory(leafPtrDTO);
 			if(deletedCnt == 0) {
 				throw new RuntimeException("deleteArticle메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt);
 			}
-			NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrAndRoot();
+			if(deleteFileBoolean) {
+				deletedCnt = fileMapper.deleteFile(file_id);
+				if(deletedCnt != 1) {
+					throw new RuntimeException("파일 삭제 에러");
+				};
+			}
 			List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(parentPtrDTO);
 			
 			if(children.size() >= 1) {
@@ -379,36 +387,20 @@ public class VersionManagementService {
 	// TODO : 임시 게시글 만들기.
 	@Transactional
 	public BoardDTO createTempArticleOverwrite(BoardDTO tempArticle) throws IOException {
-		tempArticle.setVersion(0);
 		tempArticle.setRoot_board_id(tempArticle.getBoard_id());			// getHistoryByRootId에서 검색이 가능하도록
 
 		BoardDTO dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
 		if(dbTempArticle != null) {
 			int articleDeletedCnt = boardMapper.boardDelete(tempArticle.toMap());
-			int historyDeletedCnt = boardHistoryMapper.deleteHistory(tempArticle);
-			if(articleDeletedCnt != 1 || historyDeletedCnt != 1) {
+			if(articleDeletedCnt != 1 ) {
 				String json = Utils.jsonStringIfExceptionToString(tempArticle);
 				throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 삭제 에러 tempArticle : " + json + "\n" +
-				"articleDeletedCnt : " + articleDeletedCnt + ", historyDeletedCnt : " + historyDeletedCnt);
+				"articleDeletedCnt : " + articleDeletedCnt);
 			}
 		}
-		return createTempArticle(tempArticle);
-	}
-	
-	private BoardDTO createTempArticle(BoardDTO tempArticle) throws IOException {
-		BoardHistoryDTO tempHistoryDTO = new BoardHistoryDTO(tempArticle, tempArticle, BoardHistoryDTO.STATUS_TEMP);
-		tempHistoryDTO.setHistory_content(Compress.compressArticleContent(tempArticle));
-		tempHistoryDTO.setParent_board_id(tempArticle.getBoard_id());	// null - null 은 root노드 이므로 방지 하기 위함.
-		tempHistoryDTO.setParent_version(null);									// 자기 자신 참조는 무한 순환을 야기할 수 있음.
-		
-		int createdCnt = boardHistoryMapper.createHistory(tempHistoryDTO);
-		if(createdCnt != 1) {
-			String json = Utils.jsonStringIfExceptionToString(tempHistoryDTO);
-			throw new RuntimeException("createTempArticle에서 게시글 이력 생성 실패 : " + json);
-		}
-		tempArticle.setCreated(tempHistoryDTO.getCreated());
+		tempArticle.setCreated("CURTIMESTAMP 를 넣어야;;;");
 
-		createdCnt = boardMapper.boardCreate(tempArticle);
+		int createdCnt = boardMapper.boardCreate(tempArticle);
 		if(createdCnt != 1) {
 			String json = Utils.jsonStringIfExceptionToString(tempArticle);
 			throw new RuntimeException("createTempArticle에서 게시글 생성 실패 : " + json);
