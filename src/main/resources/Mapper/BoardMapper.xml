@@ -57,4 +57,9 @@
     	SELECT IFNULL(MAX(board_id), 0) AS MaxBoardId
     	FROM board;
     </select>
+    
+    <select id="getMaxCookieId" resultType="int">
+    	SELECT IFNULL(MAX(cookie_id), 0) AS MaxCookieId
+    	FROM board;
+    </select>
 </mapper>

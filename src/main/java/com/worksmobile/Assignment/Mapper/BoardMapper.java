@@ -23,6 +23,8 @@ public interface BoardMapper {
 
 	public int getMaxBoardId();
 	
+	public int getMaxCookieId();
+	
 	public List<BoardDTO> articleList(HashMap<String, Integer> params);
 	
 	public int articleGetCount();
