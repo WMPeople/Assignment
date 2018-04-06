@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -187,7 +188,7 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public NodePtrDTO modifyVersion(BoardDTO modifiedBoard, NodePtrDTO parentPtrDTO, String value) {
-		System.out.println(value);
+		Logger.getLogger("VersionManagementService").info("cookie value : " + value);
 		return createVersionWithBranch(modifiedBoard, parentPtrDTO, BoardHistoryDTO.STATUS_MODIFIED);
 	}
 	
@@ -312,6 +313,7 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public void deleteArticle(NodePtrDTO leafPtrDTO) throws NotLeafNodeException {
+		boolean deleteFileBoolean = false;
 		if(!isLeaf(leafPtrDTO)) {
 			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtrDTO);
 			throw new NotLeafNodeException("node 정보" + leafPtrJson);
@@ -332,15 +334,18 @@ public class VersionManagementService {
 			if(file_id != 0) {
 				int fileCount = boardHistoryMapper.getFileCount(file_id);
 				if(fileCount ==1) {
-					deletedCnt = fileMapper.deleteFile(file_id);
-					if(deletedCnt != 1) {
-						throw new RuntimeException("파일 삭제 에러");
-					};
+					deleteFileBoolean=true;
 				}
 			}
 			deletedCnt = boardHistoryMapper.deleteHistory(leafPtrDTO);
 			if(deletedCnt == 0) {
 				throw new RuntimeException("deleteArticle메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt);
+			}
+			if(deleteFileBoolean) {
+				deletedCnt = fileMapper.deleteFile(file_id);
+				if(deletedCnt != 1) {
+					throw new RuntimeException("파일 삭제 에러");
+				};
 			}
 			List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(parentPtrDTO);
 			

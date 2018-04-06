@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -60,6 +61,16 @@ public class RestController {
     // TODO : thread-safe
     static int publishedNameMax = 1;
     
+    
+    public void getMaxCookieID() {
+    	publishedNameMax = boardMapper.getMaxCookieId();
+    }
+    
+    public RestController() {
+    	
+    }
+    
+    
     // TODO : 리팩터링
     public static Cookie getCookie(HttpServletRequest req) {
     	Cookie[] getCookie =req.getCookies();
@@ -74,7 +85,7 @@ public class RestController {
     	return curCookie;
     }
     // TODO : 리팩터링    
-    public static Cookie creteCookie(HttpServletResponse res) {
+    synchronized public Cookie creteCookie(HttpServletResponse res) {
     	Cookie setCookie = null;
     	setCookie = new Cookie("name",Integer.toString(publishedNameMax));
     	res.addCookie(setCookie);
