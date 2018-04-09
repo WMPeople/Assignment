@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -387,23 +388,29 @@ public class VersionManagementService {
 	// TODO : 임시 게시글 만들기.
 	@Transactional
 	public BoardDTO createTempArticleOverwrite(BoardDTO tempArticle) throws IOException {
+		Logger.getLogger("VersionManagementService").info("cookie value = " + tempArticle.getCookie_id());
+		Logger.getLogger("VersionManagementService").info(tempArticle.getCookie_id() +" /" + "version : " +tempArticle.getVersion());
 		tempArticle.setRoot_board_id(tempArticle.getBoard_id());			// getHistoryByRootId에서 검색이 가능하도록
 
+		System.out.println(tempArticle.toMap());
 		BoardDTO dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
+		
 		if(dbTempArticle != null) {
-			int articleDeletedCnt = boardMapper.boardDelete(tempArticle.toMap());
-			if(articleDeletedCnt != 1 ) {
+			
+			int articleUpdatedCnt = boardMapper.boardUpdate(tempArticle.toMap());
+			if(articleUpdatedCnt != 1 ) {
 				String json = Utils.jsonStringIfExceptionToString(tempArticle);
-				throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 삭제 에러 tempArticle : " + json + "\n" +
-				"articleDeletedCnt : " + articleDeletedCnt);
+				throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
+				"articleUpdatedCnt : " + articleUpdatedCnt);
 			}
 		}
-		tempArticle.setCreated("CURTIMESTAMP 를 넣어야;;;");
-
-		int createdCnt = boardMapper.boardCreate(tempArticle);
-		if(createdCnt != 1) {
-			String json = Utils.jsonStringIfExceptionToString(tempArticle);
-			throw new RuntimeException("createTempArticle에서 게시글 생성 실패 : " + json);
+		else {
+			int createdCnt = boardMapper.boardCreate(tempArticle);
+			if(createdCnt != 1) {
+				String json = Utils.jsonStringIfExceptionToString(tempArticle);
+				throw new RuntimeException("createTempArticle에서 게시글 생성 실패 : " + json);
+			}
+			
 		}
 		return null;
 	}

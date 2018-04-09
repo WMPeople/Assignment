@@ -15,7 +15,7 @@ public interface BoardMapper {
 
 	public int boardDelete(HashMap<String, Integer> parmas) ;
 
-	public int boardUpdate(BoardDTO board) ;
+	public int boardUpdate(HashMap<String, Integer> parmas) ;
 	
 	public BoardDTO viewDetail(HashMap<String, Integer> parmas) ;
 	
