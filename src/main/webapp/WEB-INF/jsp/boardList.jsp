@@ -27,18 +27,22 @@
             <th>최종수정시간</th>
             <th>삭제</th>
         </tr>
-            <c:forEach var="board" items="${board}">
+        
+        <c:forEach var="board" items="${board}">
+        <c:if test="${board.cookie_id eq 0}">
         <tr>
             <td>${board.board_id}</td>
             <td>${board.version}</td>
-       		<td><a href="${path}/Assignment/boards/${board.board_id}/${board.version}">${board.subject}</a></td>
+       		<td><a href="${path}/Assignment/boards/${board.board_id}/${board.version}/${board.cookie_id}">${board.subject}</a></td>
             <td>${board.created}</td>
 			<td> 
-			<button class="btn btn-primary" id="btnDelete" onclick="btnDelete(${board.board_id},${board.version});">삭제</button> 
-			<button class="btn btn-primary" id="btnManagement" onclick="location.href='${path}/Assignment/boards/management/${board.board_id}/${board.version}'">버전관리</button>
+			<button class="btn btn-primary" id="btnDelete" onclick="btnDelete(${board.board_id},${board.version},${board.cookie_id});">삭제</button> 
+			<button class="btn btn-primary" id="btnManagement" onclick="location.href='${path}/Assignment/boards/management/${board.board_id}/${board.version}/${board.cookie_id}'">버전관리</button>
 			</td> 
         </tr>
+         </c:if>
         </c:forEach>
+       
     </table>
     <c:choose>
 		<c:when test="${paging.numberOfRecords ne NULL and paging.numberOfRecords ne '' and paging.numberOfRecords ne 0}">
@@ -76,25 +80,34 @@
 		</c:choose>
 <script>
 
-function btnDelete(board_id,version){
-    $.ajax({
-        type: "DELETE",
-        url: "${path}/Assignment/boards/"+board_id+"/"+version,
-        success: function(result){
-        	if(result.result == 'success'){
-        		alert("삭제완료");
-        		location.href = "/Assignment/";
-        	}
-        	else{
-        		alert(result.result);
-        	}
-        },
-        error : function(xhr, status, error) {
-    		alert(error);
-    	}
-        
-        
-    })
+function btnDelete(board_id,version,cookie_id){
+	
+	var deleteConfirm;
+	deleteConfirm = confirm("leaf노드 삭제시 자동 저장 게시글도 모두 삭제됩니다. 동의하시나요?");
+	
+	
+	if(deleteConfirm){
+		 $.ajax({
+		        type: "DELETE",
+		        url: "${path}/Assignment/boards/"+board_id+"/"+version+"/"+cookie_id,
+		        success: function(result){
+		        	if(result.result == 'success'){
+		        		alert("삭제완료");
+		        		location.href = "/Assignment/";
+		        	}
+		        	else{
+		        		alert(result.result);
+		        	}
+		        },
+		        error : function(xhr, status, error) {
+		    		alert(error);
+		    	}
+		        
+		        
+		    })	
+		
+	}
+   
 }
 
 function goPage(pages, lines) {

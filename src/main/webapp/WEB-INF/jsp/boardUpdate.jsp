@@ -16,6 +16,7 @@
 <link rel="stylesheet" type="text/css" href="../css/home_editor.min.css">
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script src="../js/auto_save.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>게시글 수정</title>
@@ -70,7 +71,10 @@
 						style="display: none;"
 						value="<%=request.getParameter("board_id")%>"> <input
 						type="text" name="version" id="version" style="display: none;"
-						value="<%=request.getParameter("version")%>">
+						value="<%=request.getParameter("version")%>">  <input
+						type="text" name="cookie_id" id="cookie_id" style="display: none;"
+						value="<%=request.getParameter("cookie_id")%>">
+						
 					<button type="button" id="btnUpdate" class="btn tx_point _save">
 						<strong>수정</strong>
 					</button>
@@ -81,10 +85,9 @@
 </body>
 <script>
 $(document).ready(function(){
-	 $("#fileUpdate").click(function(){
-	    	 document.getElementById('test').innerHTML='<input type="file" id="fileUp" name="fileUp" />'
-	     });
-
+	$("#fileUpdate").click(function(){
+		document.getElementById('test').innerHTML='<input type="file" id="fileUp" name="fileUp" />'
+	});
 });
 $("#btnUpdate").click(function(){
    	var file_name = '<%=request.getParameter("file_name")%>';
