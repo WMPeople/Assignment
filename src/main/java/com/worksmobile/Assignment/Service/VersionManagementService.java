@@ -205,8 +205,9 @@ public class VersionManagementService {
 		BoardDTO board = boardMapper.viewDetail(parentPtrDTO.toMap());
 		if(board != null) {
 			int deletedCnt = boardMapper.boardDelete(parentPtrDTO.toMap());
-			if(deletedCnt != 1) {
-				throw new RuntimeException("delete cnt expected 1 but " + deletedCnt);
+			//ryu 잠시 수정
+			if(deletedCnt == 0) {
+				throw new RuntimeException("delete cnt expected  but " + deletedCnt);
 			}
 			parentPtrDTO = board;
 		} else {
@@ -337,7 +338,8 @@ public class VersionManagementService {
 			throw new NotLeafNodeException("node 정보" + leafPtrJson);
 		}
 		int deletedCnt = boardMapper.boardDelete(leafPtrDTO.toMap());
-		if(deletedCnt != 1) {
+		//ryu 잠시수정
+		if(deletedCnt == 0) {
 			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtrDTO);
 			throw new RuntimeException("deleteArticle에서 게시글 삭제 실패 leafPtrJson : " + leafPtrJson);
 		}

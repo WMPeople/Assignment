@@ -299,7 +299,7 @@ public class RestController {
 			HashMap<String, Integer> params = new HashMap<String, Integer>();
 			params.put("board_id", board.getBoard_id());
 			params.put("version", board.getVersion());
-			
+			params.put("cookie_id", 0);
 			pastBoard = boardMapper.viewDetail(params);	
 			if(pastBoard == null) {
 				String json = Utils.jsonStringIfExceptionToString(pastBoard);
@@ -329,7 +329,7 @@ public class RestController {
 	 * @param board_id 삭제를 원하는 게시물의 board_id
 	 * @param version 삭제를 원하는 게시물의 version
 	 */
-	@RequestMapping(value = "/boards/{board_id}/{version}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/boards/{board_id}/{version}/{cookie_id}", method = RequestMethod.DELETE)
 	@ResponseBody
 	public Map<String,Object> destroy(@PathVariable(value = "board_id") int board_id,
 			@PathVariable(value = "version") int version) throws Exception {
@@ -413,13 +413,11 @@ public class RestController {
 	 * @return resultMap 버전 복구 후 url 주소와 메쏘드 실행 성공 유무를 알려주는 Map을 리턴합니다.
 	 * @throws Exception
 	 */
-	@RequestMapping(value = "/boards/recover/{board_id}/{version}/{cookie_id}/{leafBoard_id}/{leafVersion}/{leafCookie_id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/boards/recover/{board_id}/{version}/{leafBoard_id}/{leafVersion}", method = RequestMethod.GET)
 	public Map<String,Object> versionRecover(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version, 
-			@PathVariable(value = "cookie_id") int cookie_id,
 			@PathVariable(value = "leafBoard_id") int leafBoard_id, 
-			@PathVariable(value = "leafVersion") int leafVersion,
-			@PathVariable(value = "leafCookie_id") int leafCookie_id) throws Exception { 
+			@PathVariable(value = "leafVersion") int leafVersion) throws Exception { 
 		
 		Map<String,Object> resultMap = new HashMap<String,Object>();
 		NodePtrDTO newLeapNode = null;
