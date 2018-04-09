@@ -512,7 +512,7 @@ public class RestController {
 			board.setCookie_id(Integer.parseInt(getCookie(req).getValue()));
 			versionManagementService.createTempArticleOverwrite(board);
 			resultMap.put("result", "success");
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			resultMap.put("result", e.getMessage());
 		}

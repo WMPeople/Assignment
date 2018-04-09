@@ -60,6 +60,24 @@ public class VersionManagementTest {
 		versionManagementService = new VersionManagementService();
 	}
 
+	private NodePtrDTO makeChild(NodePtrDTO parentPtrDTO) throws JsonProcessingException {
+		BoardDTO child = new BoardDTO();
+		child.setSubject("childSub");
+		child.setContent("childCont");
+		
+		NodePtrDTO childPtrDTO = versionManagementService.modifyVersion(child, parentPtrDTO);
+		child.setNodePtrDTO(childPtrDTO);
+		
+		BoardDTO leapBoardDTO = boardMapper.viewDetail(childPtrDTO.toMap());
+		assertNotNull(leapBoardDTO);
+		int parentVersion = parentPtrDTO.getVersion() == null ? 0 : parentPtrDTO.getVersion();
+		assertEquals((Integer)(parentVersion + 1), childPtrDTO.getVersion());
+		
+		Utils.assertConvertToJsonObject(child, leapBoardDTO);
+		
+		return childPtrDTO;
+	}
+	
 	@Test
 	public void testCreateArticle() throws InterruptedException, ExecutionException, JsonProcessingException {
 		BoardHistoryDTO dbHistoryDTO = defaultCreatedDTO;
@@ -135,23 +153,6 @@ public class VersionManagementTest {
 		Utils.assertConvertToJsonObject(child, leapBoardDTO);
 	}
 	
-	private NodePtrDTO makeChild(NodePtrDTO parentPtrDTO) throws JsonProcessingException {
-		BoardDTO child = new BoardDTO();
-		child.setSubject("childSub");
-		child.setContent("childCont");
-		
-		NodePtrDTO childPtrDTO = versionManagementService.modifyVersion(child, parentPtrDTO);
-		child.setNodePtrDTO(childPtrDTO);
-		
-		BoardDTO leapBoardDTO = boardMapper.viewDetail(childPtrDTO.toMap());
-		assertNotNull(leapBoardDTO);
-		int parentVersion = parentPtrDTO.getVersion() == null ? 0 : parentPtrDTO.getVersion();
-		assertEquals((Integer)(parentVersion + 1), childPtrDTO.getVersion());
-		
-		Utils.assertConvertToJsonObject(child, leapBoardDTO);
-		
-		return childPtrDTO;
-	}
 	
 	@Test
 	public void testMakeModifyHasChild() throws JsonProcessingException {
@@ -331,20 +332,5 @@ public class VersionManagementTest {
 			NodePtrDTO addedEle = leafToRoot.get(i);
 			assertEquals(relatedEle, addedEle);
 		}
-	}
-	
-	@Test
-	public void testCreateTempArticle() throws IOException {
-		BoardDTO tempArticle = new BoardDTO();
-		tempArticle.setSubject("임시저장중...");
-		tempArticle.setContent("temp article content");
-		tempArticle.setBoard_id(defaultCreatedDTO.getBoard_id());
-		tempArticle.setVersion(1);
-		tempArticle.setCookie_id(1);
-
-		versionManagementService.createTempArticleOverwrite(tempArticle);
-		BoardDTO dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
-		Utils.assertConvertToJsonObject(tempArticle.toMap(), dbTempArticle.toMap());
-		Utils.assertConvertToJsonObject(tempArticle, dbTempArticle);
 	}
 }

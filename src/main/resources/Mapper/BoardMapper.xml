@@ -43,7 +43,12 @@
     <!--  게시물 삭제시 이력 모두 삭제되어야 한다. -->
     <delete id="boardDelete" parameterType="hashmap">
         DELETE FROM board 
-        WHERE board_id = #{board_id} AND version = #{version};
+        WHERE board_id = #{board_id} AND version = #{version} ;
+    </delete>
+    
+    <delete id="boardDeleteWithCookieId" parameterType="hashmap">
+        DELETE FROM board 
+        WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
     </delete>
     
     <!--  히스토리 먼저 처리하고 boardUpdate 실행됨 -->
@@ -76,6 +81,12 @@
     	FROM board;
     </select>
     
+    <select id="getBoardList" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
+    	SELECT board_id, version, subject, content, created, file_id, root_board_id, cookie_id
+    	FROM board
+    	WHERE board_id = #{board_id} AND version = #{version};
+    </select>
+
     <select id="getFileCount" parameterType ="int" resultType="int">
 		SELECT count(*)
 		FROM board
