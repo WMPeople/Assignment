@@ -115,7 +115,7 @@ function btnVersionDelete(board_id,version){
 function btnDelete(board_id,version){
 	  $.ajax({
 	        type: "DELETE",
-	        url: "${path}/Assignment/boards/"+board_id+"/"+version,
+	        url: "${path}/Assignment/boards/"+board_id+"/"+version+"/0",
 	        success: function(result){
 	        	if(result.result == 'success'){
 	        		alert("삭제완료");
@@ -138,7 +138,7 @@ function btnRecover(board_id,version){
 	var leafVersion = Number(tableSearch.rows[1].cells[2].innerHTML);
 	  $.ajax({
 	        type: "GET",
-	        url: "${path}/Assignment/boards/recover/"+board_id+"/"+version+"/"+leafBoard_id+"/"+leafVersion,
+	        url: "${path}/Assignment/boards/recover/"+board_id+"/"+version+"/0"+leafBoard_id+"/"+leafVersion+"/0",
 	        success: function(result){
 	        	if(result.result == 'success'){
 	        		alert("복원완료");

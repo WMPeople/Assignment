@@ -35,24 +35,24 @@
 			<span class="name">버전 : <span class="_group">${board.version}</span> <span class="_company"></span></span>
 			<span class="date">최종 수정시간 :  ${board.created}</span>
 			<span class="date">첨부 파일 :   <a href="${path}/Assignment/boards/download/${file.file_id}" name="file">${file.file_name}     </a> (${file.file_size})</span>
-
+			<button class="btn btn-primary" id="btnAutoList" onclick="location.href='${path}/Assignment/autos/${board.board_id}/${board.version}'">자동저장리스트</button>
 		<div class="cont _content translateArea" id="contents">
-				<%
-					pageContext.setAttribute("tab", "	"); 
-					pageContext.setAttribute("nbsp", "&nbsp;"); 
-					pageContext.setAttribute("crcn", "\r\n"); 
-		 			pageContext.setAttribute("br", "<br/>"); 
-				%>
+<%-- 				<% --%>
+<!-- // 					pageContext.setAttribute("tab", "	");  -->
+<!-- // 					pageContext.setAttribute("nbsp", "&nbsp;");  -->
+<!-- // 					pageContext.setAttribute("crcn", "\r\n");  -->
+<!-- // 		 			pageContext.setAttribute("br", "<br/>");  -->
+<%-- 				%> --%>
+<%-- 				${fn:replace((fn:replace({board.content},crcn,br)),tab,nbsp)} --%>
 				<textarea name="content3" id="content3" style="min-height: 500px; min-width: 700px;" readonly>${board.content}</textarea>
-<%-- 			${fn:replace((fn:replace({board.content},crcn,br)),tab,nbsp)} --%>
-			
 		</div>
 		
-		<c:if test="${isHistory eq 0}">
+<%-- 		<c:if test="${isHistory eq 0}"> --%>
 			<div class="btn_box _btn_area _no_print">
 				<form action="/Assignment/boards/update" method="post" style="display: inline;">
 					<input name="board_id" type="text" id="board_id" value="${board.board_id}" style="display:none;">
 					<input name="version" type="text" id="version" value="${board.version}" style="display:none;">
+		            <input name="cookie_id" type="text" id="cookie_id" value="${board.cookie_id}" style="display:none;">
 		            <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">
 		            <input name="created" type="text" id="created" value="${board.created}" style="display:none;">
 		            <textarea name="content" id="content"  style="display:none;"><c:out value="${board.content}" escapeXml="true" /></textarea>
@@ -64,17 +64,17 @@
 		            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version});">삭제</button>
 	       		</form>
 			</div>
-		</c:if>
+<%-- 		</c:if> --%>
 	</div>
 </div>
 <script>
 $(document).ready(function(){
  });
 
-function btnDelete(board_id,version){
+function btnDelete(board_id,version,cookie_id){
     $.ajax({
         type: "DELETE",
-        url: "${path}/Assignment/boards/"+board_id+"/"+version,
+        url: "${path}/Assignment/boards/"+board_id+"/"+version+"/"+cookie_id,
         success: function(result){
         	if(result.result == 'success'){
         		alert("삭제완료");
@@ -90,7 +90,6 @@ function btnDelete(board_id,version){
     	}
     })
 }
-
 
 </script>
 </body>

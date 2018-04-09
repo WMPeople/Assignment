@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Mapper;
+﻿package com.worksmobile.Assignment.Mapper;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,10 +21,11 @@ public interface BoardMapper {
 	 * @return
 	 */
 	public int boardDelete(HashMap<String, Integer> parmas) ;
+
 	
 	public int boardDeleteWithCookieId(HashMap<String, Integer> params);
-	
-	public int boardUpdate(HashMap<String, Integer> parmas) ;
+
+	public int boardUpdate(BoardDTO board) ;
 	
 	public BoardDTO viewDetail(HashMap<String, Integer> parmas) ;
 	
@@ -42,7 +43,11 @@ public interface BoardMapper {
 	 * @return
 	 */
 	public List<BoardDTO> getBoardList(NodePtrDTO nodePtrDTO);
+
+	public List<BoardDTO> autoList(HashMap<String, Integer> params);
 	
 	public int articleGetCount();
+	
+	public int getFileCount(int file_id);
 	
 }
