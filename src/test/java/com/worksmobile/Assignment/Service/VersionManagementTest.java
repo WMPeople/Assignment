@@ -109,6 +109,7 @@ public class VersionManagementTest {
 		BoardDTO newLeapDTO = boardMapper.viewDetail(newLeapPtrDTO.toMap());
 		
 		prevLeapDTO.setNodePtrDTO(newLeapPtrDTO);
+		prevLeapDTO.setCreated(prevLeapDTO.getCreated());	// 버전 복구시 시간이 달라짐
 		
 		assertNotNull(recoveredHistoryDTO);
 		Utils.assertConvertToJsonObject(newLeapDTO, prevLeapDTO);
@@ -338,16 +339,12 @@ public class VersionManagementTest {
 		tempArticle.setSubject("임시저장중...");
 		tempArticle.setContent("temp article content");
 		tempArticle.setBoard_id(defaultCreatedDTO.getBoard_id());
+		tempArticle.setVersion(1);
+		tempArticle.setCookie_id(1);
 
 		versionManagementService.createTempArticleOverwrite(tempArticle);
-		BoardDTO dbTempArticle = boardMapper.viewDetail(new NodePtrDTO(tempArticle.getBoard_id(), 0).toMap());
+		BoardDTO dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
 		Utils.assertConvertToJsonObject(tempArticle.toMap(), dbTempArticle.toMap());
 		Utils.assertConvertToJsonObject(tempArticle, dbTempArticle);
-		
-		BoardHistoryDTO dbTempHistoryDTO = boardHistoryMapper.getHistory(tempArticle);
-		Utils.assertConvertToJsonObject(tempArticle.toMap(), dbTempHistoryDTO.toMap());
-		assertEquals(tempArticle.getSubject(), dbTempHistoryDTO.getHistory_subject());
-		String decompressedContent = Compress.deCompress(dbTempHistoryDTO.getHistory_content());
-		assertEquals(tempArticle.getContent(), decompressedContent);
 	}
 }

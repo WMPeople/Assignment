@@ -17,6 +17,7 @@ public class NodePtrDTO {
 	@Getter @Setter protected int root_board_id;
 	
 	public static final NodePtrDTO DEFAULT_NULL_NODE_PTR = new NodePtrDTO();
+	public static final int LEAF_NODE_COOKIE_ID = 0;
 	
 	public NodePtrDTO() { }
 	public NodePtrDTO(Integer board_id, Integer version) {
@@ -28,6 +29,7 @@ public class NodePtrDTO {
 		HashMap<String, Integer> map = new HashMap<>();
 		map.put("board_id", board_id);
 		map.put("version", version);
+		map.put("cookie_id", LEAF_NODE_COOKIE_ID);
 		return map;
 	}
 	

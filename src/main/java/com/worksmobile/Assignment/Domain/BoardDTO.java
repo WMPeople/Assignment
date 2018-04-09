@@ -10,7 +10,7 @@ public class BoardDTO extends NodePtrDTO{
 	@Setter @Getter private String content;
 	@Setter @Getter private String created;
 	@Setter @Getter private int file_id;
-	@Setter @Getter private Integer cookie_id;
+	@Setter @Getter private int cookie_id = NodePtrDTO.LEAF_NODE_COOKIE_ID;
 	
 	public BoardDTO() { }
 	/***
