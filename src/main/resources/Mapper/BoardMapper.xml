@@ -14,12 +14,24 @@
 		SELECT count(*) FROM board;  
 	</select>
 	    
-    
     <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
     	SELECT board_id,version,subject,content,created,file_id,root_board_id,cookie_id
     	FROM board
     	WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
     </select>
+    
+     <select id="autoList" resultType="com.worksmobile.Assignment.Domain.BoardDTO" parameterType="hashmap">
+		SELECT * 
+		FROM board 
+		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id>=1
+		LIMIT #{offset}, #{noOfRecords};
+	</select>
+	
+		<select id="autoGetCount" resultType="int" parameterType="hashmap">
+		SELECT count(*) 
+		FROM board
+		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id>=1;  
+	</select>
     
 	<!--  board_history와 동시에 넣어져야함. -->
     <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
@@ -63,4 +75,10 @@
     	SELECT IFNULL(MAX(cookie_id), 0) AS MaxCookieId
     	FROM board;
     </select>
+    
+    <select id="getFileCount" parameterType ="int" resultType="int">
+		SELECT count(*)
+		FROM board
+		WHERE file_id = #{file_id};  
+	</select>
 </mapper>

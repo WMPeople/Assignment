@@ -379,18 +379,32 @@ public class VersionManagementService {
 	public BoardDTO createTempArticleOverwrite(BoardDTO tempArticle) throws IOException {
 		Logger.getLogger("VersionManagementService").info("cookie value = " + tempArticle.getCookie_id());
 		Logger.getLogger("VersionManagementService").info(tempArticle.getCookie_id() +" /" + "version : " +tempArticle.getVersion());
+		boolean deleteFileBoolean = false;
 		tempArticle.setRoot_board_id(tempArticle.getBoard_id());			// getHistoryByRootId에서 검색이 가능하도록
 
-		System.out.println(tempArticle.toMap());
 		BoardDTO dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
 		
 		if(dbTempArticle != null) {
+			int curFile_id = dbTempArticle.getFile_id();
+			int afterFile_id = tempArticle.getFile_id();
+			if(curFile_id != 0 && curFile_id != afterFile_id ) {
+				int fileCount = boardMapper.getFileCount(curFile_id);
+				if(fileCount ==1) {
+					deleteFileBoolean=true;
+				}
+			}
 			
-			int articleUpdatedCnt = boardMapper.boardUpdate(tempArticle.toMap());
+			int articleUpdatedCnt = boardMapper.boardUpdate(tempArticle);
 			if(articleUpdatedCnt != 1 ) {
 				String json = Utils.jsonStringIfExceptionToString(tempArticle);
 				throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
 				"articleUpdatedCnt : " + articleUpdatedCnt);
+			}
+			if(deleteFileBoolean) {
+				int deletedCnt = fileMapper.deleteFile(curFile_id);
+				if(deletedCnt != 1) {
+					throw new RuntimeException("파일 삭제 에러");
+				};
 			}
 		}
 		else {

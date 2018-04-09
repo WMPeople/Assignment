@@ -15,7 +15,7 @@ public interface BoardMapper {
 
 	public int boardDelete(HashMap<String, Integer> parmas) ;
 
-	public int boardUpdate(HashMap<String, Integer> parmas) ;
+	public int boardUpdate(BoardDTO board) ;
 	
 	public BoardDTO viewDetail(HashMap<String, Integer> parmas) ;
 	
@@ -27,6 +27,10 @@ public interface BoardMapper {
 	
 	public List<BoardDTO> articleList(HashMap<String, Integer> params);
 	
+	public List<BoardDTO> autoList(HashMap<String, Integer> params);
+	
 	public int articleGetCount();
+	
+	public int getFileCount(int file_id);
 	
 }

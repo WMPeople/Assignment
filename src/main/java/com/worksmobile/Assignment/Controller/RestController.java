@@ -413,16 +413,18 @@ public class RestController {
 	 * @return resultMap 버전 복구 후 url 주소와 메쏘드 실행 성공 유무를 알려주는 Map을 리턴합니다.
 	 * @throws Exception
 	 */
-	@RequestMapping(value = "/boards/recover/{board_id}/{version}/{leafBoard_id}/{leafVersion}", method = RequestMethod.GET)
+	@RequestMapping(value = "/boards/recover/{board_id}/{version}/{cookie_id}/{leafBoard_id}/{leafVersion}/{leafCookie_id}", method = RequestMethod.GET)
 	public Map<String,Object> versionRecover(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version, 
+			@PathVariable(value = "cookie_id") int cookie_id,
 			@PathVariable(value = "leafBoard_id") int leafBoard_id, 
-			@PathVariable(value = "leafVersion") int leafVersion) throws Exception { 
+			@PathVariable(value = "leafVersion") int leafVersion,
+			@PathVariable(value = "leafCookie_id") int leafCookie_id) throws Exception { 
 		
 		Map<String,Object> resultMap = new HashMap<String,Object>();
 		NodePtrDTO newLeapNode = null;
 		try {
-			NodePtrDTO recoverPtr = new NodePtrDTO(board_id,version);	
+			NodePtrDTO recoverPtr = new NodePtrDTO(board_id,version);
 			NodePtrDTO leapNodePtr = new NodePtrDTO();
 
 			leapNodePtr.setBoard_id(leafBoard_id);
@@ -475,13 +477,39 @@ public class RestController {
 		return modelAndView;
 		
 	}
-
+	
+	/***
+	 * 
+	 * @param board
+	 * @param req
+	 * @param attachment
+	 * @return
+	 */
 	@RequestMapping(value = "/boards/autosave", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String,Object> tempArticle(BoardDTO board, HttpServletRequest req) {	
+	public Map<String,Object> tempArticle(BoardDTO board, 
+			HttpServletRequest req, 
+			MultipartHttpServletRequest attachment) {	
 		
 		Map<String,Object> resultMap = new HashMap<>();
+		MultipartFile mFile = null;
+		Iterator<String> iter = attachment.getFileNames();
+		while(iter.hasNext()) {
+			String uploadFile_name = iter.next();
+			mFile = attachment.getFile(uploadFile_name);
+		}
 		try {
+			if(mFile!=null) {
+				if(!mFile.getOriginalFilename().equals("")) {
+					FileDTO file = new FileDTO();
+					file.setFile_name(mFile.getOriginalFilename());
+					file.setFile_data(mFile.getBytes());
+					file.setFile_size(mFile.getSize());
+				
+					fileMapper.createFile(file);
+					board.setFile_id(file.getFile_id());
+				}
+			}
 			Logger.getLogger("RestController").info("cookie value = " + getCookie(req).getValue());
 			board.setCookie_id(Integer.parseInt(getCookie(req).getValue()));
 			versionManagementService.createTempArticleOverwrite(board);
@@ -492,4 +520,51 @@ public class RestController {
 		}
 		return resultMap;
 	}
+	
+	
+	/***
+	 * 자동 저장 게시클 리스트 페이지로, 사용자가 요청한 페이지에 해당하는 자동 저장 게시물을 보여줍니다.
+	 * @param req pages 파라미터에 사용자가 요청한 페이지 번호가 있습니다.
+	 * 
+	 */	
+    @RequestMapping(value = "autos/{board_id}/{version}", method = RequestMethod.GET)
+    @ResponseBody
+	public ModelAndView autoList(@PathVariable(value = "board_id") int board_id, 
+			@PathVariable(value = "version") int version,  HttpServletRequest req, HttpServletResponse res) throws Exception{
+    	
+    	int currentPageNo = CURRENT_PAGE_NO; 
+		int maxPost = MAX_POST;	
+		
+		if(req.getParameter("pages") != null)											 
+			currentPageNo = Integer.parseInt(req.getParameter("pages")); 	
+		
+		Paging paging = new Paging(currentPageNo, maxPost); 
+		
+		int offset = (paging.getCurrentPageNo() -1) * paging.getmaxPost(); 
+		
+		ArrayList<BoardDTO> board = new ArrayList<BoardDTO>(); 
+		
+		HashMap<String, Integer> params = new HashMap<String, Integer>(); 
+		params.put("offset", offset); 
+		params.put("noOfRecords", paging.getmaxPost()); 
+		params.put("board_id", board_id); 
+		params.put("version", version); 
+		
+		 // TODO : 메퍼 생성
+		
+		board = (ArrayList<BoardDTO>) boardMapper.autoList(params); 
+																			
+		paging.setNumberOfRecords(boardMapper.articleGetCount()); 
+		paging.makePaging(); 
+		
+		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.addObject("board", board);
+		modelAndView.addObject("paging", paging);
+		modelAndView.setViewName("autoList");
+		
+		return modelAndView;
+	}
+
+	
+	
 }
