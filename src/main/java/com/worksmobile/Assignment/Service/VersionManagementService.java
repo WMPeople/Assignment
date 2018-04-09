@@ -192,6 +192,7 @@ public class VersionManagementService {
 	
 	/***
 	 * 부모 버전이 있을 때 새로운 버전을 등록합니다.
+	 * 자동 저장 게시글은 삭제되지 않습니다.
 	 * @param modifiedBoard 새롭게 등록될 게시글에 대한 정보.
 	 * @param parentPtrDTO 부모를 가리키는 노드 포인터.
 	 * @return 새롭게 생성된 리프 노드를 가리킵니다.
@@ -201,10 +202,17 @@ public class VersionManagementService {
 		return createVersionWithBranch(modifiedBoard, parentPtrDTO, BoardHistoryDTO.STATUS_MODIFIED);
 	}
 	
+	/***
+	 * 리프 노드일시 자동저장 게시글은 삭제 되지 않습니다.
+	 * @param boardDTO 새로운 버전의 게시글의 내용
+	 * @param parentPtrDTO 부모가 될 노드의 포인터
+	 * @param status 게시글 이력에 남길 상태
+	 * @return 생성된 게시글의 포인터
+	 */
 	synchronized private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, NodePtrDTO parentPtrDTO, final String status) {
 		BoardDTO board = boardMapper.viewDetail(parentPtrDTO.toMap());
 		if(board != null) {
-			int deletedCnt = boardMapper.boardDelete(parentPtrDTO.toMap());
+			int deletedCnt = boardMapper.boardDeleteWithCookieId(parentPtrDTO.toMap());
 			if(deletedCnt != 1) {
 				throw new RuntimeException("delete cnt expected 1 but " + deletedCnt);
 			}
@@ -244,7 +252,7 @@ public class VersionManagementService {
 	/***
 	 * 특정 버전에 대한 이력 1개를 삭제합니다. leaf노드이면 게시글도 삭제 됩니다. 
 	 * 부모의 이력은 삭제되지 않음을 유의 해야 합니다.
-	 * 루트 삭제시에는 루트가 2개 되는 결과를 초래할 수 있습니다.
+	 * 자동 저장 게시글도 함께 삭제 됩니다.!!!!
 	 * @param deletePtrDTO 삭제할 버전에 대한 정보.
 	 * @return 새로운 리프 노드의 주소. 새로운 리프노드를 생성하지 않았으면 null을 반환함.
 	 */
@@ -254,21 +262,17 @@ public class VersionManagementService {
 		NodePtrDTO parentPtrDTO = deleteHistoryDTO.getParentPtrAndRoot();
 		
 		List<BoardHistoryDTO> deleteNodeChildren = boardHistoryMapper.getChildren(deletePtrDTO);
+
+		int deletedCnt = boardMapper.boardDelete(deletePtrDTO.toMap());		// 임시 저장 게시글이 존재 할 수 도 있으므로 history를 지우기 위해서는 필요
+		deletedCnt = boardHistoryMapper.deleteHistory(deletePtrDTO);
+		if(deletedCnt != 1) {
+			String json = Utils.jsonStringIfExceptionToString(deletePtrDTO);
+			throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
+		}
+
 		if(deleteNodeChildren.size() == 0) {	// 리프 노드라면
 			BoardHistoryDTO parentHistoryDTO = boardHistoryMapper.getHistory(parentPtrDTO);
 			
-			int deletedCnt = boardMapper.boardDelete(deletePtrDTO.toMap());
-			if(deletedCnt != 1) {
-				String json = Utils.jsonStringIfExceptionToString(deletePtrDTO);
-				throw new RuntimeException("deleteVersion메소드에서 게시글 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
-			};
-
-			deletedCnt = boardHistoryMapper.deleteHistory(deletePtrDTO);
-			if(deletedCnt != 1) {
-				String json = Utils.jsonStringIfExceptionToString(deletePtrDTO);
-				throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
-			}
-
 			BoardDTO parentDTO = new BoardDTO(parentHistoryDTO);
 			List<BoardHistoryDTO> parentChildren = boardHistoryMapper.getChildren(parentDTO);
 			if(parentChildren.size() == 0 && parentHistoryDTO.isRoot()) {// 루트만 존재하는 경우에는 루트를 지워줍니다.
@@ -304,11 +308,6 @@ public class VersionManagementService {
 				childHistoryDTO.setParentNodePtrAndRoot(parentPtrDTO);
 				updateHistoryParentPtr(childHistoryDTO);
 			}
-			int deletedCnt = boardHistoryMapper.deleteHistory(deletePtrDTO);
-			if(deletedCnt != 1) {
-				String json = Utils.jsonStringIfExceptionToString(deletePtrDTO);
-				throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtrDTO : " + json);
-			}
 		}
 		return null;
 	}
@@ -326,6 +325,7 @@ public class VersionManagementService {
 	
 	/**
 	 * 특정 게시글을 삭제합니다. 부모를 모두 삭제합니다. (단, 형제 노드가 존재 할때까지)
+	 * 자동 저장 게시글이 있다면 전부 삭제됩니다.!!!!
 	 * @param leafPtrDTO 리프 노드만 주어야합니다.
 	 * @throws NotLeafNodeException 리프 노드가 아닌 것을 삭제할때 발생됨.
 	 */
@@ -337,7 +337,7 @@ public class VersionManagementService {
 			throw new NotLeafNodeException("node 정보" + leafPtrJson);
 		}
 		int deletedCnt = boardMapper.boardDelete(leafPtrDTO.toMap());
-		if(deletedCnt != 1) {
+		if(deletedCnt == 0) {
 			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtrDTO);
 			throw new RuntimeException("deleteArticle에서 게시글 삭제 실패 leafPtrJson : " + leafPtrJson);
 		}
@@ -355,6 +355,7 @@ public class VersionManagementService {
 					deleteFileBoolean=true;
 				}
 			}
+			deletedCnt = boardMapper.boardDelete(leafPtrDTO.toMap());
 			deletedCnt = boardHistoryMapper.deleteHistory(leafPtrDTO);
 			if(deletedCnt == 0) {
 				throw new RuntimeException("deleteArticle메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt);
@@ -376,7 +377,7 @@ public class VersionManagementService {
 	
 	// TODO : 임시 게시글 만들기.
 	@Transactional
-	public BoardDTO createTempArticleOverwrite(BoardDTO tempArticle) throws IOException {
+	public void createTempArticleOverwrite(BoardDTO tempArticle) {
 		Logger.getLogger("VersionManagementService").info("cookie value = " + tempArticle.getCookie_id());
 		Logger.getLogger("VersionManagementService").info(tempArticle.getCookie_id() +" /" + "version : " +tempArticle.getVersion());
 		tempArticle.setRoot_board_id(tempArticle.getBoard_id());			// getHistoryByRootId에서 검색이 가능하도록
@@ -401,6 +402,5 @@ public class VersionManagementService {
 			}
 			
 		}
-		return null;
 	}
 }
