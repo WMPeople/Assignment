@@ -329,7 +329,7 @@ public class RestController {
 	 * @param board_id 삭제를 원하는 게시물의 board_id
 	 * @param version 삭제를 원하는 게시물의 version
 	 */
-	@RequestMapping(value = "/boards/{board_id}/{version}/{cookie_id}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/boards/{board_id}/{version}", method = RequestMethod.DELETE)
 	@ResponseBody
 	public Map<String,Object> destroy(@PathVariable(value = "board_id") int board_id,
 			@PathVariable(value = "version") int version) throws Exception {

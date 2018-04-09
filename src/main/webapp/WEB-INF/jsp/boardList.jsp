@@ -37,7 +37,7 @@
             <td>${board.created}</td>
 			<td> 
 			<button class="btn btn-primary" id="btnDelete" onclick="btnDelete(${board.board_id},${board.version},${board.cookie_id});">삭제</button> 
-			<button class="btn btn-primary" id="btnManagement" onclick="location.href='${path}/Assignment/boards/management/${board.board_id}/${board.version}/${board.cookie_id}'">버전관리</button>
+			<button class="btn btn-primary" id="btnManagement" onclick="location.href='${path}/Assignment/boards/management/${board.board_id}/${board.version}'">버전관리</button>
 			</td> 
         </tr>
          </c:if>
@@ -80,7 +80,7 @@
 		</c:choose>
 <script>
 
-function btnDelete(board_id,version,cookie_id){
+function btnDelete(board_id,version){
 	
 	var deleteConfirm;
 	deleteConfirm = confirm("leaf노드 삭제시 자동 저장 게시글도 모두 삭제됩니다. 동의하시나요?");
@@ -89,7 +89,7 @@ function btnDelete(board_id,version,cookie_id){
 	if(deleteConfirm){
 		 $.ajax({
 		        type: "DELETE",
-		        url: "${path}/Assignment/boards/"+board_id+"/"+version+"/"+cookie_id,
+		        url: "${path}/Assignment/boards/"+board_id+"/"+version,
 		        success: function(result){
 		        	if(result.result == 'success'){
 		        		alert("삭제완료");
@@ -101,13 +101,10 @@ function btnDelete(board_id,version,cookie_id){
 		        },
 		        error : function(xhr, status, error) {
 		    		alert(error);
-		    	}
-		        
-		        
+		    	} 
 		    })	
 		
 	}
-   
 }
 
 function goPage(pages, lines) {
