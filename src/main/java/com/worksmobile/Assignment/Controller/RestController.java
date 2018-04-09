@@ -8,9 +8,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,35 +54,76 @@ public class RestController {
     final static int CURRENT_PAGE_NO = 1;
     final static int MAX_POST = 10;
     
+
+    // TODO : thread-safe
+    static int publishedNameMax = 1;
+
+    // TODO : 처리
+    public void getMaxCookieID() {
+    	publishedNameMax = boardMapper.getMaxCookieId();
+    	Logger.getLogger("RestController").info("board 테이블 cookie_id 최댓값 : "+  publishedNameMax );
+    }
+    
+    // TODO : 리팩터링
+    public static Cookie getCookie(HttpServletRequest req) {
+    	Cookie[] getCookie =req.getCookies();
+    	Cookie curCookie= null ;
+		for(int i=0; i<getCookie.length; i++){
+			Cookie c = getCookie[i];
+			if(c.getName().equals("name")) {
+				curCookie = c;
+				break;
+			}
+		}
+		Logger.getLogger("RestController").info("쿠키 name : " + curCookie.getName() + " value : " + curCookie.getValue());
+    	return curCookie;
+    }
+    // TODO : 리팩터링    
+    synchronized public Cookie creteCookie(HttpServletResponse res) {
+    	
+    	getMaxCookieID();
+    	Cookie setCookie = null;
+    	publishedNameMax++;
+    	setCookie = new Cookie("name",Integer.toString(publishedNameMax));
+    	res.addCookie(setCookie);
+    	Logger.getLogger("RestController").info("쿠키 생성 완료 name : " + setCookie.getName() + " value : " + setCookie.getValue());
+    	return setCookie;
+    }
+
 	/***
 	 * 첫 화면으로, 사용자가 요청한 페이지에 해당하는 게시물을 보여줍니다.
 	 * @param req pages 파라미터에 사용자가 요청한 페이지 번호가 있습니다.
 	 */	
     @RequestMapping(value = "/", method = RequestMethod.GET)
     @ResponseBody
-	public ModelAndView boardList(HttpServletRequest req) throws Exception{
+	public ModelAndView boardList(HttpServletRequest req, HttpServletResponse res) throws Exception{
+    	if(req.getCookies()==null || req.getCookies().length == 0) {
+    		creteCookie(res);
+    	}
+    	else {
+    		getCookie(req);
+    	}
+
+    	int currentPageNo = CURRENT_PAGE_NO; 
+		int maxPost = MAX_POST;	
 		
-    	int currentPageNo = CURRENT_PAGE_NO; // /(localhost:8080)페이지로 오면 처음에 표시할 페이지 (1 = 첫번째 페이지)
-		int maxPost = MAX_POST;	// 페이지당 표시될 게시물  최대 갯수
+		if(req.getParameter("pages") != null)											 
+			currentPageNo = Integer.parseInt(req.getParameter("pages")); 	
 		
-		if(req.getParameter("pages") != null)								//게시물이 1개도없으면(=페이지가 생성이 안되었으면)이 아니라면 == 페이징이 생성되었다면							 
-			currentPageNo = Integer.parseInt(req.getParameter("pages")); 	//pages에있는 string 타입 변수를 int형으로 바꾸어서 currentPageNo에 담는다.
-		
-		Paging paging = new Paging(currentPageNo, maxPost); //Paging.java에있는 currentPageNo, maxPost를 paging변수에 담는다.
+		Paging paging = new Paging(currentPageNo, maxPost); 
 		
 		int offset = (paging.getCurrentPageNo() -1) * paging.getmaxPost(); 
-		// 현재 3페이지 이고, 그 페이지에 게시물이 10개가 있다면 offset값은 (3-1) * 10 = 20이 된다. 
 		
-		ArrayList<BoardDTO> board = new ArrayList<BoardDTO>(); // BoardDTO에 있는 변수들을 ArrayList 타입의 배열로 둔 다음 이를 page라는 변수에 담는다.
+		ArrayList<BoardDTO> board = new ArrayList<BoardDTO>(); 
 		
 		HashMap<String, Integer> params = new HashMap<String, Integer>(); 
 		params.put("offset", offset); 
 		params.put("noOfRecords", paging.getmaxPost()); 
 		
 		board = (ArrayList<BoardDTO>) boardMapper.articleList(params); 
-		//writeService.java에 있는 articleList 함수를 이용하여 offset값과 maxPost값을 ArrayList 타입의 배열로 담고, 이 배열 자체를 page 변수에 담는다.																							
+																			
 		
-		paging.setNumberOfRecords(boardMapper.articleGetCount()); // 페이지를 표시하기 위해 전체 게시물 수를 파악하기 위한것
+		paging.setNumberOfRecords(boardMapper.articleGetCount()); 
 		paging.makePaging(); 
 		
 		ModelAndView modelAndView = new ModelAndView();
@@ -97,14 +140,16 @@ public class RestController {
 	 * @param version 상세 조회 할 게시물의 version
 	 * @return 상세보기 화면과 게시물 내용이 맵 형태로 리턴됩니다.
 	 */
-	@RequestMapping(value = "/boards/{board_id}/{version}", method = RequestMethod.GET)
+	@RequestMapping(value = "/boards/{board_id}/{version}/{cookie_id}", method = RequestMethod.GET)
 	@ResponseBody
 	public ModelAndView show(@PathVariable(value = "board_id") int board_id, 
-			@PathVariable(value = "version") int version) {
+			@PathVariable(value = "version") int version,
+			@PathVariable(value = "cookie_id") int cookie_id){
 		
 		HashMap<String, Integer> params = new HashMap<String, Integer>();
 		params.put("board_id", board_id);
 		params.put("version", version);
+		params.put("cookie_id",cookie_id);
 		
 		BoardDTO board = boardMapper.viewDetail(params);
 		if(board == null) {
@@ -180,6 +225,7 @@ public class RestController {
 					board.setFile_id(0);
 				}
 			}
+			board.setCookie_id(0);
 			versionManagementService.createArticle(board);
 			resultMap.put("result", "success");
 		} catch (Exception e) {
@@ -312,21 +358,23 @@ public class RestController {
 		
 		Map<String,Object> resultMap = new HashMap<String,Object>();
 		try {
+			boolean deleteFileBoolean = false;
 			NodePtrDTO deletePtrDTO = new NodePtrDTO(board_id,version);
 			BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
 			int file_id = deleteHistoryDTO.getFile_id();
-			int fileCount =0;
-			if(file_id !=0) {
-				fileCount = boardHistoryMapper.getFileCount(file_id);
+			if(file_id != 0) {
+				int fileCount = boardHistoryMapper.getFileCount(file_id);
+				if(fileCount ==1) {
+					deleteFileBoolean=true;
+				}
 			}
-			if(fileCount ==1) {
-				int deletedCnt2 = fileMapper.deleteFile(file_id);
-				if(deletedCnt2 != 1) {
+			versionManagementService.deleteVersion(deletePtrDTO);
+			if(deleteFileBoolean) {
+				int deletedCnt = fileMapper.deleteFile(file_id);
+				if(deletedCnt != 1) {
 					throw new RuntimeException("파일 삭제 에러");
 				};
 			}
-			
-			versionManagementService.deleteVersion(deletePtrDTO);
 			resultMap.put("result","success");
 		}catch(Exception e){
 			resultMap.put("result",e.getMessage());
@@ -428,15 +476,20 @@ public class RestController {
 		
 	}
 
-	@RequestMapping(value = "/boards/temp", method = RequestMethod.POST)
+	@RequestMapping(value = "/boards/autosave", method = RequestMethod.POST)
 	@ResponseBody
-	public int tempArticle(BoardDTO board) {	
+	public Map<String,Object> tempArticle(BoardDTO board, HttpServletRequest req) {	
+		
+		Map<String,Object> resultMap = new HashMap<>();
 		try {
+			Logger.getLogger("RestController").info("cookie value = " + getCookie(req).getValue());
+			board.setCookie_id(Integer.parseInt(getCookie(req).getValue()));
 			versionManagementService.createTempArticleOverwrite(board);
-			return 1;
+			resultMap.put("result", "success");
 		} catch (IOException e) {
 			e.printStackTrace();
-			return 0;
+			resultMap.put("result", e.getMessage());
 		}
+		return resultMap;
 	}
 }

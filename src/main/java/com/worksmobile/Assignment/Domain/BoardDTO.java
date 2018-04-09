@@ -1,5 +1,7 @@
 package com.worksmobile.Assignment.Domain;
 
+import java.util.HashMap;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +10,7 @@ public class BoardDTO extends NodePtrDTO{
 	@Setter @Getter private String content;
 	@Setter @Getter private String created;
 	@Setter @Getter private int file_id;
+	@Setter @Getter private Integer cookie_id;
 	
 	public BoardDTO() { }
 	/***
@@ -29,6 +32,14 @@ public class BoardDTO extends NodePtrDTO{
 		board_id = nodePtrDTO.getBoard_id();
 		version = nodePtrDTO.getVersion();
 		root_board_id = nodePtrDTO.getRoot_board_id();
+	}
+	@Override
+	public HashMap<String, Integer> toMap() {
+		HashMap<String, Integer> map = new HashMap<>();
+		map.put("board_id", board_id);
+		map.put("version", version);
+		map.put("cookie_id",cookie_id);
+		return map;
 	}
 	
 }
