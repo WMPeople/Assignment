@@ -17,14 +17,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.worksmobile.Assignment.Domain.BoardDTO;
-import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
-import com.worksmobile.Assignment.Domain.NodePtrDTO;
-import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
-import com.worksmobile.Assignment.Mapper.BoardMapper;
-import com.worksmobile.Assignment.Service.NotLeafNodeException;
-import com.worksmobile.Assignment.Service.VersionManagementService;
-import com.worksmobile.Assignment.util.Utils;
+import com.worksmobile.assignment.BO.NotLeafNodeException;
+import com.worksmobile.assignment.BO.VersionManagementService;
+import com.worksmobile.assignment.Mapper.BoardHistoryMapper;
+import com.worksmobile.assignment.Mapper.BoardMapper;
+import com.worksmobile.assignment.Model.Board;
+import com.worksmobile.assignment.Model.BoardHistory;
+import com.worksmobile.assignment.Model.NodePtr;
+import com.worksmobile.assignment.Util.Utils;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -39,126 +39,127 @@ public class VersionManagementServiceAutoSaveTest {
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
 	
-	private BoardDTO defaultBoardDTO;
-	private BoardHistoryDTO defaultCreatedDTO;
+	private Board defaultBoard;
+	private BoardHistory defaultCreated;
 	private static final int DEFAULT_COOKIE_ID = 99999;
-	private BoardDTO autoSaveArticle = new BoardDTO();
+	private Board autoSaveArticle = new Board();
 	
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
-		defaultBoardDTO = new BoardDTO();
-		defaultBoardDTO.setSubject("versionTestSub");
-		defaultBoardDTO.setContent("versionTestCont");;
+		defaultBoard = new Board();
+		defaultBoard.setSubject("versionTestSub");
+		defaultBoard.setContent("versionTestCont");
+		;
 
-		defaultCreatedDTO = versionManagementService.createArticle(defaultBoardDTO);
+		defaultCreated = versionManagementService.createArticle(defaultBoard);
 		
 		autoSaveArticle.setSubject("자동 저장중...");
 		autoSaveArticle.setContent("temp article content");
-		autoSaveArticle.setNodePtrDTO(defaultCreatedDTO);
+		autoSaveArticle.setNodePtr(defaultCreated);
 		autoSaveArticle.setCookie_id(DEFAULT_COOKIE_ID);
 		
 		versionManagementService.createTempArticleOverwrite(autoSaveArticle);
 	}
 	
-	private NodePtrDTO makeChild(NodePtrDTO parentPtrDTO) throws JsonProcessingException {
-		BoardDTO child = new BoardDTO();
+	private NodePtr makeChild(NodePtr parentPtr) throws JsonProcessingException {
+		Board child = new Board();
 		child.setSubject("childSub");
 		child.setContent("childCont");
 		
-		NodePtrDTO childPtrDTO = versionManagementService.modifyVersion(child, parentPtrDTO);
-		child.setNodePtrDTO(childPtrDTO);
+		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr);
+		child.setNodePtr(childPtr);
 		
-		BoardDTO leapBoardDTO = boardMapper.viewDetail(childPtrDTO.toMap());
-		assertNotNull(leapBoardDTO);
-		int parentVersion = parentPtrDTO.getVersion() == null ? 0 : parentPtrDTO.getVersion();
-		assertEquals((Integer)(parentVersion + 1), childPtrDTO.getVersion());
+		Board leapBoard = boardMapper.viewDetail(childPtr.toMap());
+		assertNotNull(leapBoard);
+		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
+		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
-		Utils.assertConvertToJsonObject(child, leapBoardDTO);
+		Utils.assertConvertToJsonObject(child, leapBoard);
 		
-		return childPtrDTO;
+		return childPtr;
 	}
 	
-	private BoardDTO makeAutoSaveDTO(NodePtrDTO nodePtrDTO) {
-		BoardDTO autoSaveDTO = new BoardDTO();
-		autoSaveDTO.setNodePtrDTO(nodePtrDTO);
-		autoSaveDTO.setCookie_id(DEFAULT_COOKIE_ID);
-		versionManagementService.createTempArticleOverwrite(autoSaveDTO);
-		return autoSaveDTO;
+	private Board makeAutoSave(NodePtr nodePtr) {
+		Board autoSave = new Board();
+		autoSave.setNodePtr(nodePtr);
+		autoSave.setCookie_id(DEFAULT_COOKIE_ID);
+		versionManagementService.createTempArticleOverwrite(autoSave);
+		return autoSave;
 	}
 	
 	
 	@Test
 	public void testCreateAutoSaveArticle() throws IOException {
-		BoardDTO dbTempArticle = boardMapper.viewDetail(autoSaveArticle.toMap());
+		Board dbTempArticle = boardMapper.viewDetail(autoSaveArticle.toMap());
 		Utils.assertConvertToJsonObject(autoSaveArticle.toMap(), dbTempArticle.toMap());
 		Utils.assertConvertToJsonObject(autoSaveArticle, dbTempArticle);
 	}
 	
 	@Test
 	public void testDeleteArticleHasAutoSave() throws JsonProcessingException, NotLeafNodeException {
-		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
+		NodePtr rootPtr = defaultCreated;
 		
-		NodePtrDTO hasChildrenPtrDTO = makeChild(rootPtrDTO);
+		NodePtr hasChildrenPtr = makeChild(rootPtr);
 		
 		int childrenCnt = 2;
-		List<NodePtrDTO> childrenList = new ArrayList<>(childrenCnt);
+		List<NodePtr> childrenList = new ArrayList<>(childrenCnt);
 		for(int i = 0; i < childrenCnt; i++) {
-			childrenList.add(makeChild(hasChildrenPtrDTO));
+			childrenList.add(makeChild(hasChildrenPtr));
 		}
 		
-		NodePtrDTO hasChildPtrDTO = childrenList.get(0);
-		NodePtrDTO leapPtrDTO = makeChild(hasChildPtrDTO);
+		NodePtr hasChildPtr = childrenList.get(0);
+		NodePtr leapPtr = makeChild(hasChildPtr);
 		
-		BoardDTO autoSaveDTO = makeAutoSaveDTO(leapPtrDTO);
+		Board autoSave = makeAutoSave(leapPtr);
 		
-		versionManagementService.deleteArticle(leapPtrDTO);
+		versionManagementService.deleteArticle(leapPtr);
 		
-		BoardDTO dbAutoSavedArticle = boardMapper.viewDetail(autoSaveDTO.toMap());
+		Board dbAutoSavedArticle = boardMapper.viewDetail(autoSave.toMap());
 		assertNull(dbAutoSavedArticle);
 	}
 	
 	@Test
 	public void testDeleteWhenHasChildNodeAndAutoSave() throws JsonProcessingException {
-		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
+		NodePtr rootPtr = defaultCreated;
 		
-		NodePtrDTO middlePtrDTO = makeChild(rootPtrDTO);
-		NodePtrDTO childPtrDTO = makeChild(middlePtrDTO);
+		NodePtr middlePtr = makeChild(rootPtr);
+		NodePtr childPtr = makeChild(middlePtr);
 		
-		BoardDTO autoSaveDTO = makeAutoSaveDTO(middlePtrDTO);
+		Board autoSave = makeAutoSave(middlePtr);
 		
-		versionManagementService.deleteVersion(middlePtrDTO);
+		versionManagementService.deleteVersion(middlePtr);
 		
-		BoardHistoryDTO childHistoryDTO = boardHistoryMapper.getHistory(childPtrDTO);
-		NodePtrDTO childParentPtrDTO = childHistoryDTO.getParentPtrAndRoot();
+		BoardHistory childHistory = boardHistoryMapper.getHistory(childPtr);
+		NodePtr childParentPtr = childHistory.getParentPtrAndRoot();
 		
-		assertEquals(rootPtrDTO, childParentPtrDTO);
+		assertEquals(rootPtr, childParentPtr);
 		
-		BoardDTO dbAutoSaveArticle = boardMapper.viewDetail(autoSaveArticle.toMap());
+		Board dbAutoSaveArticle = boardMapper.viewDetail(autoSaveArticle.toMap());
 		assertNotNull(dbAutoSaveArticle);
-		BoardDTO dbAtuoSaveDTO = boardMapper.viewDetail(autoSaveDTO.toMap());
-		assertNull(dbAtuoSaveDTO);
+		Board dbAtuoSave = boardMapper.viewDetail(autoSave.toMap());
+		assertNull(dbAtuoSave);
 	}
 	
 	@Test
 	public void testDeleteHasChildrenNodeAndAutoSave() throws JsonProcessingException {
-		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
+		NodePtr rootPtr = defaultCreated;
 		
-		NodePtrDTO middlePtrDTO = makeChild(rootPtrDTO);
+		NodePtr middlePtr = makeChild(rootPtr);
 
 		int childrenCnt = 10;
-		List<NodePtrDTO> childrenList = new ArrayList<>(childrenCnt);
-		List<NodePtrDTO> autoSavedList = new ArrayList<>(childrenCnt);
+		List<NodePtr> childrenList = new ArrayList<>(childrenCnt);
+		List<NodePtr> autoSavedList = new ArrayList<>(childrenCnt);
 		for(int i = 0; i < childrenCnt; i++) {
-			childrenList.add(makeChild(middlePtrDTO));
-			autoSavedList.add(makeAutoSaveDTO(middlePtrDTO));
+			childrenList.add(makeChild(middlePtr));
+			autoSavedList.add(makeAutoSave(middlePtr));
 		}
 		
-		versionManagementService.deleteVersion(middlePtrDTO);
+		versionManagementService.deleteVersion(middlePtr);
 		
-		for(NodePtrDTO child : childrenList) {
-			BoardHistoryDTO historyDTO = boardHistoryMapper.getHistory(child);
-			NodePtrDTO parentPtrDTO = historyDTO.getParentPtrAndRoot();
-			assertEquals(rootPtrDTO, parentPtrDTO);
+		for (NodePtr child : childrenList) {
+			BoardHistory history = boardHistoryMapper.getHistory(child);
+			NodePtr parentPtr = history.getParentPtrAndRoot();
+			assertEquals(rootPtr, parentPtr);
 		}
 	}
 }

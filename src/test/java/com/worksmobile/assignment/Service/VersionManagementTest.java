@@ -1,11 +1,11 @@
-package com.worksmobile.Assignment.Service;
+package com.worksmobile.assignment.Service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -19,12 +19,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.worksmobile.Assignment.Domain.BoardDTO;
-import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
-import com.worksmobile.Assignment.Domain.NodePtrDTO;
-import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
-import com.worksmobile.Assignment.Mapper.BoardMapper;
-import com.worksmobile.Assignment.util.Utils;
+import com.worksmobile.assignment.BO.NotLeafNodeException;
+import com.worksmobile.assignment.BO.VersionManagementService;
+import com.worksmobile.assignment.Mapper.BoardHistoryMapper;
+import com.worksmobile.assignment.Mapper.BoardMapper;
+import com.worksmobile.assignment.Model.Board;
+import com.worksmobile.assignment.Model.BoardHistory;
+import com.worksmobile.assignment.Model.NodePtr;
+import com.worksmobile.assignment.Util.Utils;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -39,20 +41,19 @@ public class VersionManagementTest {
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
 
-	private BoardDTO defaultBoardDTO;
-	private BoardHistoryDTO defaultCreatedDTO;
-	private Comparator<NodePtrDTO> compareNodePtrDTO = Comparator
-					.comparing(NodePtrDTO::getRoot_board_id)
-					.thenComparing(NodePtrDTO::getBoard_id)
-					.thenComparing(NodePtrDTO::getVersion);
+	private Board defaultBoard;
+	private BoardHistory defaultCreated;
+	private Comparator<NodePtr> compareNodePtr = Comparator.comparing(NodePtr::getRoot_board_id)
+			.thenComparing(NodePtr::getBoard_id).thenComparing(NodePtr::getVersion);
 	
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
-		defaultBoardDTO = new BoardDTO();
-		defaultBoardDTO.setSubject("versionTestSub");
-		defaultBoardDTO.setContent("versionTestCont");;
+		defaultBoard = new Board();
+		defaultBoard.setSubject("versionTestSub");
+		defaultBoard.setContent("versionTestCont");
+		;
 
-		defaultCreatedDTO = versionManagementService.createArticle(defaultBoardDTO);
+		defaultCreated = versionManagementService.createArticle(defaultBoard);
 	}
 	
 	@Test
@@ -60,34 +61,64 @@ public class VersionManagementTest {
 		versionManagementService = new VersionManagementService();
 	}
 
-	private NodePtrDTO makeChild(NodePtrDTO parentPtrDTO) throws JsonProcessingException {
-		BoardDTO child = new BoardDTO();
+	private NodePtr makeChild(NodePtr parentPtr) throws JsonProcessingException {
+		Board child = new Board();
 		child.setSubject("childSub");
 		child.setContent("childCont");
 		
-		NodePtrDTO childPtrDTO = versionManagementService.modifyVersion(child, parentPtrDTO);
-		child.setNodePtrDTO(childPtrDTO);
+		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr);
+		child.setNodePtr(childPtr);
 		
-		BoardDTO leapBoardDTO = boardMapper.viewDetail(childPtrDTO.toMap());
-		assertNotNull(leapBoardDTO);
-		int parentVersion = parentPtrDTO.getVersion() == null ? 0 : parentPtrDTO.getVersion();
-		assertEquals((Integer)(parentVersion + 1), childPtrDTO.getVersion());
+		Board leapBoard = boardMapper.viewDetail(childPtr.toMap());
+		assertNotNull(leapBoard);
+		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
+		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
-		Utils.assertConvertToJsonObject(child, leapBoardDTO);
+		Utils.assertConvertToJsonObject(child, leapBoard);
 		
-		return childPtrDTO;
+		return childPtr;
+	}
+	
+	@Test
+	public void testCreateChild() throws JsonProcessingException {
+		NodePtr child = makeChild(defaultCreated);
+		assertNotNull(child.getBoard_id());
+		assertNotEquals(0, (int)child.getBoard_id());
+		assertEquals(defaultCreated.getBoard_id(), child.getBoard_id());
+		assertNotNull(defaultCreated.getVersion());
+		assertEquals(defaultCreated.getVersion() + 1, (int) child.getVersion());
+		assertEquals(defaultCreated.getRoot_board_id(), child.getRoot_board_id());
+	}
+	
+	@Test
+	public void testCreateTwoArticleAndModify() throws JsonProcessingException {
+		Board defaultBoard2 = new Board();
+		defaultBoard2.setSubject("versionTestSub2");
+		defaultBoard2.setContent("versionTestCont2");
+		;
+
+		defaultCreated = versionManagementService.createArticle(defaultBoard2);
+		
+		assertNotNull(defaultCreated);
+		
+		NodePtr newChildPtr = makeChild(defaultCreated);
+
+		assertEquals(defaultCreated.getBoard_id(), newChildPtr.getBoard_id());
+		assertNotNull(defaultCreated.getVersion());
+		assertEquals(defaultCreated.getVersion() + 1, (int) newChildPtr.getVersion());
+		assertEquals(defaultCreated.getRoot_board_id(), newChildPtr.getRoot_board_id());
 	}
 	
 	@Test
 	public void testCreateArticle() throws InterruptedException, ExecutionException, JsonProcessingException {
-		BoardHistoryDTO dbHistoryDTO = defaultCreatedDTO;
+		BoardHistory dbHistory = defaultCreated;
 		
-		Utils.assertConvertToJsonObject(defaultCreatedDTO, dbHistoryDTO);
+		Utils.assertConvertToJsonObject(defaultCreated, dbHistory);
 		
-		defaultBoardDTO.setNodePtrDTO(dbHistoryDTO);
+		defaultBoard.setNodePtr(dbHistory);
 		
-		BoardDTO dbBoardDTO = boardMapper.viewDetail(dbHistoryDTO.toMap());
-		Utils.assertConvertToJsonObject(defaultBoardDTO, dbBoardDTO);
+		Board dbBoard = boardMapper.viewDetail(dbHistory.toMap());
+		Utils.assertConvertToJsonObject(defaultBoard, dbBoard);
 	}
 	
 	@Test
@@ -97,150 +128,150 @@ public class VersionManagementTest {
 			sevenHundredContent.append(i % 10);
 		}
 		
-		defaultBoardDTO = new BoardDTO();
-		defaultBoardDTO.setSubject("칠십만자가 들어가있습니다");
-		defaultBoardDTO.setContent(sevenHundredContent.toString());
+		defaultBoard = new Board();
+		defaultBoard.setSubject("칠십만자가 들어가있습니다");
+		defaultBoard.setContent(sevenHundredContent.toString());
 
-		defaultCreatedDTO = versionManagementService.createArticle(defaultBoardDTO);
+		defaultCreated = versionManagementService.createArticle(defaultBoard);
 		
-		NodePtrDTO nodePtr = defaultCreatedDTO;
-		BoardHistoryDTO dbHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
+		NodePtr nodePtr = defaultCreated;
+		BoardHistory dbHistory = boardHistoryMapper.getHistory(nodePtr);
 		
-		Utils.assertConvertToJsonObject(defaultCreatedDTO, dbHistoryDTO);
+		Utils.assertConvertToJsonObject(defaultCreated, dbHistory);
 		
-		defaultBoardDTO.setNodePtrDTO(nodePtr);
-		defaultBoardDTO.setCreated(dbHistoryDTO.getCreated());
+		defaultBoard.setNodePtr(nodePtr);
+		defaultBoard.setCreated(dbHistory.getCreated());
 		
-		BoardDTO dbBoardDTO = boardMapper.viewDetail(nodePtr.toMap());
-		Utils.assertConvertToJsonObject(defaultBoardDTO, dbBoardDTO);	
+		Board dbBoard = boardMapper.viewDetail(nodePtr.toMap());
+		Utils.assertConvertToJsonObject(defaultBoard, dbBoard);
 	}
 	
 	@Test
 	public void testRecoverVersion() throws InterruptedException, ExecutionException, JsonProcessingException {
-		BoardHistoryDTO createdHistoryDTO= versionManagementService.createArticle(defaultBoardDTO);
+		BoardHistory createdHistory = versionManagementService.createArticle(defaultBoard);
 		
-		NodePtrDTO prevPtrDTO = createdHistoryDTO;
-		BoardDTO prevLeapDTO = boardMapper.viewDetail(prevPtrDTO.toMap());
-		NodePtrDTO newLeapPtrDTO = versionManagementService.recoverVersion(prevPtrDTO, prevPtrDTO);
+		NodePtr prevPtr = createdHistory;
+		Board prevLeap = boardMapper.viewDetail(prevPtr.toMap());
+		NodePtr newLeapPtr = versionManagementService.recoverVersion(prevPtr, prevPtr);
 		
-		BoardHistoryDTO recoveredHistoryDTO = boardHistoryMapper.getHistory(newLeapPtrDTO);
-		BoardDTO newLeapDTO = boardMapper.viewDetail(newLeapPtrDTO.toMap());
+		BoardHistory recoveredHistory = boardHistoryMapper.getHistory(newLeapPtr);
+		Board newLeap = boardMapper.viewDetail(newLeapPtr.toMap());
 		
-		prevLeapDTO.setNodePtrDTO(newLeapPtrDTO);
-		prevLeapDTO.setCreated(prevLeapDTO.getCreated());	// 버전 복구시 시간이 달라짐
+		prevLeap.setNodePtr(newLeapPtr);
+		prevLeap.setCreated(prevLeap.getCreated()); // 버전 복구시 시간이 달라짐
 		
-		assertNotNull(recoveredHistoryDTO);
-		Utils.assertConvertToJsonObject(newLeapDTO, prevLeapDTO);
+		assertNotNull(recoveredHistory);
+		Utils.assertConvertToJsonObject(newLeap, prevLeap);
 	}
 	
 	@Test
 	public void testMakeLeapVersion() throws InterruptedException, ExecutionException, JsonProcessingException {
-		BoardDTO child = new BoardDTO();
+		Board child = new Board();
 		child.setSubject("childSub");
 		child.setContent("childCont");
 		
-		NodePtrDTO parentPtrDTO = defaultCreatedDTO;
-		NodePtrDTO resultPtrDTO = versionManagementService.modifyVersion(child, parentPtrDTO);
+		NodePtr parentPtr = defaultCreated;
+		NodePtr resultPtr = versionManagementService.modifyVersion(child, parentPtr);
 		
-		BoardDTO parentBoardDTO = boardMapper.viewDetail(parentPtrDTO.toMap());
-		assertNull(parentBoardDTO);
-		BoardDTO leapBoardDTO = boardMapper.viewDetail(resultPtrDTO.toMap());
-		assertNotNull(leapBoardDTO);
-		int defaultVersion = defaultBoardDTO.getVersion() == null ? 0 : defaultBoardDTO.getVersion();
-		assertEquals((Integer)(defaultVersion + 1), resultPtrDTO.getVersion());
+		Board parentBoard = boardMapper.viewDetail(parentPtr.toMap());
+		assertNull(parentBoard);
+		Board leapBoard = boardMapper.viewDetail(resultPtr.toMap());
+		assertNotNull(leapBoard);
+		int defaultVersion = defaultBoard.getVersion() == null ? 0 : defaultBoard.getVersion();
+		assertEquals((Integer) (defaultVersion + 1), resultPtr.getVersion());
 		
-		child.setNodePtrDTO(resultPtrDTO);
-		Utils.assertConvertToJsonObject(child, leapBoardDTO);
+		child.setNodePtr(resultPtr);
+		Utils.assertConvertToJsonObject(child, leapBoard);
 	}
 	
 	
 	@Test
 	public void testMakeModifyHasChild() throws JsonProcessingException {
-		NodePtrDTO parentPtrDTO = defaultCreatedDTO;
+		NodePtr parentPtr = defaultCreated;
 
-		makeChild(parentPtrDTO);
-		makeChild(parentPtrDTO);
+		makeChild(parentPtr);
+		makeChild(parentPtr);
 	}
 	
 	@Test
 	public void testDeleteLeapNode() throws JsonProcessingException {
-		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
+		NodePtr rootPtr = defaultCreated;
 
-		NodePtrDTO deletePtrDTO = makeChild(rootPtrDTO);
-		versionManagementService.deleteVersion(deletePtrDTO);
+		NodePtr deletePtr = makeChild(rootPtr);
+		versionManagementService.deleteVersion(deletePtr);
 
-		List<BoardHistoryDTO> children = boardHistoryMapper.getChildren(rootPtrDTO);
+		List<BoardHistory> children = boardHistoryMapper.getChildren(rootPtr);
 		assertEquals(0, children.size());
 	}
 	
 	@Test
 	public void testDeleteWhenHasChildNode() throws JsonProcessingException {
-		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
+		NodePtr rootPtr = defaultCreated;
 		
-		NodePtrDTO middlePtrDTO = makeChild(rootPtrDTO);
-		NodePtrDTO childPtrDTO = makeChild(middlePtrDTO);
+		NodePtr middlePtr = makeChild(rootPtr);
+		NodePtr childPtr = makeChild(middlePtr);
 		
-		versionManagementService.deleteVersion(middlePtrDTO);
+		versionManagementService.deleteVersion(middlePtr);
 		
-		BoardHistoryDTO childHistoryDTO = boardHistoryMapper.getHistory(childPtrDTO);
-		NodePtrDTO childParentPtrDTO = childHistoryDTO.getParentPtrAndRoot();
+		BoardHistory childHistory = boardHistoryMapper.getHistory(childPtr);
+		NodePtr childParentPtr = childHistory.getParentPtrAndRoot();
 		
-		assertEquals(rootPtrDTO, childParentPtrDTO);
+		assertEquals(rootPtr, childParentPtr);
 	}
 	
 	@Test
 	public void testDeleteHasChildrenNode() throws JsonProcessingException {
-		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
+		NodePtr rootPtr = defaultCreated;
 		
-		NodePtrDTO middlePtrDTO = makeChild(rootPtrDTO);
+		NodePtr middlePtr = makeChild(rootPtr);
 
 		int childrenCnt = 10;
-		List<NodePtrDTO> childrenList = new ArrayList<>(childrenCnt);
+		List<NodePtr> childrenList = new ArrayList<>(childrenCnt);
 		for(int i = 0; i < childrenCnt; i++) {
-			childrenList.add(makeChild(middlePtrDTO));
+			childrenList.add(makeChild(middlePtr));
 		}
 		
-		versionManagementService.deleteVersion(middlePtrDTO);
+		versionManagementService.deleteVersion(middlePtr);
 		
-		for(NodePtrDTO child : childrenList) {
-			BoardHistoryDTO historyDTO = boardHistoryMapper.getHistory(child);
-			NodePtrDTO parentPtrDTO = historyDTO.getParentPtrAndRoot();
-			assertEquals(rootPtrDTO, parentPtrDTO);
+		for (NodePtr child : childrenList) {
+			BoardHistory history = boardHistoryMapper.getHistory(child);
+			NodePtr parentPtr = history.getParentPtrAndRoot();
+			assertEquals(rootPtr, parentPtr);
 		}
 	}
 	
 	@Test
 	public void testDeleteRootNode() throws JsonProcessingException {
-		NodePtrDTO child = makeChild(defaultCreatedDTO);
+		NodePtr child = makeChild(defaultCreated);
 		assertNotNull(child);
 		
-		NodePtrDTO newLeafNodePtr = versionManagementService.deleteVersion(defaultCreatedDTO);
+		NodePtr newLeafNodePtr = versionManagementService.deleteVersion(defaultCreated);
 		assertNull(newLeafNodePtr);
 	}
 	
 	@Test
 	public void testDeleteArticle() throws JsonProcessingException, NotLeafNodeException {
-		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
+		NodePtr rootPtr = defaultCreated;
 		
-		NodePtrDTO hasChildrenPtrDTO = makeChild(rootPtrDTO);
+		NodePtr hasChildrenPtr = makeChild(rootPtr);
 		
 		int childrenCnt = 2;
-		List<NodePtrDTO> childrenList = new ArrayList<>(childrenCnt);
+		List<NodePtr> childrenList = new ArrayList<>(childrenCnt);
 		for(int i = 0; i < childrenCnt; i++) {
-			childrenList.add(makeChild(hasChildrenPtrDTO));
+			childrenList.add(makeChild(hasChildrenPtr));
 		}
 		
-		NodePtrDTO hasChildPtrDTO = childrenList.get(0);
-		NodePtrDTO leapPtrDTO = makeChild(hasChildPtrDTO);
+		NodePtr hasChildPtr = childrenList.get(0);
+		NodePtr leapPtr = makeChild(hasChildPtr);
 		
-		versionManagementService.deleteArticle(leapPtrDTO);
+		versionManagementService.deleteArticle(leapPtr);
 	}
 	
 	@Test
 	public void testDeleteArticleHasOneChild() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
-		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
-		generationList.add(defaultBoardDTO);
+		List<NodePtr> generationList = new ArrayList<>(generationCnt);
+		generationList.add(defaultBoard);
 		for(int i = 1; i < generationCnt; i++) {
 			generationList.add(makeChild(generationList.get(i - 1)));
 		}
@@ -251,8 +282,8 @@ public class VersionManagementTest {
 	@Test(expected=NotLeafNodeException.class)
 	public void testDeleteArticleShouldTrhowNotLeafNodeException() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
-		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
-		generationList.add(defaultBoardDTO);
+		List<NodePtr> generationList = new ArrayList<>(generationCnt);
+		generationList.add(defaultBoard);
 		for(int i = 1; i < generationCnt; i++) {
 			generationList.add(makeChild(generationList.get(i - 1)));
 		}
@@ -263,14 +294,14 @@ public class VersionManagementTest {
 	@Test(expected=NotLeafNodeException.class)
 	public void testGetRelatedHistoryhouldTrhowNotLeafNodeException() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
-		List<NodePtrDTO> generationList = new ArrayList<>(generationCnt);
-		generationList.add(defaultBoardDTO);
+		List<NodePtr> generationList = new ArrayList<>(generationCnt);
+		generationList.add(defaultBoard);
 		for(int i = 1; i < generationCnt; i++) {
 			generationList.add(makeChild(generationList.get(i - 1)));
 		}
 		
 		@SuppressWarnings("unused")
-		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(generationList.get(0));
+		List<BoardHistory> relatedHistoryList = versionManagementService.getRelatedHistory(generationList.get(0));
 	}
 	
 	@Test
@@ -278,58 +309,58 @@ public class VersionManagementTest {
 		int childrenCnt = 2;
 		int allCnt = 1 + 1 + childrenCnt + 1;
 		int relatedCnt = allCnt - (childrenCnt - 1);	// childrenList에서 1개만 사용
-		List<NodePtrDTO> nodePtrList = new ArrayList<>(allCnt);
-		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
-		nodePtrList.add(rootPtrDTO);
+		List<NodePtr> nodePtrList = new ArrayList<>(allCnt);
+		NodePtr rootPtr = defaultCreated;
+		nodePtrList.add(rootPtr);
 		
-		NodePtrDTO hasChildrenPtrDTO = makeChild(rootPtrDTO);
-		nodePtrList.add(hasChildrenPtrDTO);
+		NodePtr hasChildrenPtr = makeChild(rootPtr);
+		nodePtrList.add(hasChildrenPtr);
 		
-		List<NodePtrDTO> childrenList = new ArrayList<>(childrenCnt);
+		List<NodePtr> childrenList = new ArrayList<>(childrenCnt);
 		for(int i = 0; i < childrenCnt; i++) {
-			childrenList.add(makeChild(hasChildrenPtrDTO));
+			childrenList.add(makeChild(hasChildrenPtr));
 		}
 		nodePtrList.addAll(childrenList);
 		
-		NodePtrDTO hasChildPtrDTO = childrenList.get(childrenCnt - 1);
-		NodePtrDTO leapPtrDTO = makeChild(hasChildPtrDTO);
-		nodePtrList.add(leapPtrDTO);
-		NodePtrDTO leapPtrDTOWithoutRootBoardId = new NodePtrDTO(leapPtrDTO.getBoard_id(), leapPtrDTO.getVersion());
+		NodePtr hasChildPtr = childrenList.get(childrenCnt - 1);
+		NodePtr leapPtr = makeChild(hasChildPtr);
+		nodePtrList.add(leapPtr);
+		NodePtr leapPtrWithoutRootBoardId = new NodePtr(leapPtr.getBoard_id(), leapPtr.getVersion());
 		
-		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(leapPtrDTOWithoutRootBoardId);
+		List<BoardHistory> relatedHistoryList = versionManagementService.getRelatedHistory(leapPtrWithoutRootBoardId);
 		assertEquals(relatedHistoryList.size(), relatedCnt);
 		assertNotNull(relatedHistoryList);
-		for(BoardHistoryDTO eleHistoryDTO : relatedHistoryList) {
-			assertNotNull(eleHistoryDTO);
-			NodePtrDTO eleNodePtr = eleHistoryDTO;
+		for (BoardHistory eleHistory : relatedHistoryList) {
+			assertNotNull(eleHistory);
+			NodePtr eleNodePtr = eleHistory;
 			assertTrue(nodePtrList.contains(eleNodePtr));
 		}
 	}
 	
 	@Test
 	public void testGetRelatedHistoryWhenDifferentBoardId() throws JsonProcessingException, NotLeafNodeException {
-		List<NodePtrDTO> leafToRoot = new ArrayList<>();
-		NodePtrDTO rootPtrDTO = defaultCreatedDTO;
-		leafToRoot.add(rootPtrDTO);
+		List<NodePtr> leafToRoot = new ArrayList<>();
+		NodePtr rootPtr = defaultCreated;
+		leafToRoot.add(rootPtr);
 		
 		@SuppressWarnings("unused")
-		NodePtrDTO middle1 = makeChild(rootPtrDTO);
-		NodePtrDTO middle2 = makeChild(rootPtrDTO);
+		NodePtr middle1 = makeChild(rootPtr);
+		NodePtr middle2 = makeChild(rootPtr);
 		leafToRoot.add(middle2);
 		
-		NodePtrDTO child = makeChild(middle2);
+		NodePtr child = makeChild(middle2);
 		leafToRoot.add(child);
 		
-		List<BoardHistoryDTO> relatedHistoryList = versionManagementService.getRelatedHistory(child);
+		List<BoardHistory> relatedHistoryList = versionManagementService.getRelatedHistory(child);
 		
 		assertEquals(relatedHistoryList.size(), leafToRoot.size());
 		
-		leafToRoot.sort(compareNodePtrDTO);
-		relatedHistoryList.sort(compareNodePtrDTO);
+		leafToRoot.sort(compareNodePtr);
+		relatedHistoryList.sort(compareNodePtr);
 
 		for(int i = 0; i < relatedHistoryList.size(); i++) {
-			NodePtrDTO relatedEle = relatedHistoryList.get(i);
-			NodePtrDTO addedEle = leafToRoot.get(i);
+			NodePtr relatedEle = relatedHistoryList.get(i);
+			NodePtr addedEle = leafToRoot.get(i);
 			assertEquals(relatedEle, addedEle);
 		}
 	}

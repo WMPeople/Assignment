@@ -111,16 +111,17 @@ public class VersionManagementService {
 	 * @param parentNodePtr 게시물의 부모 노드 포인터
 	 * @return 새롭게 생성된 게시글 이력 
 	 */
-	synchronized private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final byte[] compressedContent, NodePtrDTO parentNodePtr) {
-		NodePtrDTO newNodePtrDTO;
-		if(article.getBoard_id() == NodePtrDTO.ISSUE_NEW_BOARD_ID) {	// 새로 발급하는 경우..? 새로운 게시글, 충돌 관리 일때
+	synchronized private BoardHistory createArticleAndHistory(Board article, int version, final String status,
+			final byte[] compressedContent, NodePtr parentNodePtr) {
+		NodePtr newNodePtr;
+		if (article.getBoard_id() == NodePtr.ISSUE_NEW_BOARD_ID) { // 새로 발급하는 경우..? 새로운 게시글, 충돌 관리 일때
 			int last_board_id = boardMapper.getLeapNodeMaxBoardId() + 1;
-			newNodePtrDTO = new NodePtrDTO(last_board_id, version, NodePtrDTO.ROOT_BOARD_ID);
+			newNodePtr = new NodePtr(last_board_id, version, NodePtr.ROOT_BOARD_ID);
 			if(parentNodePtr.getBoard_id() == null) {	// 새로운 게시글
 				parentNodePtr.setRoot_board_id(last_board_id);
 			}
 		} else {
-			newNodePtrDTO = new NodePtrDTO(parentNodePtr.getBoard_id(), version, parentNodePtr.getRoot_board_id());
+			newNodePtr = new NodePtr(parentNodePtr.getBoard_id(), version, parentNodePtr.getRoot_board_id());
 		}
 		BoardHistory boardHistory;
 		if(version == 0) {	// 루트 노드일 경우
@@ -214,7 +215,7 @@ public class VersionManagementService {
 	 * @return 생성된 게시글의 포인터
 	 */
 	synchronized private NodePtr createVersionWithBranch(Board board, NodePtr parentPtr, final String status) {
-		NodePtrDTO dbParentPtr = boardHistoryMapper.getHistory(parentPtrDTO); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는
+		NodePtr dbParentPtr = boardHistoryMapper.getHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는
 																				// 존재하지 않는 값을 줬을때)
 		List<BoardHistory> childrenList= boardHistoryMapper.getChildren(dbParentPtr);
 		if(childrenList.size() == 0) {
@@ -222,7 +223,6 @@ public class VersionManagementService {
 			if(deletedCnt != 1) {
 				throw new RuntimeException("delete cnt expected  but " + deletedCnt);
 			}
-			parentPtr = dbBoard;
 		} else {
 			board.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
 		}

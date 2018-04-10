@@ -15,7 +15,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import com.worksmobile.Assignment.AssignmentApplication;
+import com.worksmobile.assignment.AssignmentApplication;
+
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = AssignmentApplication.class)

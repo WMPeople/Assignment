@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Service;
+package com.worksmobile.assignment.Service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,15 +18,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.worksmobile.Assignment.Domain.BoardDTO;
-import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
-import com.worksmobile.Assignment.Domain.NodePtrDTO;
-import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
-import com.worksmobile.Assignment.Mapper.BoardMapper;
-import com.worksmobile.Assignment.util.Utils;
+import com.worksmobile.assignment.BO.VersionManagementService;
+import com.worksmobile.assignment.Mapper.BoardHistoryMapper;
+import com.worksmobile.assignment.Mapper.BoardMapper;
+import com.worksmobile.assignment.Model.Board;
+import com.worksmobile.assignment.Model.BoardHistory;
+import com.worksmobile.assignment.Model.NodePtr;
+import com.worksmobile.assignment.Util.Utils;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Ignore
 public class VersionManagementServiceMultiThreadTest {
 
 	@Autowired
@@ -40,17 +42,17 @@ public class VersionManagementServiceMultiThreadTest {
 
 	private final static int THREAD_COUNT = 100;
 	
-	private BoardDTO defaultBoardDTO;
-	private BoardHistoryDTO defaultCreatedDTO;
+	private Board defaultBoard;
+	private BoardHistory defaultCreated;
 	private List<Thread> threadList = new ArrayList<>(THREAD_COUNT);
 	
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
-		defaultBoardDTO = new BoardDTO();
-		defaultBoardDTO.setSubject("versionTestSub");
-		defaultBoardDTO.setContent("versionTestCont");
+		defaultBoard = new Board();
+		defaultBoard.setSubject("versionTestSub");
+		defaultBoard.setContent("versionTestCont");
 
-		defaultCreatedDTO = versionManagementService.createArticle(defaultBoardDTO);
+		defaultCreated = versionManagementService.createArticle(defaultBoard);
 	}
 	
 	@After
@@ -74,22 +76,22 @@ public class VersionManagementServiceMultiThreadTest {
 		for(int i = 0; i < THREAD_COUNT; i++) {
 			Thread thread = new Thread(()->{
 				try {
-					BoardDTO copyedBoardDTO = new BoardDTO();
-					copyedBoardDTO.setSubject(defaultBoardDTO.getSubject());
-					copyedBoardDTO.setContent(defaultBoardDTO.getContent());
+					Board copyedBoard = new Board();
+					copyedBoard.setSubject(defaultBoard.getSubject());
+					copyedBoard.setContent(defaultBoard.getContent());
 
-					BoardHistoryDTO createdHistoryDTO = versionManagementService.createArticle(copyedBoardDTO);
+					BoardHistory createdHistory = versionManagementService.createArticle(copyedBoard);
 					
-					NodePtrDTO nodePtr = createdHistoryDTO;
-					BoardHistoryDTO dbHistoryDTO = boardHistoryMapper.getHistory(nodePtr);
+					NodePtr nodePtr = createdHistory;
+					BoardHistory dbHistory = boardHistoryMapper.getHistory(nodePtr);
 					
-					Utils.assertConvertToJsonObject(createdHistoryDTO, dbHistoryDTO);
+					Utils.assertConvertToJsonObject(createdHistory, dbHistory);
 					
-					copyedBoardDTO.setNodePtrDTO(nodePtr);
-					copyedBoardDTO.setCreated(dbHistoryDTO.getCreated());
+					copyedBoard.setNodePtr(nodePtr);
+					copyedBoard.setCreated(dbHistory.getCreated());
 					
-					BoardDTO dbBoardDTO = boardMapper.viewDetail(nodePtr.toMap());
-					assertEquals(copyedBoardDTO, dbBoardDTO);
+					Board dbBoard = boardMapper.viewDetail(nodePtr.toMap());
+					assertEquals(copyedBoard, dbBoard);
 				}
 				catch(JsonProcessingException e) {
 					e.printStackTrace();
@@ -99,23 +101,23 @@ public class VersionManagementServiceMultiThreadTest {
 		}
 	}
 	
-	public static NodePtrDTO makeChild(VersionManagementService versionManagementService, 
-			BoardMapper boardMapper, NodePtrDTO parentPtrDTO) throws JsonProcessingException {
-		BoardDTO child = new BoardDTO(); 
+	public static NodePtr makeChild(VersionManagementService versionManagementService, BoardMapper boardMapper,
+			NodePtr parentPtr) throws JsonProcessingException {
+		Board child = new Board();
 		child.setSubject("childSub");
 		child.setContent("childCont");
 		
-		NodePtrDTO childPtrDTO = versionManagementService.modifyVersion(child, parentPtrDTO);
-		child.setNodePtrDTO(childPtrDTO);
+		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr);
+		child.setNodePtr(childPtr);
 		
-		BoardDTO leapBoardDTO = boardMapper.viewDetail(childPtrDTO.toMap());
-		assertNotNull(leapBoardDTO);
-		int parentVersion = parentPtrDTO.getVersion() == null ? 0 : parentPtrDTO.getVersion();
-		assertEquals((Integer)(parentVersion + 1), childPtrDTO.getVersion());
+		Board leapBoard = boardMapper.viewDetail(childPtr.toMap());
+		assertNotNull(leapBoard);
+		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
+		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
-		Utils.assertConvertToJsonObject(child, leapBoardDTO);
+		Utils.assertConvertToJsonObject(child, leapBoard);
 		
-		return childPtrDTO;
+		return childPtr;
 	}
 	
 	@Test
@@ -124,7 +126,9 @@ public class VersionManagementServiceMultiThreadTest {
 			Thread thread = new Thread(()-> {
 				try {
 					for(int j = 0; j < 10; j++) {
-						NodePtrDTO child = VersionManagementServiceMultiThreadTest.makeChild(versionManagementService, boardMapper, defaultCreatedDTO);
+						@SuppressWarnings("unused")
+						NodePtr child = VersionManagementServiceMultiThreadTest.makeChild(versionManagementService,
+								boardMapper, defaultCreated);
 					}
 				} catch (JsonProcessingException e) {
 					e.printStackTrace();
@@ -137,25 +141,26 @@ public class VersionManagementServiceMultiThreadTest {
 	@Test
 	public void testModifyAndDeleteVersion() throws JsonProcessingException {
 		int generationCnt = THREAD_COUNT;
-		List<NodePtrDTO> generation = new ArrayList<>(generationCnt);
-		generation.add(defaultCreatedDTO);
+		List<NodePtr> generation = new ArrayList<>(generationCnt);
+		generation.add(defaultCreated);
 		for(int i = 1; i < generationCnt; i++) {
-			NodePtrDTO parentPtr = generation.get(i - 1);
-			NodePtrDTO child = VersionManagementServiceMultiThreadTest.makeChild(versionManagementService, boardMapper, parentPtr);
+			NodePtr parentPtr = generation.get(i - 1);
+			NodePtr child = VersionManagementServiceMultiThreadTest.makeChild(versionManagementService, boardMapper,
+					parentPtr);
 			generation.add(child);
 		}
 		
-		BoardDTO modifiedBoardDTO = new BoardDTO();
-		modifiedBoardDTO.setSubject("modifiedSub");
-		modifiedBoardDTO.setSubject("modifiedContent");
+		Board modifiedBoard = new Board();
+		modifiedBoard.setSubject("modifiedSub");
+		modifiedBoard.setSubject("modifiedContent");
 
 		int i = 0;
 		for(; i < THREAD_COUNT / 2; i++) {
 			Thread thread = new Thread(()-> {
 				int randIdx = (int) (Math.random() * THREAD_COUNT);
-				NodePtrDTO nodePtrDTO = generation.get(randIdx);
+				NodePtr nodePtr = generation.get(randIdx);
 
-				versionManagementService.modifyVersion(modifiedBoardDTO, nodePtrDTO);
+				versionManagementService.modifyVersion(modifiedBoard, nodePtr);
 			});
 			threadList.add(thread);
 		}
@@ -163,18 +168,18 @@ public class VersionManagementServiceMultiThreadTest {
 		HashMap<String, Integer> articleListParams = new HashMap<>();
 		articleListParams.put("offset", 0);
 		articleListParams.put("noOfRecords", Integer.MAX_VALUE);
-		int root_board_id = defaultCreatedDTO.getRoot_board_id();
+		int root_board_id = defaultCreated.getRoot_board_id();
 
 		for(; i < THREAD_COUNT; i++) {
 			Thread thread = new Thread(()-> {
-				List<BoardDTO> sameRoot = boardMapper.articleList(articleListParams);
+				List<Board> sameRoot = boardMapper.articleList(articleListParams);
 				sameRoot.removeIf(item -> { return item.getRoot_board_id() != root_board_id; } );
 				int maxIdx = sameRoot.size() - 1;
 				int randIdx = (int) (Math.random() * maxIdx);
 
-				NodePtrDTO deletePtrDTO = sameRoot.get(randIdx);
+				NodePtr deletePtr = sameRoot.get(randIdx);
 				
-				versionManagementService.deleteVersion(deletePtrDTO);
+				versionManagementService.deleteVersion(deletePtr);
 			});
 			threadList.add(thread);
 		}

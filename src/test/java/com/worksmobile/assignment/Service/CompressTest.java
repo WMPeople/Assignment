@@ -20,11 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.worksmobile.Assignment.Domain.BoardDTO;
-import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
-import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
-import com.worksmobile.Assignment.Mapper.BoardMapper;
-import com.worksmobile.Assignment.Service.Compress;
+import com.worksmobile.assignment.BO.Compress;
+import com.worksmobile.assignment.Mapper.BoardHistoryMapper;
+import com.worksmobile.assignment.Mapper.BoardMapper;
+import com.worksmobile.assignment.Model.Board;
+import com.worksmobile.assignment.Model.BoardHistory;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -82,17 +82,17 @@ public class CompressTest {
 		HashMap<String, Integer> map = new HashMap<>();
 		map.put("offset", 0);
 		map.put("noOfRecords", 1000);
-		List<BoardDTO> boardList = boardMapper.articleList(map);
+		List<Board> boardList = boardMapper.articleList(map);
 		List<String> contentStrList = new ArrayList<>(boardList.size());
 		List<byte[]> historyContentList = new ArrayList<>(boardList.size());
 		List<Boolean> compressResult = new ArrayList<>(boardList.size());
 		List<Boolean> decompressResult = new ArrayList<>(boardList.size());
 		
-		for(BoardDTO boardDTO : boardList) {
-			contentStrList.add(boardDTO.getContent());
-			BoardHistoryDTO historyDTO = boardHistoryMapper.getHistory(boardDTO);
-			assertNotNull(historyDTO);
-			historyContentList.add(historyDTO.getHistory_content());
+		for (Board board : boardList) {
+			contentStrList.add(board.getContent());
+			BoardHistory history = boardHistoryMapper.getHistory(board);
+			assertNotNull(history);
+			historyContentList.add(history.getHistory_content());
 		}
 		
 		for(int i = 0; i < boardList.size(); i++) {
