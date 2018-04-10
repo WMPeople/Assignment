@@ -1,7 +1,6 @@
-package com.worksmobile.Assignment.Mapper;
+package com.worksmobile.assignment.Mapper;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
@@ -13,10 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.worksmobile.Assignment.Domain.BoardDTO;
-import com.worksmobile.Assignment.Domain.NodePtrDTO;
-import com.worksmobile.Assignment.Mapper.BoardMapper;
-import com.worksmobile.Assignment.util.Utils;
+import com.worksmobile.assignment.Model.Board;
+import com.worksmobile.assignment.Model.NodePtr;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -26,41 +23,41 @@ public class BoardMapperTest {
     @Autowired
     private BoardMapper boardMapper;
     
-    private final NodePtrDTO defaultNodePtr = new NodePtrDTO(1, 1, 1);
-    private BoardDTO defaultBoardDTO;
+	private final NodePtr defaultNodePtr = new NodePtr(1, 1, 1);
+	private Board defaultBoard;
     
     @Before
-    public void makeDefaultBoardDTO() {
-    	defaultBoardDTO = new BoardDTO();
-    	defaultBoardDTO.setNodePtrDTO(defaultNodePtr);
-    	defaultBoardDTO.setSubject("testSub");
-    	defaultBoardDTO.setContent("testCont");
+	public void makeDefaultBoard() {
+		defaultBoard = new Board();
+		defaultBoard.setNodePtr(defaultNodePtr);
+		defaultBoard.setSubject("testSub");
+		defaultBoard.setContent("testCont");
     }
     
     @Test
     public void testSelect() throws JsonProcessingException {
-    	BoardDTO vo = null;
+		Board vo = null;
     	vo = boardMapper.viewDetail(defaultNodePtr.toMap());
 	}
 
     @Test
     public void testInsert() throws Exception{
     	
-    	BoardDTO check = boardMapper.viewDetail(defaultBoardDTO.toMap());
+		Board check = boardMapper.viewDetail(defaultBoard.toMap());
     	if(check != null)
     	{
-    		boardMapper.boardDelete(defaultBoardDTO.toMap());
+			boardMapper.boardDelete(defaultBoard.toMap());
     	}
-		boardMapper.boardCreate(defaultBoardDTO);
+		boardMapper.boardCreate(defaultBoard);
 			
-		BoardDTO insertedVO = null;
-		insertedVO = boardMapper.viewDetail(defaultBoardDTO.toMap());
-		assertEquals(defaultBoardDTO, insertedVO);
+		Board insertedVO = null;
+		insertedVO = boardMapper.viewDetail(defaultBoard.toMap());
+		assertEquals(defaultBoard, insertedVO);
 	}
     
     @Test
     public void testUpdate() throws Exception{
-    	BoardDTO beforeVO = new BoardDTO();
+		Board beforeVO = new Board();
     	beforeVO.setBoard_id(defaultNodePtr.getBoard_id());
     	beforeVO.setVersion(defaultNodePtr.getVersion());
     	beforeVO.setSubject("test1111");
@@ -72,25 +69,25 @@ public class BoardMapperTest {
     	boardMapper.boardCreate(beforeVO);
     	
 
-    	BoardDTO afterVO = new BoardDTO();
+		Board afterVO = new Board();
     	afterVO.setBoard_id(defaultNodePtr.getBoard_id());
     	afterVO.setVersion(defaultNodePtr.getVersion());
     	afterVO.setSubject("after sub");
     	afterVO.setContent("after con");
-    	boardMapper.boardUpdate(afterVO.toMap());
+    	boardMapper.boardUpdate(afterVO);
     	
-    	BoardDTO updatedVO = null;
+		Board updatedVO = null;
     	updatedVO = boardMapper.viewDetail(afterVO.toMap());
     	assertEquals(afterVO, updatedVO);
 	}
     
     @Test
     public void testDelete() throws Exception{
-    	int deletedCnt = boardMapper.boardDelete(defaultBoardDTO.toMap());
+		int deletedCnt = boardMapper.boardDelete(defaultBoard.toMap());
     	assertEquals(1, deletedCnt);
     	
-    	BoardDTO deletedVO = null;
-    	deletedVO = boardMapper.viewDetail(defaultBoardDTO.toMap());
+		Board deletedVO = null;
+		deletedVO = boardMapper.viewDetail(defaultBoard.toMap());
     	assertNull(deletedVO);
 	}
     

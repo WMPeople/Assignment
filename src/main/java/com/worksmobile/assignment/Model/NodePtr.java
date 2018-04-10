@@ -1,4 +1,4 @@
-package com.worksmobile.assignment.Model;
+﻿package com.worksmobile.assignment.Model;
 
 import java.util.AbstractMap;
 import java.util.HashMap;
@@ -14,9 +14,10 @@ import lombok.Setter;
 public class NodePtr {
 	@Getter @Setter protected Integer board_id = null;
 	@Getter @Setter protected Integer version = null;
-	@Getter @Setter protected int root_board_id;
+	@Getter @Setter protected int root_board_id = ISSUE_NEW_BOARD_ID;
 	
-	public static final NodePtr DEFAULT_NULL_NODE_PTR = new NodePtr();
+	public static final Integer ISSUE_NEW_BOARD_ID = -2;
+	public static final int ROOT_BOARD_ID = -1;
 	
 	public NodePtr() { }
 	public NodePtr(Integer board_id, Integer version) {

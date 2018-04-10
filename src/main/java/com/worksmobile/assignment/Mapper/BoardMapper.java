@@ -25,7 +25,6 @@ public interface BoardMapper {
 	 */
 	public int boardDelete(HashMap<String, Object> parmas) ;
 
-	
 	public int boardDeleteWithCookieId(HashMap<String, Object> params);
 
 	public int boardUpdate(Board board) ;
@@ -34,7 +33,7 @@ public interface BoardMapper {
 	
 	public File boardFileDownload(HashMap<String,Integer> params) ;
 
-	public int getMaxBoardId();
+	public int getLeapNodeMaxBoardId();
 	
 	public int getMaxCookieId();
 	
