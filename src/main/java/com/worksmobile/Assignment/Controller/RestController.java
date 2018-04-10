@@ -97,11 +97,8 @@ public class RestController {
     @RequestMapping(value = "/", method = RequestMethod.GET)
     @ResponseBody
 	public ModelAndView boardList(HttpServletRequest req, HttpServletResponse res) throws Exception{
-    	if(req.getCookies()==null || req.getCookies().length == 0) {
+    	if(req.getCookies()==null || getCookie(req) == null) {
     		creteCookie(res);
-    	}
-    	else {
-    		getCookie(req);
     	}
 
     	int currentPageNo = CURRENT_PAGE_NO; 
