@@ -26,7 +26,7 @@ import com.worksmobile.assignment.Mapper.BoardMapper;
 import com.worksmobile.assignment.Model.Board;
 import com.worksmobile.assignment.Model.BoardHistory;
 import com.worksmobile.assignment.Model.NodePtr;
-import com.worksmobile.assignment.Util.Utils;
+import com.worksmobile.assignment.Util.JsonUtils;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -74,7 +74,7 @@ public class VersionManagementTest {
 		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
 		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
-		Utils.assertConvertToJsonObject(child, leapBoard);
+		JsonUtils.assertConvertToJsonObject(child, leapBoard);
 		
 		return childPtr;
 	}
@@ -113,12 +113,12 @@ public class VersionManagementTest {
 	public void testCreateArticle() throws InterruptedException, ExecutionException, JsonProcessingException {
 		BoardHistory dbHistory = defaultCreated;
 		
-		Utils.assertConvertToJsonObject(defaultCreated, dbHistory);
+		JsonUtils.assertConvertToJsonObject(defaultCreated, dbHistory);
 		
 		defaultBoard.setNodePtr(dbHistory);
 		
 		Board dbBoard = boardMapper.viewDetail(dbHistory.toMap());
-		Utils.assertConvertToJsonObject(defaultBoard, dbBoard);
+		JsonUtils.assertConvertToJsonObject(defaultBoard, dbBoard);
 	}
 	
 	@Test
@@ -137,13 +137,13 @@ public class VersionManagementTest {
 		NodePtr nodePtr = defaultCreated;
 		BoardHistory dbHistory = boardHistoryMapper.getHistory(nodePtr);
 		
-		Utils.assertConvertToJsonObject(defaultCreated, dbHistory);
+		JsonUtils.assertConvertToJsonObject(defaultCreated, dbHistory);
 		
 		defaultBoard.setNodePtr(nodePtr);
 		defaultBoard.setCreated(dbHistory.getCreated());
 		
 		Board dbBoard = boardMapper.viewDetail(nodePtr.toMap());
-		Utils.assertConvertToJsonObject(defaultBoard, dbBoard);
+		JsonUtils.assertConvertToJsonObject(defaultBoard, dbBoard);
 	}
 	
 	@Test
@@ -161,7 +161,7 @@ public class VersionManagementTest {
 		prevLeap.setCreated(prevLeap.getCreated()); // 버전 복구시 시간이 달라짐
 		
 		assertNotNull(recoveredHistory);
-		Utils.assertConvertToJsonObject(newLeap, prevLeap);
+		JsonUtils.assertConvertToJsonObject(newLeap, prevLeap);
 	}
 	
 	@Test
@@ -181,7 +181,7 @@ public class VersionManagementTest {
 		assertEquals((Integer) (defaultVersion + 1), resultPtr.getVersion());
 		
 		child.setNodePtr(resultPtr);
-		Utils.assertConvertToJsonObject(child, leapBoard);
+		JsonUtils.assertConvertToJsonObject(child, leapBoard);
 	}
 	
 	

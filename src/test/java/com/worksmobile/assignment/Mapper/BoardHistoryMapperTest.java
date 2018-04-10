@@ -23,7 +23,7 @@ import com.worksmobile.assignment.BO.Compress;
 import com.worksmobile.assignment.Model.Board;
 import com.worksmobile.assignment.Model.BoardHistory;
 import com.worksmobile.assignment.Model.NodePtr;
-import com.worksmobile.assignment.Util.Utils;
+import com.worksmobile.assignment.Util.JsonUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = AssignmentApplication.class)
@@ -88,7 +88,7 @@ public class BoardHistoryMapperTest {
 		BoardHistory inserted = null;
 		inserted = boardHistoryMapper.getHistory(createdHistory);
 
-		Utils.assertConvertToJsonObject(createdHistory, inserted);
+		JsonUtils.assertConvertToJsonObject(createdHistory, inserted);
 	}
 	
 	private BoardHistory createBoardHistoryIfNotExists() {
@@ -122,7 +122,7 @@ public class BoardHistoryMapperTest {
 		assertEquals(1, updateRtn);
 
 		BoardHistory dbHistory = boardHistoryMapper.getHistory(defaultNodePtr);
-		Utils.assertConvertToJsonObject(boardHistory, dbHistory);
+		JsonUtils.assertConvertToJsonObject(boardHistory, dbHistory);
 	}
 
 	// TODO : testUpdate 와 동일 하다는 결론이면 삭제할것.
@@ -189,7 +189,7 @@ public class BoardHistoryMapperTest {
 		for(int i = 0; i < relatedCnt; i++) {
 			BoardHistory createdEle = createdSameRootList.get(i);
 			BoardHistory mapperEle = sameRoot.get(i);
-			Utils.assertConvertToJsonObject(createdEle, mapperEle);
+			JsonUtils.assertConvertToJsonObject(createdEle, mapperEle);
 		}
 	}
 }
