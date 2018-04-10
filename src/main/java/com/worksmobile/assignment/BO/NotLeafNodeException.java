@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Service;
+package com.worksmobile.assignment.BO;
 
 public class NotLeafNodeException extends Exception {
 	/**

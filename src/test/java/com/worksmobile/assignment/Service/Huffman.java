@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Service;
+package com.worksmobile.assignment.Service;
 
 import java.io.File;
 import java.io.FileNotFoundException;

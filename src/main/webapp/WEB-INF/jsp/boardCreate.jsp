@@ -54,12 +54,12 @@ $(document).ready(function(){
             type: "post",
             contentType: false,
             processData: false,
-            url: "/Assignment/boards",
+            url: "/assignment/boards",
             data: formData,
             success: function(result){
             	if(result.result == "success"){
             		alert("보드 생성 완료");
-                   	location.href = "/Assignment/";
+                   	location.href = "/assignment/";
             	}
             	else{
             		alert(result.result);

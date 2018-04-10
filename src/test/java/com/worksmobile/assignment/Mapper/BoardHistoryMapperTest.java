@@ -1,4 +1,4 @@
-﻿package com.worksmobile.Assignment.Mapper;
+﻿package com.worksmobile.assignment.Mapper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -22,6 +22,9 @@ import com.worksmobile.Assignment.AssignmentApplication;
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
+import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
+import com.worksmobile.Assignment.Mapper.BoardMapper;
+import com.worksmobile.Assignment.Mapper.FileMapper;
 import com.worksmobile.Assignment.Service.Compress;
 import com.worksmobile.Assignment.util.Utils;
 

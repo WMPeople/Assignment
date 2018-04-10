@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Service;
+package com.worksmobile.assignment.Service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -22,6 +22,8 @@ import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
 import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.Assignment.Mapper.BoardMapper;
+import com.worksmobile.Assignment.Service.NotLeafNodeException;
+import com.worksmobile.Assignment.Service.VersionManagementService;
 import com.worksmobile.Assignment.util.Utils;
 
 @RunWith(SpringRunner.class)

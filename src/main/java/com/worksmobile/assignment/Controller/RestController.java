@@ -1,4 +1,4 @@
-﻿package com.worksmobile.Assignment.Controller;
+﻿package com.worksmobile.assignment.Controller;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -7,15 +7,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jboss.logging.Logger;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -24,17 +24,18 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.nhncorp.lucy.security.xss.XssPreventer;
-import com.worksmobile.Assignment.Domain.BoardDTO;
-import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
-import com.worksmobile.Assignment.Domain.FileDTO;
-import com.worksmobile.Assignment.Domain.NodePtrDTO;
-import com.worksmobile.Assignment.Mapper.BoardHistoryMapper;
-import com.worksmobile.Assignment.Mapper.BoardMapper;
-import com.worksmobile.Assignment.Mapper.FileMapper;
-import com.worksmobile.Assignment.Service.Compress;
-import com.worksmobile.Assignment.Service.Paging;
-import com.worksmobile.Assignment.Service.VersionManagementService;
-import com.worksmobile.Assignment.util.Utils;
+import com.worksmobile.assignment.BO.Compress;
+import com.worksmobile.assignment.BO.FileService;
+import com.worksmobile.assignment.BO.Paging;
+import com.worksmobile.assignment.BO.VersionManagementService;
+import com.worksmobile.assignment.Mapper.BoardHistoryMapper;
+import com.worksmobile.assignment.Mapper.BoardMapper;
+import com.worksmobile.assignment.Mapper.FileMapper;
+import com.worksmobile.assignment.Model.Board;
+import com.worksmobile.assignment.Model.BoardHistory;
+import com.worksmobile.assignment.Model.File;
+import com.worksmobile.assignment.Model.NodePtr;
+import com.worksmobile.assignment.Util.Utils;
 
 @org.springframework.web.bind.annotation.RestController
 public class RestController {
@@ -43,51 +44,41 @@ public class RestController {
     private BoardMapper boardMapper;
     
     @Autowired
-	private VersionManagementService versionManagementService;
-    
-    @Autowired
     private BoardHistoryMapper boardHistoryMapper;
     
     @Autowired
     private FileMapper fileMapper;
     
-    final static int CURRENT_PAGE_NO = 1;
-    final static int MAX_POST = 10;
+    @Autowired
+	private VersionManagementService versionManagementService;
     
-
-    // TODO : thread-safe
-    static int publishedNameMax = 1;
-
-    // TODO : 처리
-    public void getMaxCookieID() {
-    	publishedNameMax = boardMapper.getMaxCookieId();
-    	Logger.getLogger("RestController").info("board 테이블 cookie_id 최댓값 : "+  publishedNameMax );
-    }
+    @Autowired
+    private FileService fileService;
     
+   
+    
+    public final static String COOKIE_NAME = "name";
+    		  
     // TODO : 리팩터링
     public static Cookie getCookie(HttpServletRequest req) {
-    	Cookie[] getCookie =req.getCookies();
+    	Cookie[] cookies =req.getCookies();
     	Cookie curCookie= null ;
-		for(int i=0; i<getCookie.length; i++){
-			Cookie c = getCookie[i];
-			if(c.getName().equals("name")) {
+		for(int i=0; i<cookies.length; i++){
+			Cookie c = cookies[i];
+			if(c.getName().equals(COOKIE_NAME)) {
 				curCookie = c;
 				break;
 			}
 		}
-		Logger.getLogger("RestController").info("쿠키 name : " + curCookie.getName() + " value : " + curCookie.getValue());
-    	return curCookie;
+		return curCookie;
     }
     // TODO : 리팩터링    
-    synchronized public Cookie creteCookie(HttpServletResponse res) {
-    	
-    	getMaxCookieID();
-    	Cookie setCookie = null;
-    	publishedNameMax++;
-    	setCookie = new Cookie("name",Integer.toString(publishedNameMax));
-    	res.addCookie(setCookie);
-    	Logger.getLogger("RestController").info("쿠키 생성 완료 name : " + setCookie.getName() + " value : " + setCookie.getValue());
-    	return setCookie;
+     public Cookie creteCookie(HttpServletResponse res) {
+    	String cookieId = UUID.randomUUID().toString();
+    	System.out.println(cookieId);
+    	Cookie cookie = new Cookie(COOKIE_NAME,cookieId);
+    	res.addCookie(cookie);
+    	return cookie;
     }
 
 	/***
@@ -101,23 +92,24 @@ public class RestController {
     		creteCookie(res);
     	}
 
-    	int currentPageNo = CURRENT_PAGE_NO; 
-		int maxPost = MAX_POST;	
+    	int currentPageNo = Paging.CURRENT_PAGE_NO; 
 		
-		if(req.getParameter("pages") != null)											 
-			currentPageNo = Integer.parseInt(req.getParameter("pages")); 	
 		
-		Paging paging = new Paging(currentPageNo, maxPost); 
+		if (req.getParameter("pages") != null) {											 
+			currentPageNo = Integer.parseInt(req.getParameter("pages"));
+		}
 		
-		int offset = (paging.getCurrentPageNo() -1) * paging.getmaxPost(); 
+		Paging paging = new Paging(currentPageNo, Paging.MAX_POST); 
 		
-		ArrayList<BoardDTO> board = new ArrayList<BoardDTO>(); 
+		int offset = (paging.getCurrentPageNo() -1) * paging.getMaxPost(); 
+		
+		ArrayList<Board> board = new ArrayList<Board>(); 
 		
 		HashMap<String, Integer> params = new HashMap<String, Integer>(); 
 		params.put("offset", offset); 
-		params.put("noOfRecords", paging.getmaxPost()); 
+		params.put("noOfRecords", paging.getMaxPost()); 
 		
-		board = (ArrayList<BoardDTO>) boardMapper.articleList(params); 
+		board = (ArrayList<Board>) boardMapper.articleList(params); 
 																			
 		
 		paging.setNumberOfRecords(boardMapper.articleGetCount()); 
@@ -148,7 +140,7 @@ public class RestController {
 		params.put("version", version);
 		params.put("cookie_id",cookie_id);
 		
-		BoardDTO board = boardMapper.viewDetail(params);
+		Board board = boardMapper.viewDetail(params);
 		if(board == null) {
 			String json = Utils.jsonStringIfExceptionToString(board);
 			throw new RuntimeException("show 메소드에서 viewDetail 메소드 실행 에러" + json);
@@ -157,7 +149,7 @@ public class RestController {
 		String clean = XssPreventer.escape(dirty);
 		board.setContent(clean);
 		
-		FileDTO file = fileMapper.getFile(board.getFile_id());
+		File file = fileMapper.getFile(board.getFile_id());
 		
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("board", board);
@@ -179,7 +171,7 @@ public class RestController {
 			HttpServletRequest request, 
 			HttpServletResponse response) throws Exception {
 
-		FileDTO file = fileMapper.getFile(file_id);
+		File file = fileMapper.getFile(file_id);
 		
 		byte fileByte[] = file.getFile_data();
     	response.setContentType("application/octet-stream");
@@ -198,38 +190,19 @@ public class RestController {
 	 */
 	@RequestMapping(value = "/boards", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String,Object> create(BoardDTO board, MultipartHttpServletRequest attachment) {
+	public Map<String,Object> create(Board board, MultipartHttpServletRequest attachment) {
 		Map<String,Object> resultMap = new HashMap<>();
 		
-		MultipartFile mFile = null;
-		Iterator<String> iter = attachment.getFileNames();
-		while(iter.hasNext()) {
-			String uploadFile_name = iter.next();
-			mFile = attachment.getFile(uploadFile_name);
+		File file = fileService.uploadFile(attachment);
+		if (file == null) {
+			board.setFile_id(0);
 		}
-		try {
-			if(mFile!=null) {
-				if(!mFile.getOriginalFilename().equals("")) {
-					FileDTO file = new FileDTO();
-					file.setFile_name(mFile.getOriginalFilename());
-					file.setFile_data(mFile.getBytes());
-					file.setFile_size(mFile.getSize());
-				
-					fileMapper.createFile(file);
-					board.setFile_id(file.getFile_id());
-				}
-				else {
-					board.setFile_id(0);
-				}
-			}
-			board.setCookie_id(0);
-			versionManagementService.createArticle(board);
-			resultMap.put("result", "success");
-		} catch (Exception e) {
-			// TODO: handle exception
-			resultMap.put("result",e.getMessage());
-			e.printStackTrace();
+		else {
+			fileMapper.createFile(file);
 		}
+		versionManagementService.createArticle(board);
+		resultMap.put("result", "success");
+
 		return resultMap;
 	}
 	
@@ -240,44 +213,24 @@ public class RestController {
 	 */
 	@RequestMapping(value = "/boards/update2", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String,Object> updateWithoutAttachment(BoardDTO board, MultipartHttpServletRequest attachment) 
+	public Map<String,Object> updateWithoutAttachment(Board board, MultipartHttpServletRequest attachment) 
 	{
 		Map<String,Object> resultMap = new HashMap<>();
-		MultipartFile mFile = null;
-		Iterator<String> iter = attachment.getFileNames();
-		while(iter.hasNext()) {
-			String uploadFile_name = iter.next();
-			mFile = attachment.getFile(uploadFile_name);
-		}
-		try {
-			if(mFile!=null) {
-				if(!mFile.getOriginalFilename().equals("")) {
-					FileDTO file = new FileDTO();
-					file.setFile_name(mFile.getOriginalFilename());
-					file.setFile_data(mFile.getBytes());
-					file.setFile_size(mFile.getSize());
+		File file = fileService.uploadFile(attachment);
+		fileMapper.createFile(file);
+		board.setFile_id(file.getFile_id());
 				
-					fileMapper.createFile(file);
-					board.setFile_id(file.getFile_id());
-				}
-			}
-			NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion());
-			NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
-			
-			if(newNode== null) {
-				resultMap.put("result", "수정 실패");
-			}
-			else {
-				resultMap.put("result", "success");
-			}
-
-		} catch (Exception e) {
-			resultMap.put("result",e.getMessage());
-			e.printStackTrace();
-			return resultMap;
+		NodePtr leapPtr = new NodePtr(board.getBoard_id(),board.getVersion());
+		NodePtr newNode = versionManagementService.modifyVersion(board, leapPtr);	
+		
+		if(newNode == null) {
+			resultMap.put("result", "수정 실패");
 		}
-		return resultMap;
+		else {
+			resultMap.put("result", "success");
+		}
 
+		return resultMap;
 	}
 	
 	/***
@@ -287,11 +240,11 @@ public class RestController {
 	 */
 	@RequestMapping(value = "/boards/update3", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String,Object> updateMaintainAttachment(BoardDTO board) {
+	public Map<String,Object> updateMaintainAttachment(Board board) {
 		
 		Map<String,Object> resultMap = new HashMap<String,Object>();
 		try {
-			BoardDTO pastBoard = new BoardDTO();
+			Board pastBoard = new Board();
 			
 			HashMap<String, Integer> params = new HashMap<String, Integer>();
 			params.put("board_id", board.getBoard_id());
@@ -304,16 +257,15 @@ public class RestController {
 			}
 			board.setFile_id(pastBoard.getFile_id());
 			
-			NodePtrDTO leapPtrDTO = new NodePtrDTO(board.getBoard_id(),board.getVersion());
-			NodePtrDTO newNode = versionManagementService.modifyVersion(board, leapPtrDTO);	
-			if(newNode== null) {
+			NodePtr leapPtr = new NodePtr(board.getBoard_id(),board.getVersion());
+			NodePtr newNode = versionManagementService.modifyVersion(board, leapPtr);	
+			if (newNode== null) {
 				resultMap.put("result","버전 수정 실패");
 			}
 			else {
 				resultMap.put("result","success");
 			}
 			
-
 		}catch (Exception e) {
 			resultMap.put("result",e.getMessage());
 			return resultMap;
@@ -332,8 +284,8 @@ public class RestController {
 			@PathVariable(value = "version") int version) throws Exception {
 		Map<String,Object> resultMap = new HashMap<>();
 		try {
-			NodePtrDTO leapPtrDTO = new NodePtrDTO(board_id,version);
-			versionManagementService.deleteArticle(leapPtrDTO);
+			NodePtr leapPtr = new NodePtr(board_id,version);
+			versionManagementService.deleteArticle(leapPtr);
 
 			resultMap.put("result","success");	
 		} catch (Exception e) {
@@ -355,23 +307,10 @@ public class RestController {
 		
 		Map<String,Object> resultMap = new HashMap<String,Object>();
 		try {
-			boolean deleteFileBoolean = false;
-			NodePtrDTO deletePtrDTO = new NodePtrDTO(board_id,version);
-			BoardHistoryDTO deleteHistoryDTO = boardHistoryMapper.getHistory(deletePtrDTO);
-			int file_id = deleteHistoryDTO.getFile_id();
-			if(file_id != 0) {
-				int fileCount = boardHistoryMapper.getFileCount(file_id);
-				if(fileCount ==1) {
-					deleteFileBoolean=true;
-				}
-			}
-			versionManagementService.deleteVersion(deletePtrDTO);
-			if(deleteFileBoolean) {
-				int deletedCnt = fileMapper.deleteFile(file_id);
-				if(deletedCnt != 1) {
-					throw new RuntimeException("파일 삭제 에러");
-				};
-			}
+			NodePtr deletePtr = new NodePtr(board_id,version);
+
+			versionManagementService.deleteVersion(deletePtr);
+			fileService.deleteFile(deletePtr);
 			resultMap.put("result","success");
 		}catch(Exception e){
 			resultMap.put("result",e.getMessage());
@@ -392,8 +331,8 @@ public class RestController {
 	public ModelAndView versionManagement(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version ) throws Exception {
 		
-		NodePtrDTO leapPtrDTO = new NodePtrDTO(board_id,version);
-		List<BoardHistoryDTO> boardHistory = versionManagementService.getRelatedHistory(leapPtrDTO);
+		NodePtr leapPtr = new NodePtr(board_id,version);
+		List<BoardHistory> boardHistory = versionManagementService.getRelatedHistory(leapPtr);
 		
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("list", boardHistory);
@@ -417,10 +356,10 @@ public class RestController {
 			@PathVariable(value = "leafVersion") int leafVersion) throws Exception { 
 		
 		Map<String,Object> resultMap = new HashMap<String,Object>();
-		NodePtrDTO newLeapNode = null;
+		NodePtr newLeapNode = null;
 		try {
-			NodePtrDTO recoverPtr = new NodePtrDTO(board_id,version);
-			NodePtrDTO leapNodePtr = new NodePtrDTO();
+			NodePtr recoverPtr = new NodePtr(board_id,version);
+			NodePtr leapNodePtr = new NodePtr();
 
 			leapNodePtr.setBoard_id(leafBoard_id);
 			leapNodePtr.setVersion(leafVersion);
@@ -447,11 +386,11 @@ public class RestController {
 	public ModelAndView history(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version) {
 		
-		NodePtrDTO node = new NodePtrDTO(board_id,version);
+		NodePtr node = new NodePtr(board_id,version);
 		
-		BoardHistoryDTO boardHistory = boardHistoryMapper.getHistory(node);
-		BoardDTO board = new BoardDTO(boardHistory);
-		FileDTO file = fileMapper.getFile(board.getFile_id());
+		BoardHistory boardHistory = boardHistoryMapper.getHistory(node);
+		Board board = new Board(boardHistory);
+		File file = fileMapper.getFile(board.getFile_id());
 		
 		String deCompreesedContent = "";
 		try {
@@ -482,7 +421,7 @@ public class RestController {
 	 */
 	@RequestMapping(value = "/boards/autosave", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String,Object> tempArticle(BoardDTO board, 
+	public Map<String,Object> tempArticle(Board board, 
 			HttpServletRequest req, 
 			MultipartHttpServletRequest attachment) {	
 		
@@ -496,7 +435,7 @@ public class RestController {
 		try {
 			if(mFile!=null) {
 				if(!mFile.getOriginalFilename().equals("")) {
-					FileDTO file = new FileDTO();
+					File file = new File();
 					file.setFile_name(mFile.getOriginalFilename());
 					file.setFile_data(mFile.getBytes());
 					file.setFile_size(mFile.getSize());
@@ -505,7 +444,6 @@ public class RestController {
 					board.setFile_id(file.getFile_id());
 				}
 			}
-			Logger.getLogger("RestController").info("cookie value = " + getCookie(req).getValue());
 			board.setCookie_id(Integer.parseInt(getCookie(req).getValue()));
 			versionManagementService.createTempArticleOverwrite(board);
 			resultMap.put("result", "success");
@@ -527,27 +465,26 @@ public class RestController {
 	public ModelAndView autoList(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version,  HttpServletRequest req, HttpServletResponse res) throws Exception{
     	
-    	int currentPageNo = CURRENT_PAGE_NO; 
-		int maxPost = MAX_POST;	
+    	int currentPageNo = Paging.CURRENT_PAGE_NO; 
 		
 		if(req.getParameter("pages") != null)											 
 			currentPageNo = Integer.parseInt(req.getParameter("pages")); 	
 		
-		Paging paging = new Paging(currentPageNo, maxPost); 
+		Paging paging = new Paging(currentPageNo, Paging.MAX_POST); 
 		
-		int offset = (paging.getCurrentPageNo() -1) * paging.getmaxPost(); 
+		int offset = (paging.getCurrentPageNo() -1) * paging.getMaxPost(); 
 		
-		ArrayList<BoardDTO> board = new ArrayList<BoardDTO>(); 
+		ArrayList<Board> board = new ArrayList<Board>(); 
 		
 		HashMap<String, Integer> params = new HashMap<String, Integer>(); 
 		params.put("offset", offset); 
-		params.put("noOfRecords", paging.getmaxPost()); 
+		params.put("noOfRecords", paging.getMaxPost()); 
 		params.put("board_id", board_id); 
 		params.put("version", version); 
 		
 		 // TODO : 메퍼 생성
 		
-		board = (ArrayList<BoardDTO>) boardMapper.autoList(params); 
+		board = (ArrayList<Board>) boardMapper.autoList(params); 
 																			
 		paging.setNumberOfRecords(boardMapper.articleGetCount()); 
 		paging.makePaging(); 

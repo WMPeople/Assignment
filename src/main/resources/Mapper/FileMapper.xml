@@ -3,20 +3,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
  
-<mapper namespace="com.worksmobile.Assignment.Mapper.FileMapper">
+<mapper namespace="com.worksmobile.assignment.Mapper.FileMapper">
 	
- 	<select id="getAllFile" resultType="com.worksmobile.Assignment.Domain.FileDTO">
+ 	<select id="getAllFile" resultType="com.worksmobile.assignment.Model.File">
 		SELECT file_id, file_name, file_data, file_size
 		FROM file;
 	</select>
  	
- 	<select id="getFile" parameterType ="int" resultType="com.worksmobile.Assignment.Domain.FileDTO">
+ 	<select id="getFile" parameterType ="int" resultType="com.worksmobile.assignment.Model.File">
 		SELECT file_id, file_name, file_data, file_size
 		FROM file
 		WHERE file_id = #{file_id};  
 	</select>
 	
- 	 <insert id="createFile" useGeneratedKeys="true" keyProperty="file_id" parameterType="com.worksmobile.Assignment.Domain.FileDTO">
+ 	 <insert id="createFile" useGeneratedKeys="true" keyProperty="file_id" parameterType="com.worksmobile.assignment.Model.File">
         INSERT INTO file
         ( file_name,file_data,file_size)
         VALUES ( #{file_name},#{file_data,jdbcType=BLOB},#{file_size})

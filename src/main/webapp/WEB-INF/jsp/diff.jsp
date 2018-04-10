@@ -17,7 +17,7 @@
 </HEAD>
 
 <BODY>
-	<button TYPE="BUTTON" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/Assignment'">홈으로</button> 
+	<button TYPE="BUTTON" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/assignment'">홈으로</button> 
 	<H2>Demo of Diff</H2>
 	<SCRIPT>
 		var dmp = new diff_match_patch();
@@ -43,7 +43,30 @@
 			var d2 = dmp.diff_main(text2, text1);
 			dmp.diff_cleanupSemantic(d2);
 			var ds = dmp.diff_prettyHtml(d1,d2);
-			console.log(d2);
+			
+			console.log(d1);
+			var length = d1.length;
+			var count = 0;
+			var nextVal =0;
+			for(var i = 0 ; i < d1.length ; i++){
+				if(d1[i][0] != 0){
+					count++;
+					
+					while(d1[i][1].search('\n')!= -1){
+						nextVal++;
+						console.log (d1[i][0]+ ' test '+d1[i][1]);
+						d1[i][1] = d1[i][1].substring(d1[i][1].search('\n')+2);
+						
+					}
+				}
+			}
+			console.log(text1.length); //text1 길이
+			console.log(text2.length); //text2 길이
+			//tex2 - text 1 절댓값 구해야함 
+			console.log(length); // 배열사이즈
+			console.log(count); //-1 ,1 개수
+			console.log(nextVal); // 개행 개수
+			
 			
 			//시간 출력
 // 			document.getElementById('outputdiv').innerHTML = ds + '<BR>Time: '

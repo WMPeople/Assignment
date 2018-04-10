@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Mapper;
+package com.worksmobile.assignment.Mapper;
 
 import static org.junit.Assert.assertNotNull;
 

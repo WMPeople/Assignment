@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Domain;
+﻿package com.worksmobile.assignment.Model;
 
 import java.util.AbstractMap;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import lombok.Setter;
 
 @Data
 @AllArgsConstructor
-public class NodePtrDTO {
+public class NodePtr {
 	@Getter @Setter protected Integer board_id = null;
 	@Getter @Setter protected Integer version = null;
 	@Getter @Setter protected int root_board_id = ISSUE_NEW_BOARD_ID;
@@ -20,8 +20,8 @@ public class NodePtrDTO {
 	public static final Integer ISSUE_NEW_BOARD_ID = -2;
 	public static final int ROOT_BOARD_ID = -1;
 	
-	public NodePtrDTO() { }
-	public NodePtrDTO(Integer board_id, Integer version) {
+	public NodePtr() { }
+	public NodePtr(Integer board_id, Integer version) {
 		this.board_id = board_id;
 		this.version = version;
 	}

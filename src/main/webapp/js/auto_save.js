@@ -1,6 +1,7 @@
 $(document).ready(function(){
 
 (function () {
+  var count =0; // db 접근 횟수
   var autoSave = new Object();
   (function (obj) {
     obj.configuration = {
@@ -10,6 +11,7 @@ $(document).ready(function(){
       var textEle = document.querySelector('#content');
       var textVal = textEle.value;
       var ref1, ref2, ref3; // Newer -&gt; Older
+      
 
       // Save to localStorage
       var encodedTextVal = btoa(unescape(encodeURIComponent(textVal)));
@@ -29,7 +31,7 @@ $(document).ready(function(){
 			data : formData,
 			processData : false,
 			contentType : false,
-			url : "/Assignment/boards/autosave",
+			url : "/assignment/boards/autosave",
 			success : function(result) {
 				if (result.result == 'success') {
 					console.log("자동 저장 성공");
@@ -41,7 +43,10 @@ $(document).ready(function(){
 				alert(error);
 			}
 		});
+		 count++;
+	     console.log(count);
       }
+     
       else if (!window.localStorage) {
         console.log('Error' + ': Your browser not support')
         return false;
