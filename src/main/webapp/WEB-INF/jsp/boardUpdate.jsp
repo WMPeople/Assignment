@@ -40,7 +40,7 @@
 					<li class="opt_file">
 						<h3 class="tx">파일첨부</h3> <c:if test="${param.file_name != ''}">
 							<span class="date" id="test">첨부 파일 : <a
-								href="${path}/Assignment/boards/download/${param.file_id}/"
+								href="${path}/assignment/boards/download/${param.file_id}/"
 								name="file">${param.file_name} </a> (${param.file_size})
 								<button type="button" id="fileUpdate" class="btn tx_point _save">파일
 									수정</button>
@@ -99,9 +99,9 @@ $("#btnUpdate").click(function(){
 		var urlStr;
 		//원본 게시물에 파일이 있지만 수정하지 않았을 때
 		if (file_name != null && $("#fileUp").val() == null) {
-			urlStr = "/Assignment/boards/update3";
+			urlStr = "/assignment/boards/update3";
 		} else {
-			urlStr = "/Assignment/boards/update2";
+			urlStr = "/assignment/boards/update2";
 		}
 		$.ajax({
 			type : "POST",
@@ -113,7 +113,7 @@ $("#btnUpdate").click(function(){
 			success : function(result) {
 				if (result.result == "success") {
 					alert("보드 수정 완료");
-					location.href = "/Assignment/";
+					location.href = "/assignment/";
 				} else {
 					alert(result.result);
 				}

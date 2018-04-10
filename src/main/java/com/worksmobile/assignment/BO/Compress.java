@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Service;
+package com.worksmobile.assignment.BO;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -8,8 +8,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import com.worksmobile.Assignment.Domain.BoardDTO;
-import com.worksmobile.Assignment.util.Utils;
+import com.worksmobile.assignment.Model.Board;
+import com.worksmobile.assignment.Util.Utils;
 
 public class Compress {
 
@@ -62,7 +62,7 @@ public class Compress {
 		return new String(contentByte, StandardCharsets.UTF_8);
 	}
 	
-	public static byte[] compressArticleContent(BoardDTO article) throws RuntimeException {
+	public static byte[] compressArticleContent(Board article) throws RuntimeException {
 		byte[] compressedContent = null;
 		try {
 			compressedContent = Compress.compress(article.getContent());

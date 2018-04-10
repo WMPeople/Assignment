@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment;
+package com.worksmobile.assignment;
 
 import javax.sql.DataSource;
 

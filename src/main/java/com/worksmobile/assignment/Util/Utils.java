@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.util;
+package com.worksmobile.assignment.Util;
 
 import static org.junit.Assert.assertEquals;
 

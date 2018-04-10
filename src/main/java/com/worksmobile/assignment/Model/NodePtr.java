@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Domain;
+package com.worksmobile.assignment.Model;
 
 import java.util.AbstractMap;
 import java.util.HashMap;
@@ -11,16 +11,16 @@ import lombok.Setter;
 
 @Data
 @AllArgsConstructor
-public class NodePtrDTO {
+public class NodePtr {
 	@Getter @Setter protected Integer board_id = null;
 	@Getter @Setter protected Integer version = null;
 	@Getter @Setter protected int root_board_id;
 	
-	public static final NodePtrDTO DEFAULT_NULL_NODE_PTR = new NodePtrDTO();
+	public static final NodePtr DEFAULT_NULL_NODE_PTR = new NodePtr();
 	public static final int LEAF_NODE_COOKIE_ID = 0;
 	
-	public NodePtrDTO() { }
-	public NodePtrDTO(Integer board_id, Integer version) {
+	public NodePtr() { }
+	public NodePtr(Integer board_id, Integer version) {
 		this.board_id = board_id;
 		this.version = version;
 	}

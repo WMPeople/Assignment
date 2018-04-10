@@ -1,12 +1,12 @@
-package com.worksmobile.Assignment.Domain;
+package com.worksmobile.assignment.Model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.worksmobile.Assignment.util.Utils;
+import com.worksmobile.assignment.Util.Utils;
 
 import lombok.Getter;
 import lombok.Setter;
 
-public class DiffNodePtrDTO {
+public class DiffNodePtr {
 	@Getter @Setter private int board_id1;
 	@Getter @Setter private int version1;
 	
@@ -22,12 +22,12 @@ public class DiffNodePtrDTO {
 		}
 	}
 	
-	public NodePtrDTO getLeftPtrDTO() {
-		return new NodePtrDTO(board_id1, version1);
+	public NodePtr getLeftPtr() {
+		return new NodePtr(board_id1, version1);
 	}
 	
-	public NodePtrDTO getRightPtrDTO() {
-		return new NodePtrDTO(board_id2, version2);
+	public NodePtr getRightPtr() {
+		return new NodePtr(board_id2, version2);
 	}
 }
 

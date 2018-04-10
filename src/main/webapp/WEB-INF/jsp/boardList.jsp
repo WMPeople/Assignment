@@ -17,7 +17,7 @@
 </head>
 <body>
     <h3>게시물 목록</h3> 
-    <button class="btn btn-primary" style="float : right;" onclick="location.href='/Assignment/boards'">글쓰기</button>
+    <button class="btn btn-primary" style="float : right;" onclick="location.href='/assignment/boards'">글쓰기</button>
  
     <table class="table">
         <tr>
@@ -33,11 +33,11 @@
         <tr>
             <td>${board.board_id}</td>
             <td>${board.version}</td>
-       		<td><a href="${path}/Assignment/boards/${board.board_id}/${board.version}/${board.cookie_id}">${board.subject}</a></td>
+       		<td><a href="${path}/assignment/boards/${board.board_id}/${board.version}/${board.cookie_id}">${board.subject}</a></td>
             <td>${board.created}</td>
 			<td> 
 			<button class="btn btn-primary" id="btnDelete" onclick="btnDelete(${board.board_id},${board.version},${board.cookie_id});">삭제</button> 
-			<button class="btn btn-primary" id="btnManagement" onclick="location.href='${path}/Assignment/boards/management/${board.board_id}/${board.version}'">버전관리</button>
+			<button class="btn btn-primary" id="btnManagement" onclick="location.href='${path}/assignment/boards/management/${board.board_id}/${board.version}'">버전관리</button>
 			</td> 
         </tr>
          </c:if>
@@ -89,11 +89,11 @@ function btnDelete(board_id,version){
 	if(deleteConfirm){
 		 $.ajax({
 		        type: "DELETE",
-		        url: "${path}/Assignment/boards/"+board_id+"/"+version,
+		        url: "${path}/assignment/boards/"+board_id+"/"+version,
 		        success: function(result){
 		        	if(result.result == 'success'){
 		        		alert("삭제완료");
-		        		location.href = "/Assignment/";
+		        		location.href = "/assignment/";
 		        	}
 		        	else{
 		        		alert(result.result);

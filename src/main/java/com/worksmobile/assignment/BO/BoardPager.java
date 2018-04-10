@@ -1,4 +1,4 @@
-package com.worksmobile.Assignment.Service;
+package com.worksmobile.assignment.BO;
 
 public class BoardPager {
     // 페이지당 게시물 수

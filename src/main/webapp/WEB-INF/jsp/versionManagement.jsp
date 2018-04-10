@@ -18,7 +18,7 @@
 <body>
 	
 
-    <h3>버전 관리 페이지 <button TYPE="BUTTON" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/Assignment'">홈으로</button></h3> 
+    <h3>버전 관리 페이지 <button TYPE="BUTTON" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/assignment'">홈으로</button></h3> 
     
     <!--     DIFF 임 -->
 	<form method="post" name="diffForm">
@@ -46,7 +46,7 @@
             onchange="cbox.remain_two(this);"></td>
             <td>${boardHistory.board_id}</td>
             <td>${boardHistory.version}</td>
-            <td><a href="${path}/Assignment/history/${boardHistory.board_id}/${boardHistory.version}">${boardHistory.history_subject}</a></td>
+            <td><a href="${path}/assignment/history/${boardHistory.board_id}/${boardHistory.version}">${boardHistory.history_subject}</a></td>
             <td>${boardHistory.created}</td>
             <td>${boardHistory.status}</td>
        		<td>
@@ -97,7 +97,7 @@ var cbox = new remain_two_obj('cbox');
 function btnVersionDelete(board_id,version){
 	  $.ajax({
 	        type: "DELETE",
-	        url: "${path}/Assignment/boards/version/"+board_id+"/"+version,
+	        url: "${path}/assignment/boards/version/"+board_id+"/"+version,
 	        success: function(result){
 	        	if(result.result == 'success'){
 	        		alert("삭제완료");
@@ -115,11 +115,11 @@ function btnVersionDelete(board_id,version){
 function btnDelete(board_id,version){
 	  $.ajax({
 	        type: "DELETE",
-	        url: "${path}/Assignment/boards/"+board_id+"/"+version,
+	        url: "${path}/assignment/boards/"+board_id+"/"+version,
 	        success: function(result){
 	        	if(result.result == 'success'){
 	        		alert("삭제완료");
-	        		location.href = "/Assignment/";
+	        		location.href = "/assignment/";
 	        	}
 	        	else{
 	        		alert(result.result);
@@ -138,11 +138,11 @@ function btnRecover(board_id,version){
 	var leafVersion = Number(tableSearch.rows[1].cells[2].innerHTML);
 	  $.ajax({
 	        type: "GET",
-	        url: "${path}/Assignment/boards/recover/"+board_id+"/"+version+"/"+leafBoard_id+"/"+leafVersion,
+	        url: "${path}/assignment/boards/recover/"+board_id+"/"+version+"/"+leafBoard_id+"/"+leafVersion,
 	        success: function(result){
 	        	if(result.result == 'success'){
 	        		alert("복원완료");
-	        		location.href='${path}/Assignment/boards/management/'+result.board_id+'/'+result.version;
+	        		location.href='${path}/assignment/boards/management/'+result.board_id+'/'+result.version;
 	        	}
 	        	else{
 	        		alert(result.result);
@@ -175,7 +175,7 @@ function btnDiff(){
 	}
 	var fm = document.diffForm;
 	fm.method='post';
-	fm.action='${path}/Assignment/boards/diff';
+	fm.action='${path}/assignment/boards/diff';
 	fm.submit();
 }
 </script>
