@@ -85,7 +85,8 @@ public class VersionManagementService {
 	}
 
 	/**
-	 *  압축은 충돌영역에서 제외하기위함.
+	 *  게시판 DB 와 이력 DB 에 둘다 등록합니다.
+	 *  article의 board_id가 새로 발급 해야 하면 DB의 자동 증가를 통해 증가 됩니다.
 	 * @param article 등록할 게시물의 제목, 내용, 첨부파일이 사용됩니다.
 	 * @param version 새로운 게시물의 버전
 	 * @param status 게시물 이력의 상태에 들어갈 내용
@@ -96,34 +97,16 @@ public class VersionManagementService {
 		if(parentNodePtr == null) {
 			throw new RuntimeException("createArticleAndHistory메소드 parentNodePtr은 null 이 될 수 없습니다. ");
 		}
-		byte[] compressedContent = Compress.compressArticleContent(article);
 
-		return createArticleAndHistory(article, version, status, compressedContent, parentNodePtr);
-	}
-	
-	/***
-	 *  충돌 영역! 게시판 DB 와 이력 DB 에 둘다 등록합니다.
-	 *  article의 board_id가 -2이면 1증가 시켜 작성합니다.
-	 * @param article 등록할 게시물의 제목, 내용, 첨부파일이 사용됩니다.
-	 * @param version 새로운 게시물의 버전
-	 * @param status 게시물 이력의 상태에 들어갈 내용
-	 * @param compressedContent 압축된 내용
-	 * @param parentNodePtr 게시물의 부모 노드 포인터
-	 * @return 새롭게 생성된 게시글 이력 
-	 */
-	synchronized private BoardHistory createArticleAndHistory(Board article, int version, final String status,
-			final byte[] compressedContent, NodePtr parentNodePtr) {
+		byte[] compressedContent = Compress.compressArticleContent(article);
 
 		NodePtr createdNodePtr;
 		if (article.getBoard_id() == NodePtr.ISSUE_NEW_BOARD_ID) { // 새로 발급하는 경우..? 새로운 게시글, 충돌 관리 일때
-			int newBoardId = boardMapper.getLeapNodeMaxBoardId() + 1;
-			createdNodePtr = new NodePtr(newBoardId, version, NodePtr.ROOT_BOARD_ID);
-			if(parentNodePtr.getBoard_id() == null) {	// 새로운 게시글
-				parentNodePtr.setRoot_board_id(newBoardId);
-			}
+			createdNodePtr = new NodePtr(article.getBoard_id(), version, NodePtr.ROOT_BOARD_ID);
 		} else {
 			createdNodePtr = new NodePtr(parentNodePtr.getBoard_id(), version, parentNodePtr.getRoot_board_id());
 		}
+
 		BoardHistory boardHistory;
 		if(version == 0) {	// 루트 노드일 경우
 			// 안보이는 루트를 먼저 만듦.
@@ -135,26 +118,33 @@ public class VersionManagementService {
 			}
 			
 			// 보이는 루트를 만듦.
-			boardHistory = new BoardHistory(article, createdNodePtr, status);
+			boardHistory = new BoardHistory(article, rootHistory, status);
 			boardHistory.setParentNodePtrAndRoot(rootHistory);
 			boardHistory.setVersion(NodePtr.VISIBLE_ROOT_VERSION);
-			boardHistory.setRoot_board_id(createdNodePtr.getBoard_id());
+			boardHistory.setRoot_board_id(rootHistory.getBoard_id());
+			
+			boardHistory.setHistory_content(compressedContent);
+			insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
+			if(insertedRowCnt != 1) {
+				String json = JsonUtils.jsonStringIfExceptionToString(boardHistory);
+				throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\nrootHistory : " + json);
+			}
 		}
-		else {
+		else {// 루트가 아닌 리프 노드일 경우 (중간 노드일 경우는 없음)
 			boardHistory = new BoardHistory(article, createdNodePtr, status);
 			boardHistory.setParentNodePtrAndRoot(parentNodePtr);
-		}
-		boardHistory.setHistory_content(compressedContent);
-		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
-		if(insertedRowCnt != 1) {
-			String json = JsonUtils.jsonStringIfExceptionToString(boardHistory);
-			throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\nrootHistory : " + json);
+			boardHistory.setHistory_content(compressedContent);
+			int insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
+			if(insertedRowCnt != 1) {
+				String json = JsonUtils.jsonStringIfExceptionToString(boardHistory);
+				throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\nrootHistory : " + json);
+			}
 		}
 		
 		article.setNodePtr(boardHistory);
 		article.setCreated(boardHistory.getCreated());
 		
-		insertedRowCnt = boardMapper.boardCreate(article);
+		int insertedRowCnt = boardMapper.boardCreate(article);
 		if(insertedRowCnt != 1) {
 			throw new RuntimeException("createArticle메소드에서 boardCreate error" + boardHistory);
 		}
@@ -190,7 +180,7 @@ public class VersionManagementService {
 	}
 	
 	/***
-	 * 부모 버전이 있을 때 새로운 버전을 등록합니다.
+	 * 새로운 버전을 등록합니다. 충돌 관리가 적용되어 있습니다.
 	 * @param modifiedBoard 새롭게 등록될 게시글에 대한 정보. cookie_id가 존재하면 자동 저장 내역이 삭제 됩니다.
 	 * @param parentPtr 부모를 가리키는 노드 포인터.
 	 * @return 새롭게 생성된 리프 노드를 가리킵니다.
@@ -204,7 +194,8 @@ public class VersionManagementService {
 	}
 	
 	/***
-	 * 리프 노드일시 자동저장 게시글은 삭제 되지 않습니다.
+	 * 새로운 게시글 번호로 할당할지를 판단 하여 생성합니다.
+	 * 새로운 리프를 등록하기 때문에 리프 노드 경우엔 삭제 됩니다. 단, 자동저장 게시글은 삭제 되지 않습니다.
 	 * @param board 새로운 버전의 게시글의 내용
 	 * @param parentPtr 부모가 될 노드의 포인터
 	 * @param status 게시글 이력에 남길 상태
@@ -218,6 +209,7 @@ public class VersionManagementService {
 			if(deletedCnt != 1) {
 				throw new RuntimeException("delete cnt expected  but " + deletedCnt);
 			}
+			board.setBoard_id(dbParentPtr.getBoard_id());
 		} else {
 			board.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
 		}

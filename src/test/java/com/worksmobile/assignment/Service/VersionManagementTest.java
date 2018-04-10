@@ -51,7 +51,6 @@ public class VersionManagementTest {
 		defaultBoard = new Board();
 		defaultBoard.setSubject("versionTestSub");
 		defaultBoard.setContent("versionTestCont");
-		;
 
 		defaultCreated = versionManagementService.createArticle(defaultBoard);
 	}
@@ -95,7 +94,6 @@ public class VersionManagementTest {
 		Board defaultBoard2 = new Board();
 		defaultBoard2.setSubject("versionTestSub2");
 		defaultBoard2.setContent("versionTestCont2");
-		;
 
 		defaultCreated = versionManagementService.createArticle(defaultBoard2);
 		
@@ -362,6 +360,28 @@ public class VersionManagementTest {
 			NodePtr relatedEle = relatedHistoryList.get(i);
 			NodePtr addedEle = leafToRoot.get(i);
 			assertEquals(relatedEle, addedEle);
+		}
+	}
+	
+	@Test
+	public void testBoardIdIsSequenceNumber() {
+		int boardCnt = 10;
+		List<BoardHistory> boardHistoryList = new ArrayList<>(boardCnt);
+		for(int i = 0; i < boardCnt; i++) {
+			BoardHistory created = versionManagementService.createArticle(defaultBoard);
+			boardHistoryList.add(created);
+		}
+		
+		for(int i = 1; i < boardCnt; i++) {
+			int beforeBoardId = boardHistoryList.get(i - 1).getBoard_id();
+			int currentBoardId = boardHistoryList.get(i).getBoard_id();
+			assertEquals(beforeBoardId + 1, currentBoardId);
+		}
+		
+		for(BoardHistory ele : boardHistoryList) {
+			Board dbBoard = boardMapper.viewDetail(ele.toMap());
+			assertNotNull(dbBoard);
+			assertEquals(dbBoard.getBoard_id(), ele.getBoard_id());
 		}
 	}
 }

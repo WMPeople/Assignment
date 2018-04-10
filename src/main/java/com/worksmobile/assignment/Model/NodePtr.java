@@ -14,11 +14,11 @@ import lombok.Setter;
 public class NodePtr {
 	@Getter @Setter protected Integer board_id = null;
 	@Getter @Setter protected Integer version = null;
-	@Getter @Setter protected int root_board_id = ISSUE_NEW_BOARD_ID;
+	@Getter @Setter protected int root_board_id;
 	
 	public static final int INVISIBLE_ROOT_VERSION = 0;
 	public static final int VISIBLE_ROOT_VERSION = INVISIBLE_ROOT_VERSION + 1;
-	public static final Integer ISSUE_NEW_BOARD_ID = -2;
+	public static final Integer ISSUE_NEW_BOARD_ID = null;
 	public static final int ROOT_BOARD_ID = -1;
 	
 	public NodePtr() { }

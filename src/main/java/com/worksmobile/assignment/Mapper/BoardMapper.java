@@ -33,8 +33,6 @@ public interface BoardMapper {
 	
 	public File boardFileDownload(HashMap<String,Integer> params) ;
 
-	public int getLeapNodeMaxBoardId();
-	
 	public int getMaxCookieId();
 	
 	public List<Board> articleList(HashMap<String, Integer> params);
