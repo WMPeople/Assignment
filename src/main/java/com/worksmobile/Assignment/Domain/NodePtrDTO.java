@@ -14,10 +14,11 @@ import lombok.Setter;
 public class NodePtrDTO {
 	@Getter @Setter protected Integer board_id = null;
 	@Getter @Setter protected Integer version = null;
-	@Getter @Setter protected int root_board_id;
+	@Getter @Setter protected int root_board_id = ISSUE_NEW_BOARD_ID;
 	
-	public static final NodePtrDTO DEFAULT_NULL_NODE_PTR = new NodePtrDTO();
 	public static final int LEAF_NODE_COOKIE_ID = 0;
+	public static final Integer ISSUE_NEW_BOARD_ID = -2;
+	public static final int ROOT_BOARD_ID = -1;
 	
 	public NodePtrDTO() { }
 	public NodePtrDTO(Integer board_id, Integer version) {

@@ -6,12 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.worksmobile.Assignment.Domain.BoardDTO;
 import com.worksmobile.Assignment.Domain.BoardHistoryDTO;
 import com.worksmobile.Assignment.Domain.NodePtrDTO;
@@ -82,7 +80,8 @@ public class VersionManagementService {
 	@Transactional
 	public BoardHistoryDTO createArticle(BoardDTO article) {
 		// 버전 0은 안보이는 루트를 위함. 보이는 루트는 1로 지정.
-		return createArticleAndHistory(article, 0, BoardHistoryDTO.STATUS_CREATED, NodePtrDTO.DEFAULT_NULL_NODE_PTR);
+		article.setBoard_id(NodePtrDTO.ISSUE_NEW_BOARD_ID);
+		return createArticleAndHistory(article, 0, BoardHistoryDTO.STATUS_CREATED, new NodePtrDTO());
 	}
 
 	/**
@@ -104,7 +103,7 @@ public class VersionManagementService {
 	
 	/***
 	 *  충돌 영역! 게시판 DB 와 이력 DB 에 둘다 등록합니다.
-	 *  게시판 id를 1증가 시켜 작성합니다.
+	 *  article의 board_id가 -2이면 1증가 시켜 작성합니다.
 	 * @param article 등록할 게시물의 제목, 내용, 첨부파일이 사용됩니다.
 	 * @param version 새로운 게시물의 버전
 	 * @param status 게시물 이력의 상태에 들어갈 내용
@@ -112,11 +111,16 @@ public class VersionManagementService {
 	 * @param parentNodePtr 게시물의 부모 노드 포인터
 	 * @return 새롭게 생성된 게시글 이력 DTO
 	 */
-	synchronized private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final byte[] compressedContent, final NodePtrDTO parentNodePtr) {
-		int last_board_id = boardMapper.getMaxBoardId() + 1;
-		NodePtrDTO newNodePtrDTO = new NodePtrDTO(last_board_id, version);
-		if(parentNodePtr.getRoot_board_id() == 0) {
-			parentNodePtr.setRoot_board_id(last_board_id);
+	synchronized private BoardHistoryDTO createArticleAndHistory(BoardDTO article, int version, final String status, final byte[] compressedContent, NodePtrDTO parentNodePtr) {
+		NodePtrDTO newNodePtrDTO;
+		if(article.getBoard_id() == NodePtrDTO.ISSUE_NEW_BOARD_ID) {	// 새로 발급하는 경우..? 새로운 게시글, 충돌 관리 일때
+			int last_board_id = boardMapper.getLeapNodeMaxBoardId() + 1;
+			newNodePtrDTO = new NodePtrDTO(last_board_id, version, NodePtrDTO.ROOT_BOARD_ID);
+			if(parentNodePtr.getBoard_id() == null) {	// 새로운 게시글
+				parentNodePtr.setRoot_board_id(last_board_id);
+			}
+		} else {
+			newNodePtrDTO = new NodePtrDTO(parentNodePtr.getBoard_id(), version, parentNodePtr.getRoot_board_id());
 		}
 		BoardHistoryDTO boardHistoryDTO;
 		if(version == 0) {	// 루트 노드일 경우
@@ -210,18 +214,19 @@ public class VersionManagementService {
 	 * @return 생성된 게시글의 포인터
 	 */
 	synchronized private NodePtrDTO createVersionWithBranch(BoardDTO boardDTO, NodePtrDTO parentPtrDTO, final String status) {
-		BoardDTO board = boardMapper.viewDetail(parentPtrDTO.toMap());
-		if(board != null) {
-			int deletedCnt = boardMapper.boardDeleteWithCookieId(parentPtrDTO.toMap());
+		NodePtrDTO dbParentPtr = boardHistoryMapper.getHistory(parentPtrDTO); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는
+																				// 존재하지 않는 값을 줬을때)
+		List<BoardHistoryDTO> childrenList= boardHistoryMapper.getChildren(dbParentPtr);
+		if(childrenList.size() == 0) {
+			int deletedCnt = boardMapper.boardDeleteWithCookieId(dbParentPtr.toMap());
 			if(deletedCnt != 1) {
 				throw new RuntimeException("delete cnt expected  but " + deletedCnt);
 			}
-			parentPtrDTO = board;
 		} else {
-			parentPtrDTO = boardHistoryMapper.getHistory(parentPtrDTO);
+			boardDTO.setBoard_id(NodePtrDTO.ISSUE_NEW_BOARD_ID);
 		}
 		
-		return createArticleAndHistory(boardDTO, parentPtrDTO.getVersion() + 1, status, parentPtrDTO);
+		return createArticleAndHistory(boardDTO, dbParentPtr.getVersion() + 1, status, dbParentPtr);
 	}
 	
 	private boolean isLeaf(final NodePtrDTO nodePtrDTO) {
@@ -235,20 +240,6 @@ public class VersionManagementService {
 		}
 	}
 	
-	private void updateHistoryParentPtr(BoardHistoryDTO boardHistoryDTO) {
-		int updatedCnt = boardHistoryMapper.updateHistoryParentAndRoot(boardHistoryDTO);
-		if(updatedCnt != 1) {
-			String json;
-			try {
-				json = Utils.jsonStringFromObject(boardHistoryDTO);
-			} catch(Exception e) {
-				json = " to json error";
-			}
-			throw new RuntimeException("updateRowCnt expected 1 but : " + updatedCnt + "\n" +
-										"in " + json);
-		}
-	}
-
 	/***
 	 * 특정 버전에 대한 이력 1개를 삭제합니다. leaf노드이면 게시글도 삭제 됩니다. 
 	 * 부모의 이력은 삭제되지 않음을 유의 해야 합니다.
@@ -306,7 +297,12 @@ public class VersionManagementService {
 		else {// 중간노드 일 경우
 			for(BoardHistoryDTO childHistoryDTO : deleteNodeChildren) {
 				childHistoryDTO.setParentNodePtrAndRoot(parentPtrDTO);
-				updateHistoryParentPtr(childHistoryDTO);
+				int updatedCnt = boardHistoryMapper.updateHistoryParentAndRoot(childHistoryDTO);
+				if(updatedCnt != 1) {
+					String json = Utils.jsonStringIfExceptionToString(childHistoryDTO);
+					throw new RuntimeException("updateRowCnt expected 1 but : " + updatedCnt + "\n" +
+												"in " + json);
+				}
 			}
 		}
 		return null;
