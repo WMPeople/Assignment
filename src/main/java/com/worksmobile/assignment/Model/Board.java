@@ -10,7 +10,9 @@ public class Board extends NodePtr{
 	@Setter @Getter private String content;
 	@Setter @Getter private String created;
 	@Setter @Getter private int file_id;
-	@Setter @Getter private int cookie_id = NodePtr.LEAF_NODE_COOKIE_ID;
+	@Setter @Getter private String cookie_id = LEAF_NODE_COOKIE_ID;
+	
+	public final static String LEAF_NODE_COOKIE_ID = "LEAF_NODE_COOKIE_ID";
 	
 	public Board() { }
 	/***
@@ -34,8 +36,8 @@ public class Board extends NodePtr{
 		root_board_id = nodePtr.getRoot_board_id();
 	}
 	@Override
-	public HashMap<String, Integer> toMap() {
-		HashMap<String, Integer> map = new HashMap<>();
+	public HashMap<String, Object> toMap() {
+		HashMap<String, Object> map = new HashMap<>();
 		map.put("board_id", board_id);
 		map.put("version", version);
 		map.put("cookie_id",cookie_id);

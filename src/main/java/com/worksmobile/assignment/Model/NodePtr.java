@@ -17,7 +17,6 @@ public class NodePtr {
 	@Getter @Setter protected int root_board_id;
 	
 	public static final NodePtr DEFAULT_NULL_NODE_PTR = new NodePtr();
-	public static final int LEAF_NODE_COOKIE_ID = 0;
 	
 	public NodePtr() { }
 	public NodePtr(Integer board_id, Integer version) {
@@ -25,11 +24,11 @@ public class NodePtr {
 		this.version = version;
 	}
 
-	public HashMap<String, Integer> toMap() {
-		HashMap<String, Integer> map = new HashMap<>();
+	public HashMap<String, Object> toMap() {
+		HashMap<String, Object> map = new HashMap<>();
 		map.put("board_id", board_id);
 		map.put("version", version);
-		map.put("cookie_id", LEAF_NODE_COOKIE_ID);
+		map.put("cookie_id", Board.LEAF_NODE_COOKIE_ID);
 		return map;
 	}
 	

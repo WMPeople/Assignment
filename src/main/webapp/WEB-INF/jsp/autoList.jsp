@@ -30,7 +30,7 @@
         </tr>
         
         <c:forEach var="board" items="${board}">
-        <c:if test="${board.cookie_id ne 0}">
+        <c:if test="${board.cookie_id ne 'LEAF_NODE_COOKIE_ID'}">
         <tr>
             <td>${board.board_id}</td>
             <td>${board.version}</td>

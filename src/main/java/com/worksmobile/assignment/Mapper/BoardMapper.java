@@ -23,14 +23,14 @@ public interface BoardMapper {
 	 * @param parmas HashMap(board_id, version)
 	 * @return
 	 */
-	public int boardDelete(HashMap<String, Integer> parmas) ;
+	public int boardDelete(HashMap<String, Object> parmas) ;
 
 	
-	public int boardDeleteWithCookieId(HashMap<String, Integer> params);
+	public int boardDeleteWithCookieId(HashMap<String, Object> params);
 
 	public int boardUpdate(Board board) ;
 	
-	public Board viewDetail(HashMap<String, Integer> parmas) ;
+	public Board viewDetail(HashMap<String, Object> parmas) ;
 	
 	public File boardFileDownload(HashMap<String,Integer> params) ;
 

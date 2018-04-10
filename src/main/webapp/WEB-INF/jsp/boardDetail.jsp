@@ -71,10 +71,10 @@
 $(document).ready(function(){
  });
 
-function btnDelete(board_id,version,cookie_id){
+function btnDelete(board_id,version){
     $.ajax({
         type: "DELETE",
-        url: "${path}/assignment/boards/"+board_id+"/"+version+"/"+cookie_id,
+        url: "${path}/assignment/boards/"+board_id+"/"+version,
         success: function(result){
         	if(result.result == 'success'){
         		alert("삭제완료");

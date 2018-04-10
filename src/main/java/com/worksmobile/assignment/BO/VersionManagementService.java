@@ -330,7 +330,7 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public void deleteArticle(NodePtr leafPtr) throws NotLeafNodeException {
-		boolean deleteFileBoolean = false;
+		
 		if(!isLeaf(leafPtr)) {
 			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtr);
 			throw new NotLeafNodeException("node 정보" + leafPtrJson);
@@ -342,6 +342,7 @@ public class VersionManagementService {
 		}
 		
 		while(true) {
+			boolean deleteFileBoolean = false;
 			BoardHistory deleteHistory = boardHistoryMapper.getHistory(leafPtr);
 			if(deleteHistory == null) {
 				break;

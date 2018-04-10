@@ -13,12 +13,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
@@ -55,13 +53,14 @@ public class RestController {
     @Autowired
     private FileService fileService;
     
-   
-    
-    public final static String COOKIE_NAME = "name";
+    public final static String COOKIE_NAME = "cookieName";
     		  
     // TODO : 리팩터링
     public static Cookie getCookie(HttpServletRequest req) {
     	Cookie[] cookies =req.getCookies();
+    	if(cookies == null) {
+    		return null;
+    	}
     	Cookie curCookie= null ;
 		for(int i=0; i<cookies.length; i++){
 			Cookie c = cookies[i];
@@ -74,7 +73,7 @@ public class RestController {
     }
     // TODO : 리팩터링    
      public Cookie creteCookie(HttpServletResponse res) {
-    	String cookieId = UUID.randomUUID().toString();
+    	String cookieId = UUID.randomUUID().toString().replace("-", "");
     	System.out.println(cookieId);
     	Cookie cookie = new Cookie(COOKIE_NAME,cookieId);
     	res.addCookie(cookie);
@@ -86,9 +85,8 @@ public class RestController {
 	 * @param req pages 파라미터에 사용자가 요청한 페이지 번호가 있습니다.
 	 */	
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    @ResponseBody
 	public ModelAndView boardList(HttpServletRequest req, HttpServletResponse res) throws Exception{
-    	if(req.getCookies()==null || req.getCookies().length == 0) {
+    	if(getCookie(req) == null || req.getCookies() == null || req.getCookies().length == 0) {
     		creteCookie(res);
     	}
 
@@ -130,12 +128,11 @@ public class RestController {
 	 * @return 상세보기 화면과 게시물 내용이 맵 형태로 리턴됩니다.
 	 */
 	@RequestMapping(value = "/boards/{board_id}/{version}/{cookie_id}", method = RequestMethod.GET)
-	@ResponseBody
 	public ModelAndView show(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version,
-			@PathVariable(value = "cookie_id") int cookie_id){
+			@PathVariable(value = "cookie_id") String cookie_id){
 		
-		HashMap<String, Integer> params = new HashMap<String, Integer>();
+		HashMap<String, Object> params = new HashMap<String, Object>();
 		params.put("board_id", board_id);
 		params.put("version", version);
 		params.put("cookie_id",cookie_id);
@@ -189,7 +186,6 @@ public class RestController {
 	 * @param attachment 첨부파일 데이터를 받습니다.
 	 */
 	@RequestMapping(value = "/boards", method = RequestMethod.POST)
-	@ResponseBody
 	public Map<String,Object> create(Board board, MultipartHttpServletRequest attachment) {
 		Map<String,Object> resultMap = new HashMap<>();
 		
@@ -199,6 +195,7 @@ public class RestController {
 		}
 		else {
 			fileMapper.createFile(file);
+			board.setFile_id(file.getFile_id());
 		}
 		versionManagementService.createArticle(board);
 		resultMap.put("result", "success");
@@ -212,14 +209,16 @@ public class RestController {
 	 * @param attachment 첨부파일 데이터를 받습니다.
 	 */
 	@RequestMapping(value = "/boards/update2", method = RequestMethod.POST)
-	@ResponseBody
 	public Map<String,Object> updateWithoutAttachment(Board board, MultipartHttpServletRequest attachment) 
 	{
 		Map<String,Object> resultMap = new HashMap<>();
 		File file = fileService.uploadFile(attachment);
-		fileMapper.createFile(file);
-		board.setFile_id(file.getFile_id());
-				
+		
+		if(file != null) {
+			fileMapper.createFile(file);
+			board.setFile_id(file.getFile_id());
+		}
+		
 		NodePtr leapPtr = new NodePtr(board.getBoard_id(),board.getVersion());
 		NodePtr newNode = versionManagementService.modifyVersion(board, leapPtr);	
 		
@@ -239,18 +238,13 @@ public class RestController {
 	 * 글 수정 전 자신의 첨부파일을 DB에서 가져와 새로운 게시물에 등록합니다.
 	 */
 	@RequestMapping(value = "/boards/update3", method = RequestMethod.POST)
-	@ResponseBody
 	public Map<String,Object> updateMaintainAttachment(Board board) {
 		
 		Map<String,Object> resultMap = new HashMap<String,Object>();
 		try {
-			Board pastBoard = new Board();
 			
-			HashMap<String, Integer> params = new HashMap<String, Integer>();
-			params.put("board_id", board.getBoard_id());
-			params.put("version", board.getVersion());
-			params.put("cookie_id", 0);
-			pastBoard = boardMapper.viewDetail(params);	
+			board.setCookie_id(Board.LEAF_NODE_COOKIE_ID);
+			Board pastBoard = boardMapper.viewDetail(board.toMap());	
 			if(pastBoard == null) {
 				String json = Utils.jsonStringIfExceptionToString(pastBoard);
 				throw new RuntimeException("update3 메소드에서 viewDetail 메소드 실행 에러" + json);
@@ -279,7 +273,6 @@ public class RestController {
 	 * @param version 삭제를 원하는 게시물의 version
 	 */
 	@RequestMapping(value = "/boards/{board_id}/{version}", method = RequestMethod.DELETE)
-	@ResponseBody
 	public Map<String,Object> destroy(@PathVariable(value = "board_id") int board_id,
 			@PathVariable(value = "version") int version) throws Exception {
 		Map<String,Object> resultMap = new HashMap<>();
@@ -301,7 +294,6 @@ public class RestController {
 	 * @return 성공 했는지 실패 했는지를 알려주는 Map을 리턴합니다.
 	 */
 	@RequestMapping(value = "/boards/version/{board_id}/{version}", method = RequestMethod.DELETE)
-	@ResponseBody
 	public Map<String,Object> versionDestory(@PathVariable(value = "board_id") int board_id,
 			@PathVariable(value = "version") int version) {
 		
@@ -311,6 +303,7 @@ public class RestController {
 
 			versionManagementService.deleteVersion(deletePtr);
 			fileService.deleteFile(deletePtr);
+			
 			resultMap.put("result","success");
 		}catch(Exception e){
 			resultMap.put("result",e.getMessage());
@@ -382,7 +375,6 @@ public class RestController {
 	 * @return modelAndView 이력의 상세 내용, board-boardHistory 구분자 , file 데이터 , viewName을 리턴합니다.
 	 */
 	@RequestMapping(value = "/history/{board_id}/{version}", method = RequestMethod.GET)
-	@ResponseBody
 	public ModelAndView history(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version) {
 		
@@ -420,7 +412,6 @@ public class RestController {
 	 * @return
 	 */
 	@RequestMapping(value = "/boards/autosave", method = RequestMethod.POST)
-	@ResponseBody
 	public Map<String,Object> tempArticle(Board board, 
 			HttpServletRequest req, 
 			MultipartHttpServletRequest attachment) {	
@@ -444,7 +435,7 @@ public class RestController {
 					board.setFile_id(file.getFile_id());
 				}
 			}
-			board.setCookie_id(Integer.parseInt(getCookie(req).getValue()));
+			board.setCookie_id((getCookie(req).getValue()));
 			versionManagementService.createTempArticleOverwrite(board);
 			resultMap.put("result", "success");
 		} catch (Exception e) {
@@ -461,7 +452,6 @@ public class RestController {
 	 * 
 	 */	
     @RequestMapping(value = "autos/{board_id}/{version}", method = RequestMethod.GET)
-    @ResponseBody
 	public ModelAndView autoList(@PathVariable(value = "board_id") int board_id, 
 			@PathVariable(value = "version") int version,  HttpServletRequest req, HttpServletResponse res) throws Exception{
     	
@@ -497,6 +487,5 @@ public class RestController {
 		return modelAndView;
 	}
 
-	
-	
+		
 }
