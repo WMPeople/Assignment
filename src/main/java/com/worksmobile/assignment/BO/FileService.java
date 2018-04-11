@@ -1,7 +1,11 @@
 package com.worksmobile.assignment.BO;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,12 +15,14 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import com.worksmobile.assignment.Mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.Mapper.BoardMapper;
 import com.worksmobile.assignment.Mapper.FileMapper;
+import com.worksmobile.assignment.Model.Board;
 import com.worksmobile.assignment.Model.BoardHistory;
 import com.worksmobile.assignment.Model.File;
 import com.worksmobile.assignment.Model.NodePtr;
+import com.worksmobile.assignment.Util.Utils;
 
 /***
- * @author RWS
+ * @author rws
  */
 @Service
 public class FileService {
@@ -59,9 +65,35 @@ public class FileService {
 	
 	/***
 	 * 
+	 * @param tempArticle 새로 만들어질 임시저장 게시글
+	 * @param dbTempArticle DB 안에 있는 임시저장 게시글
+	 */
+	public void deleteFile (Board tempArticle, Board dbTempArticle) {
+		
+		boolean deleteFileBoolean = false;
+		
+		if(dbTempArticle != null) {
+			int curFile_id = dbTempArticle.getFile_id();
+			int afterFile_id = tempArticle.getFile_id();
+			if(curFile_id != 0 && curFile_id != afterFile_id ) {
+				int boardFileCount = boardMapper.getFileCount(curFile_id);
+				int boardHistoryFileCount = boardHistoryMapper.getFileCount(curFile_id);
+				if((boardFileCount + boardHistoryFileCount)  == 1) {
+					deleteFileBoolean=true;
+				}
+			}
+
+			if(deleteFileBoolean) {
+				fileMapper.deleteFile(curFile_id);
+			}
+		}
+	}
+	
+	/***
+	 * 
 	 * @param deletePtr 삭제 할 노드의 포인터
 	 */
-	public void deleteFile (NodePtr deletePtr) {
+	public void deleteFile (Board deletePtr) {
 		boolean deleteFileBoolean = false;
 		
 		BoardHistory deleteHistory = boardHistoryMapper.getHistory(deletePtr);
@@ -81,4 +113,21 @@ public class FileService {
 		}
 		
 	}
+	
+	/***
+	 * 더이상 사용하지 않는 파일을 삭제합니다.
+	 * @param fileIdSet fileId 집합이 들어 있습니다.
+	 */
+	public void deleteNoMoreUsingFile(Set<Integer> fileIdSet) {
+		List<Integer> fileIdList = new ArrayList<Integer>();
+		fileIdList.addAll(fileIdSet);
+		HashMap<String, List<Integer>> param = new HashMap<>();
+		param.put("fileIdList",fileIdList);
+//		int count = fileMapper.count(param);
+//		System.out.println(count);
+//	
+		fileMapper.deleteNoMoreUsingFile(param);
+	}
+
+	
 }

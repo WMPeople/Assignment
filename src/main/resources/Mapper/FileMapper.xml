@@ -26,6 +26,29 @@
 		DELETE FROM file
 		WHERE file_id = #{file_id};
 	</delete>
+	
+	<delete id="deleteNoMoreUsingFile" parameterType = "hashmap">
+	
+		DELETE FROM file WHERE file_id >= 1 AND file_id IN
+		(SELECT file_id
+		FROM
+		(SELECT A.file_id
+		FROM file A
+		WHERE file_id NOT IN(
+		SELECT DISTINCT file_id FROM board WHERE file_id >= 1 AND file_id IN (
+		<foreach collection="fileIdList" item="item" index="index" separator=",">
+			 #{item}
+		</foreach>
+		) 
+		UNION 
+		SELECT DISTINCT file_id FROM board_history WHERE file_id >= 1 AND file_id IN (
+		<foreach collection="fileIdList" item="item" index="index" separator=",">
+			 #{item}
+		</foreach>)))del);
+			
+	</delete>
+	
+	
 	    
     
 </mapper>

@@ -302,10 +302,10 @@ public class RestController {
 			NodePtr deletePtr = new NodePtr(board_id,version);
 
 			versionManagementService.deleteVersion(deletePtr);
-			fileService.deleteFile(deletePtr);
 			
 			resultMap.put("result","success");
 		}catch(Exception e){
+			e.printStackTrace();
 			resultMap.put("result",e.getMessage());
 			return resultMap;
 		}
@@ -417,31 +417,19 @@ public class RestController {
 			MultipartHttpServletRequest attachment) {	
 		
 		Map<String,Object> resultMap = new HashMap<>();
-		MultipartFile mFile = null;
-		Iterator<String> iter = attachment.getFileNames();
-		while(iter.hasNext()) {
-			String uploadFile_name = iter.next();
-			mFile = attachment.getFile(uploadFile_name);
+		
+		File file = fileService.uploadFile(attachment);
+		if (file == null) {
+			board.setFile_id(0);
+		}else {
+			fileMapper.createFile(file);
+			board.setFile_id(file.getFile_id());
 		}
-		try {
-			if(mFile!=null) {
-				if(!mFile.getOriginalFilename().equals("")) {
-					File file = new File();
-					file.setFile_name(mFile.getOriginalFilename());
-					file.setFile_data(mFile.getBytes());
-					file.setFile_size(mFile.getSize());
-				
-					fileMapper.createFile(file);
-					board.setFile_id(file.getFile_id());
-				}
-			}
-			board.setCookie_id((getCookie(req).getValue()));
-			versionManagementService.createTempArticleOverwrite(board);
-			resultMap.put("result", "success");
-		} catch (Exception e) {
-			e.printStackTrace();
-			resultMap.put("result", e.getMessage());
-		}
+
+		board.setCookie_id((getCookie(req).getValue()));
+		versionManagementService.createTempArticleOverwrite(board);
+		resultMap.put("result", "success");
+
 		return resultMap;
 	}
 	

@@ -1,5 +1,6 @@
 package com.worksmobile.assignment.Mapper;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -17,5 +18,9 @@ public interface FileMapper {
 	
 	public int deleteFile(int file_id);
 	
+	public int count(HashMap<String,List<Integer>> fileIdList);
+	
+	public int deleteNoMoreUsingFile(HashMap<String,List<Integer>> fileIdList);
+
 	
 }

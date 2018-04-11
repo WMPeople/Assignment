@@ -3,8 +3,10 @@
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,12 @@ public class VersionManagementService {
 	
 	@Autowired
 	FileMapper fileMapper;
+	
+	@Autowired
+	BoardService boardService;
+	
+	@Autowired
+	FileService fileService;
 	
 	private Map<Map.Entry<Integer, Integer>, BoardHistory> getHistoryMap(int root_board_id) {
 		List<BoardHistory> historyList = boardHistoryMapper.getHistoryByRootBoardId(root_board_id);
@@ -250,30 +258,24 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public NodePtr deleteVersion(final NodePtr deletePtr) {
+		Set<Integer> fileIdSet = new HashSet<>();
 		BoardHistory deleteHistory = boardHistoryMapper.getHistory(deletePtr);
 		NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
 		
 		List<BoardHistory> deleteNodeChildren = boardHistoryMapper.getChildren(deletePtr);
-
-		int deletedCnt = boardMapper.boardDelete(deletePtr.toMap());		// 임시 저장 게시글이 존재 할 수 도 있으므로 history를 지우기 위해서는 필요
-		deletedCnt = boardHistoryMapper.deleteHistory(deletePtr);
-		if(deletedCnt != 1) {
-			String json = Utils.jsonStringIfExceptionToString(deletePtr);
-			throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtr : " + json);
-		}
+ 
+		fileIdSet.addAll(boardService.deleteBoardAndReturnfileIdSet(deletePtr));
 
 		if(deleteNodeChildren.size() == 0) {	// 리프 노드라면
 			BoardHistory parentHistory = boardHistoryMapper.getHistory(parentPtr);
 			
 			Board parent = new Board(parentHistory);
 			List<BoardHistory> parentChildren = boardHistoryMapper.getChildren(parent);
+			
 			if(parentChildren.size() == 0 && parentHistory.isRoot()) {// 루트만 존재하는 경우에는 루트를 지워줍니다.
-				deletedCnt = boardHistoryMapper.deleteHistory(parentHistory);
-				if(deletedCnt != 1) {
-					String json = Utils.jsonStringIfExceptionToString(parentHistory);
-					throw new RuntimeException("deleteVersion메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt + "\ndeletePtr : " + json);
-				}
+				fileIdSet.add(boardService.deleteBoardHistoryAndReturnfileId(parentHistory));
 			}
+			
 			else if(parentChildren.size() == 0 && !parentHistory.isRoot()){	// 루트가 아닌 리프 노드는 게시물 게시판에 존재해야 함.
 				try {
 					String content = Compress.deCompress(parentHistory.getHistory_content());
@@ -286,10 +288,12 @@ public class VersionManagementService {
 				int createdCnt = boardMapper.boardCreate(parent);
 				if(createdCnt == 0) {
 					throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
-							"deleteRowCnt : " + deletedCnt + " createdCnt : " + createdCnt);
+							" createdCnt : " + createdCnt);
 				}
+				fileService.deleteNoMoreUsingFile(fileIdSet);
 				return parent;
 			}
+			fileService.deleteNoMoreUsingFile(fileIdSet);
 		}	// 리프 노드일때 끝
 		else if(deleteHistory.isRoot()) {
 			throw new RuntimeException("루트는 삭제할 수 없습니다.");
@@ -329,41 +333,25 @@ public class VersionManagementService {
 	@Transactional
 	public void deleteArticle(NodePtr leafPtr) throws NotLeafNodeException {
 		
+		Set<Integer> fileIdSet = new HashSet<>();
+		
 		if(!isLeaf(leafPtr)) {
 			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtr);
 			throw new NotLeafNodeException("node 정보" + leafPtrJson);
 		}
-		int deletedCnt = boardMapper.boardDelete(leafPtr.toMap());
-		if(deletedCnt == 0) {
-			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtr);
-			throw new RuntimeException("deleteArticle에서 게시글 삭제 실패 leafPtrJson : " + leafPtrJson);
-		}
+		
+		fileIdSet.addAll(boardService.deleteBoardAndReturnfileIdSet(leafPtr));
 		
 		while(true) {
-			boolean deleteFileBoolean = false;
 			BoardHistory deleteHistory = boardHistoryMapper.getHistory(leafPtr);
 			if(deleteHistory == null) {
 				break;
 			}
 			NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
-			int file_id = deleteHistory.getFile_id();
-			if(file_id != 0) {
-				int fileCount = boardHistoryMapper.getFileCount(file_id);
-				if(fileCount ==1) {
-					deleteFileBoolean=true;
-				}
-			}
-			deletedCnt = boardMapper.boardDelete(leafPtr.toMap());
-			deletedCnt = boardHistoryMapper.deleteHistory(leafPtr);
-			if(deletedCnt == 0) {
-				throw new RuntimeException("deleteArticle메소드에서 게시글이력 테이블 삭제 에러 deletedCnt : " + deletedCnt);
-			}
-			if(deleteFileBoolean) {
-				deletedCnt = fileMapper.deleteFile(file_id);
-				if(deletedCnt != 1) {
-					throw new RuntimeException("파일 삭제 에러");
-				};
-			}
+
+			fileIdSet.addAll(boardService.deleteBoardAndReturnfileIdSet(leafPtr));
+			fileIdSet.add(boardService.deleteBoardHistoryAndReturnfileId(leafPtr));
+
 			List<BoardHistory> children = boardHistoryMapper.getChildren(parentPtr);
 			
 			if(children.size() >= 1) {
@@ -371,38 +359,26 @@ public class VersionManagementService {
 			}
 			leafPtr = parentPtr;
 		}
+		fileService.deleteNoMoreUsingFile(fileIdSet);
 	}
-	
+
 	// TODO : 임시 게시글 만들기.
 	@Transactional
 	public void createTempArticleOverwrite(Board tempArticle) {
-		boolean deleteFileBoolean = false;
+		
 		tempArticle.setRoot_board_id(tempArticle.getBoard_id());			// getHistoryByRootId에서 검색이 가능하도록
 
-		Board dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
+ 		Board dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
 		
 		if(dbTempArticle != null) {
-			int curFile_id = dbTempArticle.getFile_id();
-			int afterFile_id = tempArticle.getFile_id();
-			if(curFile_id != 0 && curFile_id != afterFile_id ) {
-				int fileCount = boardMapper.getFileCount(curFile_id);
-				if(fileCount ==1) {
-					deleteFileBoolean=true;
-				}
-			}
-			
+
 			int articleUpdatedCnt = boardMapper.boardUpdate(tempArticle);
 			if(articleUpdatedCnt != 1 ) {
 				String json = Utils.jsonStringIfExceptionToString(tempArticle);
 				throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
 				"articleUpdatedCnt : " + articleUpdatedCnt);
 			}
-			if(deleteFileBoolean) {
-				int deletedCnt = fileMapper.deleteFile(curFile_id);
-				if(deletedCnt != 1) {
-					throw new RuntimeException("파일 삭제 에러");
-				};
-			}
+			fileService.deleteFile(tempArticle, dbTempArticle);
 		}
 		else {
 			int createdCnt = boardMapper.boardCreate(tempArticle);
