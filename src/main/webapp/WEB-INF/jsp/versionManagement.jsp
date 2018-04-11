@@ -47,7 +47,7 @@
             <td>${boardHistory.board_id}</td>
             <td>${boardHistory.version}</td>
             <td><a href="${path}/assignment/history/${boardHistory.board_id}/${boardHistory.version}">${boardHistory.history_subject}</a></td>
-            <td>${boardHistory.created}</td>
+            <td>${boardHistory.created_time}</td>
             <td>${boardHistory.status}</td>
        		<td>
        		

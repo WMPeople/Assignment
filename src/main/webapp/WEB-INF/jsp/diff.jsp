@@ -62,7 +62,7 @@
 			}
 			console.log(text1.length); //text1 길이
 			console.log(text2.length); //text2 길이
-			//tex2 - text 1 절댓값 구해야함 
+			//TODO tex2 - text 1 절댓값 구해야함 
 			console.log(length); // 배열사이즈
 			console.log(count); //-1 ,1 개수
 			console.log(nextVal); // 개행 개수

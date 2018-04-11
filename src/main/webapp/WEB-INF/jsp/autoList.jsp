@@ -36,7 +36,7 @@
             <td>${board.version}</td>
             <td>${board.cookie_id}</td>
        		<td><a href="${path}/assignment/boards/${board.board_id}/${board.version}/${board.cookie_id}">${board.subject}</a></td>
-            <td>${board.created}</td>
+            <td>${board.created_time}</td>
 			<td> 
 			</td> 
         </tr>
