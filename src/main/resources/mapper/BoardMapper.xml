@@ -37,7 +37,14 @@
     <insert id="boardCreate" parameterType="com.worksmobile.assignment.model.Board">
         INSERT INTO board
         (board_id,version,subject,content,created_time,file_id,root_board_id,cookie_id)
-        VALUES (#{board_id}, #{version},#{subject},#{content},#{created_time},#{file_id},#{root_board_id},#{cookie_id});
+        VALUES (#{board_id}, #{version},#{subject},#{content},
+        <if test="cookie_id == LEAF_NODE_COOKIE_ID">
+                                                                #{created_time}
+        </if>
+        <if test="cookie_id != LEAF_NODE_COOKIE_ID">
+                                                                CURRENT_TIMESTAMP
+        </if>
+                                                                                ,#{file_id},#{root_board_id},#{cookie_id});
     </insert>
     
     <!--  게시물 삭제시 이력 모두 삭제되어야 한다. -->

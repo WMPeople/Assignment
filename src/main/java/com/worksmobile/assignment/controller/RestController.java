@@ -209,8 +209,9 @@ public class RestController {
 	 * @param attachment 첨부파일 데이터를 받습니다.
 	 */
 	@RequestMapping(value = "/boards/update2", method = RequestMethod.POST)
-	public Map<String,Object> updateWithoutAttachment(Board board, MultipartHttpServletRequest attachment) 
-	{
+	public Map<String,Object> updateWithoutAttachment(Board board, MultipartHttpServletRequest attachment, HttpServletRequest req) 
+	{	
+		System.out.println(board.getCookie_id());
 		Map<String,Object> resultMap = new HashMap<>();
 		File file = fileService.uploadFile(attachment);
 		
@@ -220,7 +221,7 @@ public class RestController {
 		}
 		
 		NodePtr leapPtr = new NodePtr(board.getBoard_id(),board.getVersion());
-		NodePtr newNode = versionManagementService.modifyVersion(board, leapPtr);	
+		NodePtr newNode = versionManagementService.modifyVersion(board, leapPtr, getCookie(req).getValue());	
 		
 		if(newNode == null) {
 			resultMap.put("result", "수정 실패");
@@ -238,7 +239,7 @@ public class RestController {
 	 * 글 수정 전 자신의 첨부파일을 DB에서 가져와 새로운 게시물에 등록합니다.
 	 */
 	@RequestMapping(value = "/boards/update3", method = RequestMethod.POST)
-	public Map<String,Object> updateMaintainAttachment(Board board) {
+	public Map<String,Object> updateMaintainAttachment(Board board, HttpServletRequest req) {
 		
 		Map<String,Object> resultMap = new HashMap<String,Object>();
 		try {
@@ -252,7 +253,7 @@ public class RestController {
 			board.setFile_id(pastBoard.getFile_id());
 			
 			NodePtr leapPtr = new NodePtr(board.getBoard_id(),board.getVersion());
-			NodePtr newNode = versionManagementService.modifyVersion(board, leapPtr);	
+			NodePtr newNode = versionManagementService.modifyVersion(board, leapPtr, getCookie(req).getValue());	
 			if (newNode== null) {
 				resultMap.put("result","버전 수정 실패");
 			}
