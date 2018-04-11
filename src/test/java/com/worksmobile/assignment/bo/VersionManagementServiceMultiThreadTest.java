@@ -18,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.worksmobile.assignment.bo.VersionManagementService;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.model.Board;
@@ -107,7 +106,7 @@ public class VersionManagementServiceMultiThreadTest {
 		child.setSubject("childSub");
 		child.setContent("childCont");
 		
-		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr);
+		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr, null);
 		child.setNodePtr(childPtr);
 		
 		Board leapBoard = boardMapper.viewDetail(childPtr.toMap());
@@ -160,7 +159,7 @@ public class VersionManagementServiceMultiThreadTest {
 				int randIdx = (int) (Math.random() * THREAD_COUNT);
 				NodePtr nodePtr = generation.get(randIdx);
 
-				versionManagementService.modifyVersion(modifiedBoard, nodePtr);
+				versionManagementService.modifyVersion(modifiedBoard, nodePtr, null);
 			});
 			threadList.add(thread);
 		}

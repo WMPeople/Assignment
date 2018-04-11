@@ -191,12 +191,15 @@ public class VersionManagementService {
 	 * 새로운 버전을 등록합니다. 충돌 관리가 적용되어 있습니다.
 	 * @param modifiedBoard 새롭게 등록될 게시글에 대한 정보. cookie_id가 존재하면 자동 저장 내역이 삭제 됩니다.
 	 * @param parentPtr 부모를 가리키는 노드 포인터.
+	 * @param cookieId 자신의 쿠키 id, 자동 저장에서 삭제 됩니다.
 	 * @return 새롭게 생성된 리프 노드를 가리킵니다.
 	 */
 	@Transactional
-	public NodePtr modifyVersion(Board modifiedBoard, NodePtr parentPtr) {
-		if(!Board.LEAF_NODE_COOKIE_ID.equals(modifiedBoard.getCookie_id())) {
-			boardMapper.boardDeleteWithCookieId(modifiedBoard.toMap());
+	public NodePtr modifyVersion(Board modifiedBoard, NodePtr parentPtr, String cookieId) {
+		if(!Board.LEAF_NODE_COOKIE_ID.equals(cookieId)) {
+			HashMap<String, Object> params = modifiedBoard.toMap();
+			params.put("cookie_id", cookieId);
+			boardMapper.boardDeleteWithCookieId(params);
 		}
 		return createVersionWithBranch(modifiedBoard, parentPtr, BoardHistory.STATUS_MODIFIED);
 	}

@@ -19,8 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.worksmobile.assignment.bo.NotLeafNodeException;
-import com.worksmobile.assignment.bo.VersionManagementService;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.model.Board;
@@ -65,7 +63,7 @@ public class VersionManagementTest {
 		child.setSubject("childSub");
 		child.setContent("childCont");
 		
-		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr);
+		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr, null);
 		child.setNodePtr(childPtr);
 		
 		Board leapBoard = boardMapper.viewDetail(childPtr.toMap());
@@ -169,7 +167,7 @@ public class VersionManagementTest {
 		child.setContent("childCont");
 		
 		NodePtr parentPtr = defaultCreated;
-		NodePtr resultPtr = versionManagementService.modifyVersion(child, parentPtr);
+		NodePtr resultPtr = versionManagementService.modifyVersion(child, parentPtr, null);
 		
 		Board parentBoard = boardMapper.viewDetail(parentPtr.toMap());
 		assertNull(parentBoard);

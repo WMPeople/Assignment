@@ -5,12 +5,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
-import java.util.AbstractMap;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Before;
@@ -21,8 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.worksmobile.assignment.bo.NotLeafNodeException;
-import com.worksmobile.assignment.bo.VersionManagementService;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.model.Board;
@@ -69,7 +63,7 @@ public class VersionManagementServiceAutoSaveTest {
 		child.setSubject("childSub");
 		child.setContent("childCont");
 		
-		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr);
+		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr, DEFAULT_JUNIT_COOKIE_ID);
 		child.setNodePtr(childPtr);
 		
 		Board leapBoard = boardMapper.viewDetail(childPtr.toMap());
