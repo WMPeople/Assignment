@@ -334,7 +334,8 @@ public class VersionManagementService {
 	@Transactional
 	public void createTempArticleOverwrite(Board tempArticle) {
 		tempArticle.setRoot_board_id(tempArticle.getBoard_id());			// getHistoryByRootId에서 검색이 가능하도록
-	
+		
+		Board dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
 		if(dbTempArticle != null) {
 
 			int articleUpdatedCnt = boardMapper.boardUpdate(tempArticle);
