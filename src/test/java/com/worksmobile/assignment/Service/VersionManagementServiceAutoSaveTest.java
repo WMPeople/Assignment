@@ -5,8 +5,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Before;
@@ -41,7 +45,7 @@ public class VersionManagementServiceAutoSaveTest {
 	
 	private Board defaultBoard;
 	private BoardHistory defaultCreated;
-	private static final String DEFAULT_COOKIE_ID = "JunitCookieId";
+	private static final String DEFAULT_JUNIT_COOKIE_ID = "JunitCookieId";
 	private Board autoSaveArticle = new Board();
 	
 	@Before
@@ -49,14 +53,13 @@ public class VersionManagementServiceAutoSaveTest {
 		defaultBoard = new Board();
 		defaultBoard.setSubject("versionTestSub");
 		defaultBoard.setContent("versionTestCont");
-		;
 
 		defaultCreated = versionManagementService.createArticle(defaultBoard);
 		
 		autoSaveArticle.setSubject("자동 저장중...");
 		autoSaveArticle.setContent("temp article content");
 		autoSaveArticle.setNodePtr(defaultCreated);
-		autoSaveArticle.setCookie_id(DEFAULT_COOKIE_ID);
+		autoSaveArticle.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
 		
 		versionManagementService.createTempArticleOverwrite(autoSaveArticle);
 	}
@@ -82,7 +85,7 @@ public class VersionManagementServiceAutoSaveTest {
 	private Board makeAutoSave(NodePtr nodePtr) {
 		Board autoSave = new Board();
 		autoSave.setNodePtr(nodePtr);
-		autoSave.setCookie_id(DEFAULT_COOKIE_ID);
+		autoSave.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
 		versionManagementService.createTempArticleOverwrite(autoSave);
 		return autoSave;
 	}
@@ -162,4 +165,5 @@ public class VersionManagementServiceAutoSaveTest {
 			assertEquals(rootPtr, parentPtr);
 		}
 	}
+	
 }
