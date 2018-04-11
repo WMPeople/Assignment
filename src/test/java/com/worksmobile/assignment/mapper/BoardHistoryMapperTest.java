@@ -61,12 +61,12 @@ public class BoardHistoryMapperTest {
 	@Test
 	public void testGetHistory() {
 		BoardHistory history = null;
-		history = boardHistoryMapper.getHistory(defaultNodePtr);
+		history = boardHistoryMapper.selectHistory(defaultNodePtr);
 		if (history == null) {
 			boardHistoryMapper.createHistory(defaultHistory);
 		}
 
-		history = boardHistoryMapper.getHistory(defaultNodePtr);
+		history = boardHistoryMapper.selectHistory(defaultNodePtr);
 
 		assertNotNull(history);
 	}
@@ -81,7 +81,7 @@ public class BoardHistoryMapperTest {
 		BoardHistory createdHistory = new BoardHistory(article, defaultNodePtr, BoardHistory.STATUS_CREATED);
 		createdHistory.setHistory_content(Compress.compressArticleContent(article));
 
-		BoardHistory check = boardHistoryMapper.getHistory(defaultNodePtr);
+		BoardHistory check = boardHistoryMapper.selectHistory(defaultNodePtr);
 		if (check != null) {
 			boardHistoryMapper.deleteHistory(defaultNodePtr);
 		}
@@ -89,18 +89,18 @@ public class BoardHistoryMapperTest {
 		assertEquals(1, createdCnt);
 
 		BoardHistory inserted = null;
-		inserted = boardHistoryMapper.getHistory(createdHistory);
+		inserted = boardHistoryMapper.selectHistory(createdHistory);
 
 		JsonUtils.assertConvertToJsonObject(createdHistory, inserted);
 	}
 	
 	private BoardHistory createBoardHistoryIfNotExists() {
-		boardHistory = boardHistoryMapper.getHistory(defaultNodePtr);
+		boardHistory = boardHistoryMapper.selectHistory(defaultNodePtr);
 		if (boardHistory == null) {
 			defaultHistory.setRoot_board_id(defaultHistory.getBoard_id());
 			int createdCnt = boardHistoryMapper.createHistory(defaultHistory);
 			assertEquals(1, createdCnt);
-			boardHistory = boardHistoryMapper.getHistory(defaultNodePtr);
+			boardHistory = boardHistoryMapper.selectHistory(defaultNodePtr);
 		}
 		assertNotNull(boardHistory);
 		return boardHistory;
@@ -124,26 +124,20 @@ public class BoardHistoryMapperTest {
 		int updateRtn = boardHistoryMapper.updateHistoryParentAndRoot(boardHistory);
 		assertEquals(1, updateRtn);
 
-		BoardHistory dbHistory = boardHistoryMapper.getHistory(defaultNodePtr);
+		BoardHistory dbHistory = boardHistoryMapper.selectHistory(defaultNodePtr);
 		JsonUtils.assertConvertToJsonObject(boardHistory, dbHistory);
-	}
-
-	// TODO : testUpdate 와 동일 하다는 결론이면 삭제할것.
-	@Test
-	public void testPatch() throws JsonProcessingException {
-		testUpdateHistory();
 	}
 
 	@Test
 	public void testDeleteSpecificOne() {
 		boardHistory = createBoardHistoryIfNotExists();
-		boardMapper.boardDelete(defaultNodePtr.toMap());
+		boardMapper.deleteBoardAndAutoSave(defaultNodePtr.toMap());
 		int deletedColCnt = boardHistoryMapper.deleteHistory(defaultNodePtr);
 
 		assertEquals(1, deletedColCnt);
 
 		BoardHistory deletedHistory = null;
-		deletedHistory = boardHistoryMapper.getHistory(defaultNodePtr);
+		deletedHistory = boardHistoryMapper.selectHistory(defaultNodePtr);
 		assertNull(deletedHistory);
 	}
 	
@@ -154,7 +148,7 @@ public class BoardHistoryMapperTest {
 		boardHistory.setVersion(boardHistory.getVersion() + 1);
 		boardHistoryMapper.createHistory(boardHistory);
 		
-		List<BoardHistory> children = boardHistoryMapper.getChildren(defaultNodePtr);
+		List<BoardHistory> children = boardHistoryMapper.selectChildren(defaultNodePtr);
 		assertNotEquals(0, children.size());
 		assertEquals(boardHistory, children.get(0));
 	}
@@ -162,14 +156,14 @@ public class BoardHistoryMapperTest {
 	@Test
 	public void testGetFileCount() {
 		BoardHistory boardHistory = null;
-		boardHistory = boardHistoryMapper.getHistory(defaultNodePtr);
+		boardHistory = boardHistoryMapper.selectHistory(defaultNodePtr);
 		if (boardHistory == null) {
 			boardHistoryMapper.createHistory(defaultHistory);
-			boardHistory = boardHistoryMapper.getHistory(defaultNodePtr);
+			boardHistory = boardHistoryMapper.selectHistory(defaultNodePtr);
 		}
 		assertNotNull(boardHistory);
 		int file_id = boardHistory.getFile_id();
-		int fileCount = boardHistoryMapper.getFileCount(file_id);
+		int fileCount = boardHistoryMapper.selectFileCount(file_id);
 		assertEquals(1, fileCount);	
 	}
 
@@ -178,16 +172,16 @@ public class BoardHistoryMapperTest {
 		int relatedCnt = 6;
 		List<BoardHistory> createdSameRootList = new ArrayList<>(relatedCnt);
 		boardHistory = createBoardHistoryIfNotExists();
-		BoardHistory firstEle = boardHistoryMapper.getHistory(boardHistory);
+		BoardHistory firstEle = boardHistoryMapper.selectHistory(boardHistory);
 		createdSameRootList.add(firstEle.clone());
 		for(int i = 0; i < relatedCnt - 1; i++) {
 			boardHistory.setParentNodePtrAndRoot(boardHistory);
 			boardHistory.setVersion(boardHistory.getVersion() + 1);
 			boardHistoryMapper.createHistory(boardHistory);
-			BoardHistory dbEle = boardHistoryMapper.getHistory(boardHistory);
+			BoardHistory dbEle = boardHistoryMapper.selectHistory(boardHistory);
 			createdSameRootList.add(dbEle.clone());
 		}
-		List<BoardHistory> sameRoot = boardHistoryMapper.getHistoryByRootBoardId(boardHistory.getRoot_board_id());
+		List<BoardHistory> sameRoot = boardHistoryMapper.selectHistoryByRootBoardId(boardHistory.getRoot_board_id());
 		assertEquals(relatedCnt, sameRoot.size());
 		for(int i = 0; i < relatedCnt; i++) {
 			BoardHistory createdEle = createdSameRootList.get(i);

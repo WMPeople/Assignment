@@ -52,13 +52,12 @@
                                                                                 ,#{file_id},#{root_board_id},#{cookie_id});
     </insert>
     
-    <!--  게시물 삭제시 이력 모두 삭제되어야 한다. -->
-    <delete id="boardDelete" parameterType="hashmap">
+    <delete id="deleteBoardAndAutoSave" parameterType="hashmap">
         DELETE FROM board 
         WHERE board_id = #{board_id} AND version = #{version} ;
     </delete>
     
-    <delete id="boardDeleteWithCookieId" parameterType="hashmap">
+    <delete id="deleteBoardWithCookieId" parameterType="hashmap">
         DELETE FROM board 
         WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
     </delete>

@@ -4,7 +4,7 @@
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
  
 <mapper namespace="com.worksmobile.assignment.mapper.BoardHistoryMapper">
-	<select id="getHistoryByRootBoardId"
+	<select id="selectHistoryByRootBoardId"
     resultType="com.worksmobile.assignment.model.BoardHistory">
         SELECT board_id, version, created_time, status,
         		history_subject, history_content, file_id, 
@@ -13,7 +13,7 @@
 		WHERE root_board_id = #{root_board_id};
     </select>
 
-    <select id="getHistory" 
+    <select id="selectHistory" 
     resultType="com.worksmobile.assignment.model.BoardHistory">
         SELECT board_id, version, created_time, status, 
         		history_subject, history_content, file_id, 
@@ -54,7 +54,7 @@
 		  board_id = #{board_id} AND version = #{version};
     </update>
 
-     <select id="getChildren" 
+     <select id="selectChildren" 
     resultType="com.worksmobile.assignment.model.BoardHistory">
         SELECT board_id, version, created_time, status,
         		history_subject, history_content, file_id,
@@ -63,7 +63,7 @@
 		WHERE parent_board_id = #{board_id} AND parent_version = #{version};
     </select>
     
-    <select id="getFileCount" parameterType ="int" resultType="int">
+    <select id="selectFileCount" parameterType ="int" resultType="int">
 		SELECT count(*)
 		FROM board_history
 		WHERE file_id = #{file_id};  

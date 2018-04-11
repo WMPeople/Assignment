@@ -11,9 +11,9 @@ import com.worksmobile.assignment.model.NodePtr;
 @Mapper
 public interface BoardHistoryMapper {
 
-	public List<BoardHistory> getHistoryByRootBoardId(@Param("root_board_id")int root_board_id);
+	public List<BoardHistory> selectHistoryByRootBoardId(@Param("root_board_id")int root_board_id);
 	
-	public BoardHistory getHistory(NodePtr nodePtr);
+	public BoardHistory selectHistory(NodePtr nodePtr);
 			
 	public int deleteHistory(NodePtr nodePtr);
 	
@@ -21,7 +21,7 @@ public interface BoardHistoryMapper {
 
 	public int updateHistoryParentAndRoot(BoardHistory boardHistory);
 
-	public List<BoardHistory> getChildren(NodePtr nodePtr);
+	public List<BoardHistory> selectChildren(NodePtr nodePtr);
 	
-	public int getFileCount(int file_id);
+	public int selectFileCount(int file_id);
 }

@@ -82,7 +82,7 @@ public class VersionManagementServiceMultiThreadTest {
 					BoardHistory createdHistory = versionManagementService.createArticle(copyedBoard);
 					
 					NodePtr nodePtr = createdHistory;
-					BoardHistory dbHistory = boardHistoryMapper.getHistory(nodePtr);
+					BoardHistory dbHistory = boardHistoryMapper.selectHistory(nodePtr);
 					
 					JsonUtils.assertConvertToJsonObject(createdHistory, dbHistory);
 					
@@ -109,12 +109,12 @@ public class VersionManagementServiceMultiThreadTest {
 		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr, null);
 		child.setNodePtr(childPtr);
 		
-		Board leapBoard = boardMapper.viewDetail(childPtr.toMap());
-		assertNotNull(leapBoard);
+		Board leafBoard = boardMapper.viewDetail(childPtr.toMap());
+		assertNotNull(leafBoard);
 		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
 		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
-		JsonUtils.assertConvertToJsonObject(child, leapBoard);
+		JsonUtils.assertConvertToJsonObject(child, leafBoard);
 		
 		return childPtr;
 	}
