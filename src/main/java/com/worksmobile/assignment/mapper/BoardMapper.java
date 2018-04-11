@@ -48,6 +48,8 @@ public interface BoardMapper {
 	
 	public int articleGetCount();
 	
+	public int autoGetCount(HashMap<String,Object> params);
+	
 	public int getFileCount(int file_id);
 	
 }

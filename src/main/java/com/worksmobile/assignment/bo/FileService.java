@@ -1,11 +1,15 @@
 package com.worksmobile.assignment.bo;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,6 +65,29 @@ public class FileService {
 			throw new RuntimeException(e);
 		}
 		return null;
+	}
+	/***
+	 * 파일 다운로드시 호출 되는 메쏘드입니다.
+	 * @param file_id
+	 * @param req
+	 * @param res
+	 * @throws IOException
+	 */
+	public void downloadFile(int file_id,
+			HttpServletRequest req, 
+			HttpServletResponse res) throws IOException {
+		
+		File file = fileMapper.getFile(file_id);
+		
+		byte fileByte[] = file.getFile_data();
+    	res.setContentType("application/octet-stream");
+        res.setContentLength(fileByte.length);
+        res.setHeader("Content-Disposition", "attachment; fileName=\"" + URLEncoder.encode(file.getFile_name(),"UTF-8")+"\";");
+        res.setHeader("Content-Transfer-Encoding", "binary");
+        res.getOutputStream().write(fileByte);
+        res.getOutputStream().flush();
+        res.getOutputStream().close();
+
 	}
 	
 	/***
