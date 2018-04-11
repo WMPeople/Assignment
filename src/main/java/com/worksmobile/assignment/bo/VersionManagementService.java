@@ -330,6 +330,7 @@ public class VersionManagementService {
 			}
 			leafPtr = parentPtr;
 		}
+		System.out.println(fileIdSet.toString() +"");
 		fileService.deleteNoMoreUsingFile(fileIdSet);
 
 	}
