@@ -7,11 +7,16 @@
 	
    <!-- offset위치부터 noOfRecords 수 만큼 select 한다. -->
    <select id="articleList" resultType="com.worksmobile.assignment.model.Board" parameterType="hashmap">
-		SELECT * FROM board LIMIT #{offset}, #{noOfRecords}  
+		SELECT * 
+		FROM board
+		WHERE cookie_id = "LEAF_NODE_COOKIE_ID"
+		LIMIT #{offset}, #{noOfRecords};  
 	</select>
 	
 	<select id="articleGetCount" resultType="int">
-		SELECT count(*) FROM board;  
+		SELECT count(*) 
+		FROM board
+		WHERE cookie_id = "LEAF_NODE_COOKIE_ID";  
 	</select>
 	    
     <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.assignment.model.Board" >
@@ -20,14 +25,14 @@
     	WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
     </select>
     
-     <select id="autoList" resultType="com.worksmobile.assignment.model.Board" parameterType="hashmap">
+    <select id="autoList" resultType="com.worksmobile.assignment.model.Board" parameterType="hashmap">
 		SELECT * 
 		FROM board 
 		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id != "LEAF_NODE_COOKIE_ID"
 		LIMIT #{offset}, #{noOfRecords};
 	</select>
 	
-		<select id="autoGetCount" resultType="int" parameterType="hashmap">
+	<select id="autoGetCount" resultType="int" parameterType="hashmap">
 		SELECT count(*) 
 		FROM board
 		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id != "LEAF_NODE_COOKIE_ID";  

@@ -6,10 +6,14 @@ import com.worksmobile.assignment.util.JsonUtils;
 import lombok.Getter;
 import lombok.Setter;
 
+/***
+ * 버전 비교를 할 때 사용되는 모델입니다.
+ * @author rws
+ *
+ */
 public class DiffNodePtr {
 	@Getter @Setter private int board_id1;
 	@Getter @Setter private int version1;
-	
 	@Getter @Setter private int board_id2;
 	@Getter @Setter private int version2;
 	
