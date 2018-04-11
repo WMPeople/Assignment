@@ -1,4 +1,4 @@
-package com.worksmobile.assignment.bo;
+﻿package com.worksmobile.assignment.bo;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -104,7 +104,7 @@ public class FileService {
 			int afterFile_id = tempArticle.getFile_id();
 			if(curFile_id != 0 && curFile_id != afterFile_id ) {
 				int boardFileCount = boardMapper.getFileCount(curFile_id);
-				int boardHistoryFileCount = boardHistoryMapper.getFileCount(curFile_id);
+				int boardHistoryFileCount = boardHistoryMapper.selectFileCount(curFile_id);
 				if((boardFileCount + boardHistoryFileCount)  == 1) {
 					deleteFileBoolean=true;
 				}

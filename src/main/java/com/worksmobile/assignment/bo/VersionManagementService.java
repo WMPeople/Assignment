@@ -19,6 +19,11 @@ import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
+/***
+ * 
+ * @author KHH
+ *
+ */
 @Service
 public class VersionManagementService {
 
@@ -37,16 +42,6 @@ public class VersionManagementService {
 	@Autowired
 	FileService fileService;
 	
-	// TODO : BoardHistoryService Class로 옮기기
-	private Map<Map.Entry<Integer, Integer>, BoardHistory> getHistoryMap(int root_board_id) {
-		List<BoardHistory> historyList = boardHistoryMapper.getHistoryByRootBoardId(root_board_id);
-		Map<Map.Entry<Integer, Integer>, BoardHistory> historyMap = new HashMap<>();
-		for(BoardHistory ele : historyList) {
-			historyMap.put(ele.toBoardIdAndVersionEntry(), ele);
-		}
-		return historyMap;
-	}
-	
 	/***
 	 * 한 게시글과 연관된 모든 게시글 이력을 반환합니다.
 	 * @param leafPtr 가져올 리프 노드 포인터.(board_id, version만 사용)
@@ -60,13 +55,13 @@ public class VersionManagementService {
 			throw new NotLeafNodeException("leaf node 정보" + leafPtrJson);
 		}
 
-		Map<Map.Entry<Integer, Integer>, BoardHistory> boardHisotryMap = getHistoryMap(board.getRoot_board_id());
+		Map<Map.Entry<Integer, Integer>, BoardHistory> boardHisotryMap = boardService.getHistoryMap(this, board.getRoot_board_id());
 		List<BoardHistory> relatedHistoryList = new ArrayList<>(boardHisotryMap.size());
 		
 		NodePtr curPosPtr = leafPtr;
 		BoardHistory leafHistory;
 		do {
-			leafHistory = boardHisotryMap.get(curPosPtr .toBoardIdAndVersionEntry());
+			leafHistory = boardHisotryMap.get(curPosPtr.toBoardIdAndVersionEntry());
 			if(leafHistory == null) {
 				String curPosJson = JsonUtils.jsonStringIfExceptionToString(curPosPtr);
 				String historyListJson = JsonUtils.jsonStringIfExceptionToString(boardHisotryMap);
@@ -171,8 +166,8 @@ public class VersionManagementService {
 	@Transactional
 	public NodePtr recoverVersion(final NodePtr recoverPtr, final NodePtr leafPtr)
 	{
-		BoardHistory recoverHistory = boardHistoryMapper.getHistory(recoverPtr);
-		BoardHistory leafHistory = boardHistoryMapper.getHistory(leafPtr);
+		BoardHistory recoverHistory = boardHistoryMapper.selectHistory(recoverPtr);
+		BoardHistory leafHistory = boardHistoryMapper.selectHistory(leafPtr);
 		if(leafHistory == null || recoverHistory == null)
 		{
 			String json = JsonUtils.jsonStringIfExceptionToString(leafHistory);
@@ -197,9 +192,9 @@ public class VersionManagementService {
 	@Transactional
 	public NodePtr modifyVersion(Board modifiedBoard, NodePtr parentPtr, String cookieId) {
 		if(!Board.LEAF_NODE_COOKIE_ID.equals(cookieId)) {
-			HashMap<String, Object> params = modifiedBoard.toMap();
-			params.put("cookie_id", cookieId);
-			boardMapper.boardDeleteWithCookieId(params);
+			HashMap<String, Object> deleteParams = modifiedBoard.toMap();
+			deleteParams.put("cookie_id", cookieId);
+			boardService.deleteBoardWithCookieId(deleteParams);
 		}
 		return createVersionWithBranch(modifiedBoard, parentPtr, BoardHistory.STATUS_MODIFIED);
 	}
@@ -213,13 +208,10 @@ public class VersionManagementService {
 	 * @return 생성된 게시글의 포인터
 	 */
 	synchronized private NodePtr createVersionWithBranch(Board board, NodePtr parentPtr, final String status) {
-		NodePtr dbParentPtr = boardHistoryMapper.getHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
-		List<BoardHistory> childrenList= boardHistoryMapper.getChildren(dbParentPtr);
+		NodePtr dbParentPtr = boardHistoryMapper.selectHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
+		List<BoardHistory> childrenList= boardHistoryMapper.selectChildren(dbParentPtr);
 		if(childrenList.size() == 0) {
-			int deletedCnt = boardMapper.boardDeleteWithCookieId(dbParentPtr.toMap());
-			if(deletedCnt != 1) {
-				throw new RuntimeException("delete cnt expected  but " + deletedCnt);
-			}
+			boardService.deleteBoardWithCookieId(dbParentPtr.toMap());
 			board.setBoard_id(dbParentPtr.getBoard_id());
 		} else {
 			board.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
@@ -248,38 +240,35 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public NodePtr deleteVersion(final NodePtr deletePtr) {
-		Set<Integer> fileIdSet = new HashSet<>();
-		BoardHistory deleteHistory = boardHistoryMapper.getHistory(deletePtr);
+		BoardHistory deleteHistory = boardHistoryMapper.selectHistory(deletePtr);
 		NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
+		NodePtr newCreatedLeafPtr = null;
 		
-		List<BoardHistory> deleteNodeChildren = boardHistoryMapper.getChildren(deletePtr);
- 
-		fileIdSet.addAll(boardService.deleteBoardAndReturnfileIdSet(deletePtr));
+		List<BoardHistory> deleteNodeChildren = boardHistoryMapper.selectChildren(deletePtr);
+		boardService.deleteBoardHistory(deletePtr);
+		boardService.deleteBoardAndAutoSave(deletePtr);
 
 		if(deleteNodeChildren.size() == 0) {	// 리프 노드라면
-			BoardHistory parentHistory = boardHistoryMapper.getHistory(parentPtr);
+			BoardHistory parentHistory = boardHistoryMapper.selectHistory(parentPtr);
 			
 			Board parent = new Board(parentHistory);
-			List<BoardHistory> parentChildren = boardHistoryMapper.getChildren(parent);
+			List<BoardHistory> parentChildren = boardHistoryMapper.selectChildren(parent);
 			
-			if(parentChildren.size() == 0 && parentHistory.isRoot()) {// 루트만 존재하는 경우에는 루트를 지워줍니다.
-				fileIdSet.add(boardService.deleteBoardHistoryAndReturnfileId(parentHistory));
-			}
-			
-			else if(parentChildren.size() == 0 && !parentHistory.isRoot()){	// 루트가 아닌 리프 노드는 게시물 게시판에 존재해야 함.
-				int createdCnt = boardMapper.boardCreate(parent);
-				if(createdCnt == 0) {
-					throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
-							" createdCnt : " + createdCnt);
+			if(parentChildren.size() == 0) {
+				if(parentHistory.isInvisibleRoot()) {// 부모가 안보이는 루트만 존재있으면 삭제합니다.
+					boardService.deleteBoardHistory(parentHistory);
+				} else {	// 부모가 안보이는 루트가 아닌 노드는 board테이블에 존재해야 함.
+					int createdCnt = boardMapper.boardCreate(parent);
+					if(createdCnt == 0) {
+						throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
+								" createdCnt : " + createdCnt);
+					}
+					newCreatedLeafPtr = parent;
 				}
-				fileService.deleteNoMoreUsingFile(fileIdSet);
-				return parent;
 			}
-			fileService.deleteNoMoreUsingFile(fileIdSet);
 		}	// 리프 노드일때 끝
-		else if(deleteHistory.isRoot()) {
+		else if(deleteHistory.isInvisibleRoot()) {
 			throw new RuntimeException("루트는 삭제할 수 없습니다.");
-			// TODO : 한꺼번에 업데이트 하는 방법?
 		}
 		else {// 중간노드 일 경우
 			for(BoardHistory childHistory : deleteNodeChildren) {
@@ -292,7 +281,7 @@ public class VersionManagementService {
 				}
 			}
 		}
-		return null;
+		return newCreatedLeafPtr;
 	}
 	
 	/**
@@ -304,35 +293,30 @@ public class VersionManagementService {
 	@Transactional
 	public void deleteArticle(NodePtr leafPtr) throws NotLeafNodeException {
 		
-		Set<Integer> fileIdSet = new HashSet<>();
-		
 		if(!isLeaf(leafPtr)) {
 			String leafPtrJson = JsonUtils.jsonStringIfExceptionToString(leafPtr);
 			throw new NotLeafNodeException("node 정보" + leafPtrJson);
 		}
 		
-		fileIdSet.addAll(boardService.deleteBoardAndReturnfileIdSet(leafPtr));
+		boardService.deleteBoardAndAutoSave(leafPtr);
 		
 		while(true) {
-			BoardHistory deleteHistory = boardHistoryMapper.getHistory(leafPtr);
+			BoardHistory deleteHistory = boardHistoryMapper.selectHistory(leafPtr);
 			if(deleteHistory == null) {
 				break;
 			}
 			NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
 			
-			fileIdSet.addAll(boardService.deleteBoardAndReturnfileIdSet(leafPtr));
-			fileIdSet.add(boardService.deleteBoardHistoryAndReturnfileId(leafPtr));
+			boardService.deleteBoardAndAutoSave(leafPtr);
+			boardService.deleteBoardHistory(leafPtr);
 
-			List<BoardHistory> children = boardHistoryMapper.getChildren(parentPtr);
+			List<BoardHistory> children = boardHistoryMapper.selectChildren(parentPtr);
 			
 			if(children.size() >= 1) {
 				break;
 			}
 			leafPtr = parentPtr;
 		}
-		System.out.println(fileIdSet.toString() +"");
-		fileService.deleteNoMoreUsingFile(fileIdSet);
-
 	}
 
 	@Transactional
