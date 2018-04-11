@@ -34,15 +34,25 @@ class BoardService{
 	@Autowired
 	FileService fileService;
 	
-	public void deleteBoardAndAutoSave(NodePtr deleteNodePtr) {
+	/***
+	 * 리프 게시글과 관련된 자동 저장 게시글을 함께 삭제합니다.
+	 * @param deleteNodePtr 삭제할 노드의 포인터
+	 * @return 삭제된 개수
+	 */
+	public int deleteBoardAndAutoSave(NodePtr deleteNodePtr) {
 		List<Board> boardList = boardMapper.getBoardList(deleteNodePtr);
+		if(boardList.size() == 0) {
+			return 0;
+		}
 		Set<Integer> fileIdSet = new HashSet<>();
 		for(Board ele : boardList) {
 			fileIdSet.add(ele.getFile_id());
 		}
-		boardMapper.deleteBoardAndAutoSave(deleteNodePtr.toMap());
+		int deletedCnt = boardMapper.deleteBoardAndAutoSave(deleteNodePtr.toMap());
 
 		fileService.deleteNoMoreUsingFile(fileIdSet);
+
+		return deletedCnt;
 	}
 	
 	// TODO : deleteNoMoreUsingFile메소드가 Set을 매개변수로 취하고 있으나, 한개 만을 넘기는 경우가 있어
@@ -50,11 +60,12 @@ class BoardService{
 	/***
 	 * 만약, 존재하지 않는 게시글이라면 삭제 되지 않습니다.
 	 * @param deleteParams 삭제할 board의 board_id, version, cookie_id를 사용합니다.
+	 * @return 삭제 되었는지 여부
 	 */
-	public void deleteBoardWithCookieId(HashMap<String, Object> deleteParams) {
+	public boolean deleteBoardWithCookieId(HashMap<String, Object> deleteParams) {
 		Board dbBoard = boardMapper.viewDetail(deleteParams);
 		if(dbBoard == null) {
-			return;
+			return false;
 		}
 		Set<Integer> fileIdSet = new HashSet<>();
 		fileIdSet.add(dbBoard.getFile_id());
@@ -66,6 +77,8 @@ class BoardService{
 			"삭제된 개수 : " + deletedCnt + " deleteParams : " + json);
 		}
 		fileService.deleteNoMoreUsingFile(fileIdSet);
+		
+		return true;
 	}
 	
 	public void deleteBoardHistory(NodePtr deleteNodePtr) {

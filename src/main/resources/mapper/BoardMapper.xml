@@ -43,13 +43,20 @@
         INSERT INTO board
         (board_id,version,subject,content,created_time,file_id,root_board_id,cookie_id)
         VALUES (#{board_id}, #{version},#{subject},#{content},
-        <if test="cookie_id == LEAF_NODE_COOKIE_ID">
+        <choose>
+        	<when test="cookie_id == 'LEAF_NODE_COOKIE_ID'">
                                                                 #{created_time}
-        </if>
-        <if test="cookie_id != LEAF_NODE_COOKIE_ID">
+			</when>
+			<otherwise>
                                                                 CURRENT_TIMESTAMP
-        </if>
+			</otherwise>
+        </choose>
                                                                                 ,#{file_id},#{root_board_id},#{cookie_id});
+
+        <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
+     		SELECT created_time FROM board
+     		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+     	</selectKey>
     </insert>
     
     <delete id="deleteBoardAndAutoSave" parameterType="hashmap">
@@ -71,7 +78,11 @@
         created_time = CURRENT_TIMESTAMP,
         file_id = #{file_id},
         root_board_id = #{root_board_id}
-        WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id}
+        WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+        <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
+     		SELECT created_time FROM board
+     		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+     	</selectKey>
     </update>
     
     <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.assignment.model.File">

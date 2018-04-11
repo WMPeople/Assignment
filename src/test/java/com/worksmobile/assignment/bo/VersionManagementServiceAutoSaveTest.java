@@ -55,7 +55,7 @@ public class VersionManagementServiceAutoSaveTest {
 		autoSaveArticle.setNodePtr(defaultCreated);
 		autoSaveArticle.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
 		
-		versionManagementService.createTempArticleOverwrite(autoSaveArticle);
+		autoSaveArticle = versionManagementService.createTempArticleOverwrite(autoSaveArticle);
 	}
 	
 	private NodePtr makeChild(NodePtr parentPtr) throws JsonProcessingException {

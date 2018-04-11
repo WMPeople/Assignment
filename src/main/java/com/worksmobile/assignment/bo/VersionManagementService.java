@@ -228,8 +228,8 @@ public class VersionManagementService {
 		NodePtr newCreatedLeafPtr = null;
 		
 		List<BoardHistory> deleteNodeChildren = boardHistoryMapper.selectChildren(deletePtr);
-		boardService.deleteBoardHistory(deletePtr);
 		boardService.deleteBoardAndAutoSave(deletePtr);
+		boardService.deleteBoardHistory(deletePtr);
 
 		if(deleteNodeChildren.size() == 0) {	// 리프 노드라면
 			BoardHistory parentHistory = boardHistoryMapper.selectHistory(parentPtr);
@@ -303,7 +303,7 @@ public class VersionManagementService {
 	}
 
 	@Transactional
-	public void createTempArticleOverwrite(Board tempArticle) {
+	public Board createTempArticleOverwrite(Board tempArticle) {
 		tempArticle.setRoot_board_id(tempArticle.getBoard_id());			// getHistoryByRootId에서 검색이 가능하도록
 		
 		Board dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
@@ -325,5 +325,6 @@ public class VersionManagementService {
 			}
 			
 		}
+		return tempArticle;
 	}
 }
