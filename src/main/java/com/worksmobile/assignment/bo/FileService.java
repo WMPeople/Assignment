@@ -1,4 +1,4 @@
-package com.worksmobile.assignment.bo;
+﻿package com.worksmobile.assignment.bo;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -91,7 +91,7 @@ public class FileService {
 	}
 	
 	/***
-	 * 
+	 * 임시저장 게시글의 첨부 파일이 수정 됐을 때 기존에 있던 첨부파일을 삭제하기 위한 메쏘드 입니다.
 	 * @param tempArticle 새로 만들어질 임시저장 게시글
 	 * @param dbTempArticle DB 안에 있는 임시저장 게시글
 	 */
@@ -114,31 +114,6 @@ public class FileService {
 				fileMapper.deleteFile(curFile_id);
 			}
 		}
-	}
-	
-	/***
-	 * 
-	 * @param deletePtr 삭제 할 노드의 포인터
-	 */
-	public void deleteFile (Board deletePtr) {
-		boolean deleteFileBoolean = false;
-		
-		BoardHistory deleteHistory = boardHistoryMapper.selectHistory(deletePtr);
-		int file_id = deleteHistory.getFile_id();
-		if(file_id != 0) {
-			int fileCount = boardHistoryMapper.selectFileCount(file_id);
-			if(fileCount ==1) {
-				deleteFileBoolean=true;
-			}
-		}
-		
-		if(deleteFileBoolean) {
-			int deletedCnt = fileMapper.deleteFile(file_id);
-			if(deletedCnt != 1) {
-				throw new RuntimeException("파일 삭제 에러");
-			};
-		}
-		
 	}
 	
 	/***

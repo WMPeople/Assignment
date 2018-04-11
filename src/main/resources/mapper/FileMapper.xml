@@ -28,27 +28,23 @@
 	</delete>
 	
 	<delete id="deleteNoMoreUsingFile" parameterType = "hashmap">
-	
-		DELETE FROM file WHERE file_id >= 1 AND file_id IN
-		(SELECT file_id
-		FROM
-		(SELECT A.file_id
-		FROM file A
-		WHERE file_id NOT IN(
-		SELECT DISTINCT file_id FROM board WHERE file_id >= 1 AND file_id IN (
-		<foreach collection="fileIdList" item="item" index="index" separator=",">
-			 #{item}
-		</foreach>
-		) 
-		UNION 
-		SELECT DISTINCT file_id FROM board_history WHERE file_id >= 1 AND file_id IN (
-		<foreach collection="fileIdList" item="item" index="index" separator=",">
-			 #{item}
-		</foreach>)))del);
+		DELETE FROM file 
+		WHERE file_id !=0 AND EXISTS (
+		                                 SELECT file_id from (SELECT file_id FROM file WHERE EXISTS(SELECT
+                                        <foreach collection="fileIdList" item="item" index="index" separator=",">
+                                        #{item} AS file_id
+                                        </foreach> FROM DUAL) 
+                                         )temp1
+                                        WHERE NOT EXISTS (
+                                        SELECT DISTINCT file_id FROM board WHERE file_id != 0 AND EXISTS(SELECT
+                                        <foreach collection="fileIdList" item="item" index="index" separator=",">
+                                        #{item} AS file_id
+                                        </foreach> FROM DUAL) 
+                                        UNION SELECT DISTINCT file_id FROM board_history WHERE file_id != 0 AND EXISTS(SELECT
+                                        <foreach collection="fileIdList" item="item" index="index" separator=",">
+                                        #{item} AS file_id
+                                        </foreach> FROM DUAL) 
+							            ));
 			
 	</delete>
-	
-	
-	    
-    
 </mapper>
