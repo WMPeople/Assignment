@@ -111,13 +111,24 @@ class BoardService{
 		return boardHistory.getFile_id();
 	}
 
-	Map<Map.Entry<Integer, Integer>, BoardHistory> getHistoryMap(VersionManagementService versionManagementService, int root_board_id) {
-		List<BoardHistory> historyList = versionManagementService.boardHistoryMapper.selectHistoryByRootBoardId(root_board_id);
+	Map<Map.Entry<Integer, Integer>, BoardHistory> getHistoryMap(int root_board_id) {
+		List<BoardHistory> historyList = boardHistoryMapper.selectHistoryByRootBoardId(root_board_id);
 		Map<Map.Entry<Integer, Integer>, BoardHistory> historyMap = new HashMap<>();
 		for(BoardHistory ele : historyList) {
 			historyMap.put(ele.toBoardIdAndVersionEntry(), ele);
 		}
 		return historyMap;
+	}
+
+	public boolean isLeaf(final NodePtr nodePtr) {
+		Board board = boardMapper.viewDetail(nodePtr.toMap());
+		
+		if(board != null) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	
 	

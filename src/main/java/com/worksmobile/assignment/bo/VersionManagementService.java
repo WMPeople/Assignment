@@ -2,10 +2,8 @@
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.mapper.BoardMapper;
-import com.worksmobile.assignment.mapper.FileMapper;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
@@ -28,19 +25,16 @@ import com.worksmobile.assignment.util.JsonUtils;
 public class VersionManagementService {
 
 	@Autowired
-	BoardMapper boardMapper;
+	private BoardMapper boardMapper;
 	
 	@Autowired
-	BoardHistoryMapper boardHistoryMapper;
+	private BoardHistoryMapper boardHistoryMapper;
 	
 	@Autowired
-	FileMapper fileMapper;
+	private BoardService boardService;
 	
 	@Autowired
-	BoardService boardService;
-	
-	@Autowired
-	FileService fileService;
+	private FileService fileService;
 	
 	/***
 	 * 한 게시글과 연관된 모든 게시글 이력을 반환합니다.
@@ -55,7 +49,7 @@ public class VersionManagementService {
 			throw new NotLeafNodeException("leaf node 정보" + leafPtrJson);
 		}
 
-		Map<Map.Entry<Integer, Integer>, BoardHistory> boardHisotryMap = boardService.getHistoryMap(this, board.getRoot_board_id());
+		Map<Map.Entry<Integer, Integer>, BoardHistory> boardHisotryMap = boardService.getHistoryMap(board.getRoot_board_id());
 		List<BoardHistory> relatedHistoryList = new ArrayList<>(boardHisotryMap.size());
 		
 		NodePtr curPosPtr = leafPtr;
@@ -220,17 +214,6 @@ public class VersionManagementService {
 		return createArticleAndHistory(board, dbParentPtr.getVersion() + 1, status, dbParentPtr);
 	}
 	
-	private boolean isLeaf(final NodePtr nodePtr) {
-		Board board = boardMapper.viewDetail(nodePtr.toMap());
-		
-		if(board != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-	
 	/***
 	 * 특정 버전에 대한 이력 1개를 삭제합니다. leaf노드이면 게시글도 삭제 됩니다. 
 	 * 부모의 이력은 삭제되지 않음을 유의 해야 합니다.
@@ -293,7 +276,7 @@ public class VersionManagementService {
 	@Transactional
 	public void deleteArticle(NodePtr leafPtr) throws NotLeafNodeException {
 		
-		if(!isLeaf(leafPtr)) {
+		if(!boardService.isLeaf(leafPtr)) {
 			String leafPtrJson = JsonUtils.jsonStringIfExceptionToString(leafPtr);
 			throw new NotLeafNodeException("node 정보" + leafPtrJson);
 		}
