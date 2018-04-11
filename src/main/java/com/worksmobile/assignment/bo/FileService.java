@@ -77,7 +77,7 @@ public class FileService {
 			int afterFile_id = tempArticle.getFile_id();
 			if(curFile_id != 0 && curFile_id != afterFile_id ) {
 				int boardFileCount = boardMapper.getFileCount(curFile_id);
-				int boardHistoryFileCount = boardHistoryMapper.getFileCount(curFile_id);
+				int boardHistoryFileCount = boardHistoryMapper.selectFileCount(curFile_id);
 				if((boardFileCount + boardHistoryFileCount)  == 1) {
 					deleteFileBoolean=true;
 				}
@@ -96,10 +96,10 @@ public class FileService {
 	public void deleteFile (Board deletePtr) {
 		boolean deleteFileBoolean = false;
 		
-		BoardHistory deleteHistory = boardHistoryMapper.getHistory(deletePtr);
+		BoardHistory deleteHistory = boardHistoryMapper.selectHistory(deletePtr);
 		int file_id = deleteHistory.getFile_id();
 		if(file_id != 0) {
-			int fileCount = boardHistoryMapper.getFileCount(file_id);
+			int fileCount = boardHistoryMapper.selectFileCount(file_id);
 			if(fileCount ==1) {
 				deleteFileBoolean=true;
 			}

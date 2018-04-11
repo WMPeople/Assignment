@@ -66,8 +66,9 @@ public class BoardHistory extends NodePtr{
 		return rtn;
 	}
 
-	public boolean isRoot() {
-		return root_board_id == 0 &&
+	public boolean isInvisibleRoot() {
+		return version == NodePtr.INVISIBLE_ROOT_VERSION &&
+				root_board_id == 0 &&
 				parent_board_id == null &&
 				parent_version == null;
 	}

@@ -381,7 +381,7 @@ public class RestController {
 		
 		NodePtr node = new NodePtr(board_id,version);
 		
-		BoardHistory boardHistory = boardHistoryMapper.getHistory(node);
+		BoardHistory boardHistory = boardHistoryMapper.selectHistory(node);
 		Board board = new Board(boardHistory);
 		File file = fileMapper.getFile(board.getFile_id());
 		

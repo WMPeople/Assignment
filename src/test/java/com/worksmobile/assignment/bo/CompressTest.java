@@ -90,7 +90,7 @@ public class CompressTest {
 		
 		for (Board board : boardList) {
 			contentStrList.add(board.getContent());
-			BoardHistory history = boardHistoryMapper.getHistory(board);
+			BoardHistory history = boardHistoryMapper.selectHistory(board);
 			assertNotNull(history);
 			historyContentList.add(history.getHistory_content());
 		}

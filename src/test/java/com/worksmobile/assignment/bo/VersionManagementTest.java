@@ -66,12 +66,12 @@ public class VersionManagementTest {
 		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr, null);
 		child.setNodePtr(childPtr);
 		
-		Board leapBoard = boardMapper.viewDetail(childPtr.toMap());
-		assertNotNull(leapBoard);
+		Board leafBoard = boardMapper.viewDetail(childPtr.toMap());
+		assertNotNull(leafBoard);
 		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
 		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
-		JsonUtils.assertConvertToJsonObject(child, leapBoard);
+		JsonUtils.assertConvertToJsonObject(child, leafBoard);
 		
 		return childPtr;
 	}
@@ -131,7 +131,7 @@ public class VersionManagementTest {
 		defaultCreated = versionManagementService.createArticle(defaultBoard);
 		
 		NodePtr nodePtr = defaultCreated;
-		BoardHistory dbHistory = boardHistoryMapper.getHistory(nodePtr);
+		BoardHistory dbHistory = boardHistoryMapper.selectHistory(nodePtr);
 		
 		JsonUtils.assertConvertToJsonObject(defaultCreated, dbHistory);
 		
@@ -147,21 +147,21 @@ public class VersionManagementTest {
 		BoardHistory createdHistory = versionManagementService.createArticle(defaultBoard);
 		
 		NodePtr prevPtr = createdHistory;
-		Board prevLeap = boardMapper.viewDetail(prevPtr.toMap());
-		NodePtr newLeapPtr = versionManagementService.recoverVersion(prevPtr, prevPtr);
+		Board prevleaf = boardMapper.viewDetail(prevPtr.toMap());
+		NodePtr newleafPtr = versionManagementService.recoverVersion(prevPtr, prevPtr);
 		
-		BoardHistory recoveredHistory = boardHistoryMapper.getHistory(newLeapPtr);
-		Board newLeap = boardMapper.viewDetail(newLeapPtr.toMap());
+		BoardHistory recoveredHistory = boardHistoryMapper.selectHistory(newleafPtr);
+		Board newleaf = boardMapper.viewDetail(newleafPtr.toMap());
 		
-		prevLeap.setNodePtr(newLeapPtr);
-		prevLeap.setCreated_time(prevLeap.getCreated_time()); // 버전 복구시 시간이 달라짐
+		prevleaf.setNodePtr(newleafPtr);
+		prevleaf.setCreated_time(prevleaf.getCreated_time()); // 버전 복구시 시간이 달라짐
 		
 		assertNotNull(recoveredHistory);
-		JsonUtils.assertConvertToJsonObject(newLeap, prevLeap);
+		JsonUtils.assertConvertToJsonObject(newleaf, prevleaf);
 	}
 	
 	@Test
-	public void testMakeLeapVersion() throws InterruptedException, ExecutionException, JsonProcessingException {
+	public void testMakeleafVersion() throws InterruptedException, ExecutionException, JsonProcessingException {
 		Board child = new Board();
 		child.setSubject("childSub");
 		child.setContent("childCont");
@@ -171,13 +171,13 @@ public class VersionManagementTest {
 		
 		Board parentBoard = boardMapper.viewDetail(parentPtr.toMap());
 		assertNull(parentBoard);
-		Board leapBoard = boardMapper.viewDetail(resultPtr.toMap());
-		assertNotNull(leapBoard);
+		Board leafBoard = boardMapper.viewDetail(resultPtr.toMap());
+		assertNotNull(leafBoard);
 		int defaultVersion = defaultBoard.getVersion() == null ? 0 : defaultBoard.getVersion();
 		assertEquals((Integer) (defaultVersion + 1), resultPtr.getVersion());
 		
 		child.setNodePtr(resultPtr);
-		JsonUtils.assertConvertToJsonObject(child, leapBoard);
+		JsonUtils.assertConvertToJsonObject(child, leafBoard);
 	}
 	
 	
@@ -190,13 +190,13 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testDeleteLeapNode() throws JsonProcessingException {
+	public void testDeleteleafNode() throws JsonProcessingException {
 		NodePtr rootPtr = defaultCreated;
 
 		NodePtr deletePtr = makeChild(rootPtr);
 		versionManagementService.deleteVersion(deletePtr);
 
-		List<BoardHistory> children = boardHistoryMapper.getChildren(rootPtr);
+		List<BoardHistory> children = boardHistoryMapper.selectChildren(rootPtr);
 		assertEquals(0, children.size());
 	}
 	
@@ -209,7 +209,7 @@ public class VersionManagementTest {
 		
 		versionManagementService.deleteVersion(middlePtr);
 		
-		BoardHistory childHistory = boardHistoryMapper.getHistory(childPtr);
+		BoardHistory childHistory = boardHistoryMapper.selectHistory(childPtr);
 		NodePtr childParentPtr = childHistory.getParentPtrAndRoot();
 		
 		assertEquals(rootPtr, childParentPtr);
@@ -230,7 +230,7 @@ public class VersionManagementTest {
 		versionManagementService.deleteVersion(middlePtr);
 		
 		for (NodePtr child : childrenList) {
-			BoardHistory history = boardHistoryMapper.getHistory(child);
+			BoardHistory history = boardHistoryMapper.selectHistory(child);
 			NodePtr parentPtr = history.getParentPtrAndRoot();
 			assertEquals(rootPtr, parentPtr);
 		}
@@ -258,9 +258,9 @@ public class VersionManagementTest {
 		}
 		
 		NodePtr hasChildPtr = childrenList.get(0);
-		NodePtr leapPtr = makeChild(hasChildPtr);
+		NodePtr leafPtr = makeChild(hasChildPtr);
 		
-		versionManagementService.deleteArticle(leapPtr);
+		versionManagementService.deleteArticle(leafPtr);
 	}
 	
 	@Test
@@ -319,11 +319,11 @@ public class VersionManagementTest {
 		nodePtrList.addAll(childrenList);
 		
 		NodePtr hasChildPtr = childrenList.get(childrenCnt - 1);
-		NodePtr leapPtr = makeChild(hasChildPtr);
-		nodePtrList.add(leapPtr);
-		NodePtr leapPtrWithoutRootBoardId = new NodePtr(leapPtr.getBoard_id(), leapPtr.getVersion());
+		NodePtr leafPtr = makeChild(hasChildPtr);
+		nodePtrList.add(leafPtr);
+		NodePtr leafPtrWithoutRootBoardId = new NodePtr(leafPtr.getBoard_id(), leafPtr.getVersion());
 		
-		List<BoardHistory> relatedHistoryList = versionManagementService.getRelatedHistory(leapPtrWithoutRootBoardId);
+		List<BoardHistory> relatedHistoryList = versionManagementService.getRelatedHistory(leafPtrWithoutRootBoardId);
 		assertEquals(relatedHistoryList.size(), relatedCnt);
 		assertNotNull(relatedHistoryList);
 		for (BoardHistory eleHistory : relatedHistoryList) {

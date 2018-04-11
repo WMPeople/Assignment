@@ -50,8 +50,8 @@ public class BoardController {
 		NodePtr left= new NodePtr(board_id1,version1);
 		NodePtr right= new NodePtr(board_id2,version2);
 		
-		String leftContent = Compress.deCompress(boardHistoryMapper.getHistory(left).getHistory_content());
-		String rightContent = Compress.deCompress(boardHistoryMapper.getHistory(right).getHistory_content());
+		String leftContent = Compress.deCompress(boardHistoryMapper.selectHistory(left).getHistory_content());
+		String rightContent = Compress.deCompress(boardHistoryMapper.selectHistory(right).getHistory_content());
 		
 		//압출 해결 후 리턴 , 맵으로 리턴
 		ModelAndView modelAndView = new ModelAndView();

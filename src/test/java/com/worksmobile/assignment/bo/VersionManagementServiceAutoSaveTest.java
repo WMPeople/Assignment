@@ -66,12 +66,12 @@ public class VersionManagementServiceAutoSaveTest {
 		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr, DEFAULT_JUNIT_COOKIE_ID);
 		child.setNodePtr(childPtr);
 		
-		Board leapBoard = boardMapper.viewDetail(childPtr.toMap());
-		assertNotNull(leapBoard);
+		Board leafBoard = boardMapper.viewDetail(childPtr.toMap());
+		assertNotNull(leafBoard);
 		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
 		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
-		JsonUtils.assertConvertToJsonObject(child, leapBoard);
+		JsonUtils.assertConvertToJsonObject(child, leafBoard);
 		
 		return childPtr;
 	}
@@ -105,11 +105,11 @@ public class VersionManagementServiceAutoSaveTest {
 		}
 		
 		NodePtr hasChildPtr = childrenList.get(0);
-		NodePtr leapPtr = makeChild(hasChildPtr);
+		NodePtr leafPtr = makeChild(hasChildPtr);
 		
-		Board autoSave = makeAutoSave(leapPtr);
+		Board autoSave = makeAutoSave(leafPtr);
 		
-		versionManagementService.deleteArticle(leapPtr);
+		versionManagementService.deleteArticle(leafPtr);
 		
 		Board dbAutoSavedArticle = boardMapper.viewDetail(autoSave.toMap());
 		assertNull(dbAutoSavedArticle);
@@ -126,7 +126,7 @@ public class VersionManagementServiceAutoSaveTest {
 		
 		versionManagementService.deleteVersion(middlePtr);
 		
-		BoardHistory childHistory = boardHistoryMapper.getHistory(childPtr);
+		BoardHistory childHistory = boardHistoryMapper.selectHistory(childPtr);
 		NodePtr childParentPtr = childHistory.getParentPtrAndRoot();
 		
 		assertEquals(rootPtr, childParentPtr);
@@ -154,7 +154,7 @@ public class VersionManagementServiceAutoSaveTest {
 		versionManagementService.deleteVersion(middlePtr);
 		
 		for (NodePtr child : childrenList) {
-			BoardHistory history = boardHistoryMapper.getHistory(child);
+			BoardHistory history = boardHistoryMapper.selectHistory(child);
 			NodePtr parentPtr = history.getParentPtrAndRoot();
 			assertEquals(rootPtr, parentPtr);
 		}
