@@ -1,7 +1,7 @@
 package com.worksmobile.assignment.Model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.worksmobile.assignment.Util.Utils;
+import com.worksmobile.assignment.Util.JsonUtils;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +16,7 @@ public class DiffNodePtr {
 	@Override
 	public String toString() {
 		try {
-			return Utils.jsonStringFromObject(this);
+			return JsonUtils.jsonStringFromObject(this);
 		} catch (JsonProcessingException e) {
 			return "parse error";
 		}

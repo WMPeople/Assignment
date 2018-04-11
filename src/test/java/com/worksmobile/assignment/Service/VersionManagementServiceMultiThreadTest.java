@@ -24,7 +24,7 @@ import com.worksmobile.assignment.Mapper.BoardMapper;
 import com.worksmobile.assignment.Model.Board;
 import com.worksmobile.assignment.Model.BoardHistory;
 import com.worksmobile.assignment.Model.NodePtr;
-import com.worksmobile.assignment.Util.Utils;
+import com.worksmobile.assignment.Util.JsonUtils;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -85,7 +85,7 @@ public class VersionManagementServiceMultiThreadTest {
 					NodePtr nodePtr = createdHistory;
 					BoardHistory dbHistory = boardHistoryMapper.getHistory(nodePtr);
 					
-					Utils.assertConvertToJsonObject(createdHistory, dbHistory);
+					JsonUtils.assertConvertToJsonObject(createdHistory, dbHistory);
 					
 					copyedBoard.setNodePtr(nodePtr);
 					copyedBoard.setCreated(dbHistory.getCreated());
@@ -115,7 +115,7 @@ public class VersionManagementServiceMultiThreadTest {
 		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
 		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
-		Utils.assertConvertToJsonObject(child, leapBoard);
+		JsonUtils.assertConvertToJsonObject(child, leapBoard);
 		
 		return childPtr;
 	}

@@ -33,7 +33,7 @@ import com.worksmobile.assignment.Model.Board;
 import com.worksmobile.assignment.Model.BoardHistory;
 import com.worksmobile.assignment.Model.File;
 import com.worksmobile.assignment.Model.NodePtr;
-import com.worksmobile.assignment.Util.Utils;
+import com.worksmobile.assignment.Util.JsonUtils;
 
 @org.springframework.web.bind.annotation.RestController
 public class RestController {
@@ -139,7 +139,7 @@ public class RestController {
 		
 		Board board = boardMapper.viewDetail(params);
 		if(board == null) {
-			String json = Utils.jsonStringIfExceptionToString(board);
+			String json = JsonUtils.jsonStringIfExceptionToString(board);
 			throw new RuntimeException("show 메소드에서 viewDetail 메소드 실행 에러" + json);
 		}
 		String dirty = board.getContent();
@@ -246,7 +246,7 @@ public class RestController {
 			board.setCookie_id(Board.LEAF_NODE_COOKIE_ID);
 			Board pastBoard = boardMapper.viewDetail(board.toMap());	
 			if(pastBoard == null) {
-				String json = Utils.jsonStringIfExceptionToString(pastBoard);
+				String json = JsonUtils.jsonStringIfExceptionToString(pastBoard);
 				throw new RuntimeException("update3 메소드에서 viewDetail 메소드 실행 에러" + json);
 			}
 			board.setFile_id(pastBoard.getFile_id());

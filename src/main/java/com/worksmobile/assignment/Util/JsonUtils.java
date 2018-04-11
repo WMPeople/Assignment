@@ -5,11 +5,11 @@ import static org.junit.Assert.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class Utils {
+public class JsonUtils {
 	public static String jsonStringIfExceptionToString(Object object) {
 		String json = "";
 		try {
-			json = Utils.jsonStringFromObject(object);
+			json = JsonUtils.jsonStringFromObject(object);
 		} catch(JsonProcessingException jsonErr) {
 			jsonErr.printStackTrace();
 			json = object.toString();

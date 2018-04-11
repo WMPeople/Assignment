@@ -1,6 +1,7 @@
 package com.worksmobile.assignment.Mapper;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
@@ -36,8 +37,8 @@ public class BoardMapperTest {
     
     @Test
     public void testSelect() throws JsonProcessingException {
-		Board vo = null;
-    	vo = boardMapper.viewDetail(defaultNodePtr.toMap());
+		Board vo = boardMapper.viewDetail(defaultNodePtr.toMap());
+		assertNotNull(vo);
 	}
 
     @Test

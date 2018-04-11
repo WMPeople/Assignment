@@ -24,7 +24,7 @@ import com.worksmobile.assignment.Mapper.BoardMapper;
 import com.worksmobile.assignment.Model.Board;
 import com.worksmobile.assignment.Model.BoardHistory;
 import com.worksmobile.assignment.Model.NodePtr;
-import com.worksmobile.assignment.Util.Utils;
+import com.worksmobile.assignment.Util.JsonUtils;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -41,7 +41,7 @@ public class VersionManagementServiceAutoSaveTest {
 	
 	private Board defaultBoard;
 	private BoardHistory defaultCreated;
-	private static final int DEFAULT_COOKIE_ID = 99999;
+	private static final String DEFAULT_COOKIE_ID = "JunitCookieId";
 	private Board autoSaveArticle = new Board();
 	
 	@Before
@@ -74,7 +74,7 @@ public class VersionManagementServiceAutoSaveTest {
 		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
 		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
-		Utils.assertConvertToJsonObject(child, leapBoard);
+		JsonUtils.assertConvertToJsonObject(child, leapBoard);
 		
 		return childPtr;
 	}
@@ -91,8 +91,8 @@ public class VersionManagementServiceAutoSaveTest {
 	@Test
 	public void testCreateAutoSaveArticle() throws IOException {
 		Board dbTempArticle = boardMapper.viewDetail(autoSaveArticle.toMap());
-		Utils.assertConvertToJsonObject(autoSaveArticle.toMap(), dbTempArticle.toMap());
-		Utils.assertConvertToJsonObject(autoSaveArticle, dbTempArticle);
+		JsonUtils.assertConvertToJsonObject(autoSaveArticle.toMap(), dbTempArticle.toMap());
+		JsonUtils.assertConvertToJsonObject(autoSaveArticle, dbTempArticle);
 	}
 	
 	@Test

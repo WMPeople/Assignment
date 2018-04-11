@@ -71,12 +71,6 @@
         WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
-    <select id="getLeapNodeMaxBoardId" resultType="int">
-    	SELECT IFNULL(MAX(board_id), 0) AS MaxBoardId
-    	FROM board
-    	WHERE cookie_id = 0;
-    </select>
-    
     <select id="getMaxCookieId" resultType="int">
     	SELECT IFNULL(MAX(cookie_id), 0) AS MaxCookieId
     	FROM board;

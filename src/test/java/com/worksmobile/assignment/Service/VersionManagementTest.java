@@ -26,7 +26,7 @@ import com.worksmobile.assignment.Mapper.BoardMapper;
 import com.worksmobile.assignment.Model.Board;
 import com.worksmobile.assignment.Model.BoardHistory;
 import com.worksmobile.assignment.Model.NodePtr;
-import com.worksmobile.assignment.Util.Utils;
+import com.worksmobile.assignment.Util.JsonUtils;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -51,7 +51,6 @@ public class VersionManagementTest {
 		defaultBoard = new Board();
 		defaultBoard.setSubject("versionTestSub");
 		defaultBoard.setContent("versionTestCont");
-		;
 
 		defaultCreated = versionManagementService.createArticle(defaultBoard);
 	}
@@ -74,7 +73,7 @@ public class VersionManagementTest {
 		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
 		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
-		Utils.assertConvertToJsonObject(child, leapBoard);
+		JsonUtils.assertConvertToJsonObject(child, leapBoard);
 		
 		return childPtr;
 	}
@@ -95,7 +94,6 @@ public class VersionManagementTest {
 		Board defaultBoard2 = new Board();
 		defaultBoard2.setSubject("versionTestSub2");
 		defaultBoard2.setContent("versionTestCont2");
-		;
 
 		defaultCreated = versionManagementService.createArticle(defaultBoard2);
 		
@@ -113,12 +111,12 @@ public class VersionManagementTest {
 	public void testCreateArticle() throws InterruptedException, ExecutionException, JsonProcessingException {
 		BoardHistory dbHistory = defaultCreated;
 		
-		Utils.assertConvertToJsonObject(defaultCreated, dbHistory);
+		JsonUtils.assertConvertToJsonObject(defaultCreated, dbHistory);
 		
 		defaultBoard.setNodePtr(dbHistory);
 		
 		Board dbBoard = boardMapper.viewDetail(dbHistory.toMap());
-		Utils.assertConvertToJsonObject(defaultBoard, dbBoard);
+		JsonUtils.assertConvertToJsonObject(defaultBoard, dbBoard);
 	}
 	
 	@Test
@@ -137,13 +135,13 @@ public class VersionManagementTest {
 		NodePtr nodePtr = defaultCreated;
 		BoardHistory dbHistory = boardHistoryMapper.getHistory(nodePtr);
 		
-		Utils.assertConvertToJsonObject(defaultCreated, dbHistory);
+		JsonUtils.assertConvertToJsonObject(defaultCreated, dbHistory);
 		
 		defaultBoard.setNodePtr(nodePtr);
 		defaultBoard.setCreated(dbHistory.getCreated());
 		
 		Board dbBoard = boardMapper.viewDetail(nodePtr.toMap());
-		Utils.assertConvertToJsonObject(defaultBoard, dbBoard);
+		JsonUtils.assertConvertToJsonObject(defaultBoard, dbBoard);
 	}
 	
 	@Test
@@ -161,7 +159,7 @@ public class VersionManagementTest {
 		prevLeap.setCreated(prevLeap.getCreated()); // 버전 복구시 시간이 달라짐
 		
 		assertNotNull(recoveredHistory);
-		Utils.assertConvertToJsonObject(newLeap, prevLeap);
+		JsonUtils.assertConvertToJsonObject(newLeap, prevLeap);
 	}
 	
 	@Test
@@ -181,7 +179,7 @@ public class VersionManagementTest {
 		assertEquals((Integer) (defaultVersion + 1), resultPtr.getVersion());
 		
 		child.setNodePtr(resultPtr);
-		Utils.assertConvertToJsonObject(child, leapBoard);
+		JsonUtils.assertConvertToJsonObject(child, leapBoard);
 	}
 	
 	
@@ -362,6 +360,28 @@ public class VersionManagementTest {
 			NodePtr relatedEle = relatedHistoryList.get(i);
 			NodePtr addedEle = leafToRoot.get(i);
 			assertEquals(relatedEle, addedEle);
+		}
+	}
+	
+	@Test
+	public void testBoardIdIsSequenceNumber() {
+		int boardCnt = 10;
+		List<BoardHistory> boardHistoryList = new ArrayList<>(boardCnt);
+		for(int i = 0; i < boardCnt; i++) {
+			BoardHistory created = versionManagementService.createArticle(defaultBoard);
+			boardHistoryList.add(created);
+		}
+		
+		for(int i = 1; i < boardCnt; i++) {
+			int beforeBoardId = boardHistoryList.get(i - 1).getBoard_id();
+			int currentBoardId = boardHistoryList.get(i).getBoard_id();
+			assertEquals(beforeBoardId + 1, currentBoardId);
+		}
+		
+		for(BoardHistory ele : boardHistoryList) {
+			Board dbBoard = boardMapper.viewDetail(ele.toMap());
+			assertNotNull(dbBoard);
+			assertEquals(dbBoard.getBoard_id(), ele.getBoard_id());
 		}
 	}
 }

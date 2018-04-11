@@ -9,7 +9,8 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import com.worksmobile.assignment.Model.Board;
-import com.worksmobile.assignment.Util.Utils;
+import com.worksmobile.assignment.Model.BoardHistory;
+import com.worksmobile.assignment.Util.JsonUtils;
 
 public class Compress {
 
@@ -68,9 +69,21 @@ public class Compress {
 			compressedContent = Compress.compress(article.getContent());
 		} catch(IOException e) {
 			e.printStackTrace();
-			String json = Utils.jsonStringIfExceptionToString(article);
-			throw new RuntimeException("createArticle메소드에서 게시글 내용을 압축에 실패하였습니다. \n게시글 : " + json);
+			String json = JsonUtils.jsonStringIfExceptionToString(article);
+			throw new RuntimeException("게시글 내용을 압축에 실패하였습니다. \n게시글 : " + json);
 		}
 		return compressedContent;
+	}
+	
+	public static String deCompressHistoryContent(BoardHistory boardHistory) throws RuntimeException {
+		String content = null;
+		try {
+			content = Compress.deCompress(boardHistory.getHistory_content());
+		} catch(IOException e) {
+			e.printStackTrace();
+			String history = JsonUtils.jsonStringIfExceptionToString(boardHistory);
+			throw new RuntimeException("게시글 내용 압축 해제 실패 \nhistory : " + history);
+		}
+		return content;
 	}
 }

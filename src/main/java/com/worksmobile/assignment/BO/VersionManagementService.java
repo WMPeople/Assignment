@@ -1,6 +1,5 @@
 ﻿package com.worksmobile.assignment.BO;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,7 +17,7 @@ import com.worksmobile.assignment.Mapper.FileMapper;
 import com.worksmobile.assignment.Model.Board;
 import com.worksmobile.assignment.Model.BoardHistory;
 import com.worksmobile.assignment.Model.NodePtr;
-import com.worksmobile.assignment.Util.Utils;
+import com.worksmobile.assignment.Util.JsonUtils;
 
 @Service
 public class VersionManagementService {
@@ -38,6 +37,7 @@ public class VersionManagementService {
 	@Autowired
 	FileService fileService;
 	
+	// TODO : BoardHistoryService Class로 옮기기
 	private Map<Map.Entry<Integer, Integer>, BoardHistory> getHistoryMap(int root_board_id) {
 		List<BoardHistory> historyList = boardHistoryMapper.getHistoryByRootBoardId(root_board_id);
 		Map<Map.Entry<Integer, Integer>, BoardHistory> historyMap = new HashMap<>();
@@ -55,11 +55,11 @@ public class VersionManagementService {
 	 */
 	public List<BoardHistory> getRelatedHistory(NodePtr leafPtr) throws NotLeafNodeException{
 		Board board = boardMapper.viewDetail(leafPtr.toMap());
-		
 		if(board == null) {
-			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtr);
+			String leafPtrJson = JsonUtils.jsonStringIfExceptionToString(leafPtr);
 			throw new NotLeafNodeException("leaf node 정보" + leafPtrJson);
 		}
+
 		Map<Map.Entry<Integer, Integer>, BoardHistory> boardHisotryMap = getHistoryMap(board.getRoot_board_id());
 		List<BoardHistory> relatedHistoryList = new ArrayList<>(boardHisotryMap.size());
 		
@@ -68,15 +68,16 @@ public class VersionManagementService {
 		do {
 			leafHistory = boardHisotryMap.get(curPosPtr .toBoardIdAndVersionEntry());
 			if(leafHistory == null) {
-				String curPosJson = Utils.jsonStringIfExceptionToString(curPosPtr);
-				String historyListJson = Utils.jsonStringIfExceptionToString(boardHisotryMap);
+				String curPosJson = JsonUtils.jsonStringIfExceptionToString(curPosPtr);
+				String historyListJson = JsonUtils.jsonStringIfExceptionToString(boardHisotryMap);
 				throw new RuntimeException("getRelatedHistory에서 노드 포인트가 history에 존재하지 않음" + curPosJson  + "\n" +
 											"listCnt : " + relatedHistoryList.size() + ", content : " + historyListJson);
 			}
 			relatedHistoryList.add(leafHistory);
 			curPosPtr = leafHistory.getParentPtrAndRoot();
 		}
-		while(leafHistory.getParent_version() != 0);
+		while(leafHistory.getParent_version() != NodePtr.INVISIBLE_ROOT_VERSION);
+
 		return relatedHistoryList;
 	}
 	
@@ -87,13 +88,13 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public BoardHistory createArticle(Board article) {
-		// 버전 0은 안보이는 루트를 위함. 보이는 루트는 1로 지정.
 		article.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
-		return createArticleAndHistory(article, 0, BoardHistory.STATUS_CREATED, new NodePtr());
+		return createArticleAndHistory(article, NodePtr.INVISIBLE_ROOT_VERSION, BoardHistory.STATUS_CREATED, new NodePtr());
 	}
 
 	/**
-	 *  압축은 충돌영역에서 제외하기위함.
+	 *  게시판 DB 와 이력 DB 에 둘다 등록합니다.
+	 *  article의 board_id가 새로 발급 해야 하면 DB의 자동 증가를 통해 증가 됩니다.
 	 * @param article 등록할 게시물의 제목, 내용, 첨부파일이 사용됩니다.
 	 * @param version 새로운 게시물의 버전
 	 * @param status 게시물 이력의 상태에 들어갈 내용
@@ -104,65 +105,54 @@ public class VersionManagementService {
 		if(parentNodePtr == null) {
 			throw new RuntimeException("createArticleAndHistory메소드 parentNodePtr은 null 이 될 수 없습니다. ");
 		}
+
 		byte[] compressedContent = Compress.compressArticleContent(article);
 
-		return createArticleAndHistory(article, version, status, compressedContent, parentNodePtr);
-	}
-	
-	/***
-	 *  충돌 영역! 게시판 DB 와 이력 DB 에 둘다 등록합니다.
-	 *  article의 board_id가 -2이면 1증가 시켜 작성합니다.
-	 * @param article 등록할 게시물의 제목, 내용, 첨부파일이 사용됩니다.
-	 * @param version 새로운 게시물의 버전
-	 * @param status 게시물 이력의 상태에 들어갈 내용
-	 * @param compressedContent 압축된 내용
-	 * @param parentNodePtr 게시물의 부모 노드 포인터
-	 * @return 새롭게 생성된 게시글 이력 
-	 */
-	synchronized private BoardHistory createArticleAndHistory(Board article, int version, final String status,
-			final byte[] compressedContent, NodePtr parentNodePtr) {
-		NodePtr newNodePtr;
+		NodePtr createdNodePtr;
 		if (article.getBoard_id() == NodePtr.ISSUE_NEW_BOARD_ID) { // 새로 발급하는 경우..? 새로운 게시글, 충돌 관리 일때
-			int last_board_id = boardMapper.getLeapNodeMaxBoardId() + 1;
-			newNodePtr = new NodePtr(last_board_id, version, NodePtr.ROOT_BOARD_ID);
-			if(parentNodePtr.getBoard_id() == null) {	// 새로운 게시글
-				parentNodePtr.setRoot_board_id(last_board_id);
-			}
+			createdNodePtr = new NodePtr(article.getBoard_id(), version, NodePtr.ROOT_BOARD_ID);
 		} else {
-			newNodePtr = new NodePtr(parentNodePtr.getBoard_id(), version, parentNodePtr.getRoot_board_id());
+			createdNodePtr = new NodePtr(parentNodePtr.getBoard_id(), version, parentNodePtr.getRoot_board_id());
 		}
+
 		BoardHistory boardHistory;
 		if(version == 0) {	// 루트 노드일 경우
 			// 안보이는 루트를 먼저 만듦.
-			BoardHistory rootHistory = new BoardHistory(new Board(), newNodePtr, BoardHistory.STATUS_ROOT);
+			BoardHistory rootHistory = new BoardHistory(new Board(), createdNodePtr, BoardHistory.STATUS_ROOT);
 			int insertedRowCnt = boardHistoryMapper.createHistory(rootHistory);
 			if(insertedRowCnt != 1) {
-				String json = Utils.jsonStringIfExceptionToString(rootHistory);
+				String json = JsonUtils.jsonStringIfExceptionToString(rootHistory);
 				throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\nrootHistory : " + json);
 			}
 			
 			// 보이는 루트를 만듦.
-			boardHistory = new BoardHistory(article, newNodePtr, status);
-			boardHistory.setHistory_content(compressedContent);
+			boardHistory = new BoardHistory(article, rootHistory, status);
 			boardHistory.setParentNodePtrAndRoot(rootHistory);
-			boardHistory.setVersion(1);
-			boardHistory.setRoot_board_id(newNodePtr.getBoard_id());
-		}
-		else {
-			boardHistory = new BoardHistory(article, newNodePtr, status);
+			boardHistory.setVersion(NodePtr.VISIBLE_ROOT_VERSION);
+			boardHistory.setRoot_board_id(rootHistory.getBoard_id());
+			
 			boardHistory.setHistory_content(compressedContent);
-			boardHistory.setParentNodePtrAndRoot(parentNodePtr);
+			insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
+			if(insertedRowCnt != 1) {
+				String json = JsonUtils.jsonStringIfExceptionToString(boardHistory);
+				throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\nrootHistory : " + json);
+			}
 		}
-		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
-		if(insertedRowCnt != 1) {
-			String json = Utils.jsonStringIfExceptionToString(boardHistory);
-			throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\nrootHistory : " + json);
+		else {// 루트가 아닌 리프 노드일 경우 (중간 노드일 경우는 없음)
+			boardHistory = new BoardHistory(article, createdNodePtr, status);
+			boardHistory.setParentNodePtrAndRoot(parentNodePtr);
+			boardHistory.setHistory_content(compressedContent);
+			int insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
+			if(insertedRowCnt != 1) {
+				String json = JsonUtils.jsonStringIfExceptionToString(boardHistory);
+				throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\nrootHistory : " + json);
+			}
 		}
 		
 		article.setNodePtr(boardHistory);
 		article.setCreated(boardHistory.getCreated());
 		
-		insertedRowCnt = boardMapper.boardCreate(article);
+		int insertedRowCnt = boardMapper.boardCreate(article);
 		if(insertedRowCnt != 1) {
 			throw new RuntimeException("createArticle메소드에서 boardCreate error" + boardHistory);
 		}
@@ -185,52 +175,49 @@ public class VersionManagementService {
 		BoardHistory leafHistory = boardHistoryMapper.getHistory(leafPtr);
 		if(leafHistory == null || recoverHistory == null)
 		{
-			String json = Utils.jsonStringIfExceptionToString(leafHistory);
+			String json = JsonUtils.jsonStringIfExceptionToString(leafHistory);
 			json += "\n";
-			json += Utils.jsonStringIfExceptionToString(recoverHistory);
+			json += JsonUtils.jsonStringIfExceptionToString(recoverHistory);
 			throw new RuntimeException("recoverVersion에서 복구할 게시글 이력이 존재하지 않습니다. \nleafHistory : " + json);
 		}
 		
 		Board recoveredBoard = new Board(recoverHistory);
-		try {
-			recoveredBoard.setContent(Compress.deCompress(recoverHistory.getHistory_content()));
-		} catch (IOException e) {
-			e.printStackTrace();
-			String json = Utils.jsonStringIfExceptionToString(recoveredBoard);
-			throw new RuntimeException("recoverVersion에서 게시글 내용을 압축해제 중 에러 발생. \nrecoveredBoard : " + json);
-		}
+		recoveredBoard.setContent(Compress.deCompressHistoryContent(recoverHistory));
 		String status = String.format("%s(%s)", BoardHistory.STATUS_RECOVERED, recoverPtr.toString());
 		return createVersionWithBranch(recoveredBoard, leafPtr, status);
 	}
 	
 	/***
-	 * 부모 버전이 있을 때 새로운 버전을 등록합니다.
-	 * 자동 저장 게시글은 삭제되지 않습니다.
-	 * @param modifiedBoard 새롭게 등록될 게시글에 대한 정보.
+	 * 새로운 버전을 등록합니다. 충돌 관리가 적용되어 있습니다.
+	 * @param modifiedBoard 새롭게 등록될 게시글에 대한 정보. cookie_id가 존재하면 자동 저장 내역이 삭제 됩니다.
 	 * @param parentPtr 부모를 가리키는 노드 포인터.
 	 * @return 새롭게 생성된 리프 노드를 가리킵니다.
 	 */
 	@Transactional
 	public NodePtr modifyVersion(Board modifiedBoard, NodePtr parentPtr) {
+		if(!Board.LEAF_NODE_COOKIE_ID.equals(modifiedBoard.getCookie_id())) {
+			boardMapper.boardDeleteWithCookieId(modifiedBoard.toMap());
+		}
 		return createVersionWithBranch(modifiedBoard, parentPtr, BoardHistory.STATUS_MODIFIED);
 	}
 	
 	/***
-	 * 리프 노드일시 자동저장 게시글은 삭제 되지 않습니다.
+	 * 새로운 게시글 번호로 할당할지를 판단 하여 생성합니다.
+	 * 새로운 리프를 등록하기 때문에 리프 노드 경우엔 삭제 됩니다. 단, 자동저장 게시글은 삭제 되지 않습니다.
 	 * @param board 새로운 버전의 게시글의 내용
 	 * @param parentPtr 부모가 될 노드의 포인터
 	 * @param status 게시글 이력에 남길 상태
 	 * @return 생성된 게시글의 포인터
 	 */
 	synchronized private NodePtr createVersionWithBranch(Board board, NodePtr parentPtr, final String status) {
-		NodePtr dbParentPtr = boardHistoryMapper.getHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는
-																				// 존재하지 않는 값을 줬을때)
+		NodePtr dbParentPtr = boardHistoryMapper.getHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
 		List<BoardHistory> childrenList= boardHistoryMapper.getChildren(dbParentPtr);
 		if(childrenList.size() == 0) {
 			int deletedCnt = boardMapper.boardDeleteWithCookieId(dbParentPtr.toMap());
 			if(deletedCnt != 1) {
 				throw new RuntimeException("delete cnt expected  but " + deletedCnt);
 			}
+			board.setBoard_id(dbParentPtr.getBoard_id());
 		} else {
 			board.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
 		}
@@ -277,14 +264,6 @@ public class VersionManagementService {
 			}
 			
 			else if(parentChildren.size() == 0 && !parentHistory.isRoot()){	// 루트가 아닌 리프 노드는 게시물 게시판에 존재해야 함.
-				try {
-					String content = Compress.deCompress(parentHistory.getHistory_content());
-					parent.setContent(content);
-				} catch(IOException e) {
-					e.printStackTrace();
-					String history = Utils.jsonStringIfExceptionToString(parentHistory);
-					throw new RuntimeException("deleteVersion메소드에서 압축 해제 실패 \nhistory : " + history);
-				}
 				int createdCnt = boardMapper.boardCreate(parent);
 				if(createdCnt == 0) {
 					throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
@@ -304,24 +283,13 @@ public class VersionManagementService {
 				childHistory.setParentNodePtrAndRoot(parentPtr);
 				int updatedCnt = boardHistoryMapper.updateHistoryParentAndRoot(childHistory);
 				if(updatedCnt != 1) {
-					String json = Utils.jsonStringIfExceptionToString(childHistory);
+					String json = JsonUtils.jsonStringIfExceptionToString(childHistory);
 					throw new RuntimeException("updateRowCnt expected 1 but : " + updatedCnt + "\n" +
 												"in " + json);
 				}
 			}
 		}
 		return null;
-	}
-	
-	public NodePtr findAncestorHaveAnotherChild(NodePtr curPtr) {
-		List<BoardHistory> children;
-		do {
-			BoardHistory boardHistory = boardHistoryMapper.getHistory(curPtr);
-			curPtr = boardHistory.getParentPtrAndRoot();
-			children = boardHistoryMapper.getChildren(curPtr);
-		} while(children.size() != 1);
-		
-		return curPtr;
 	}
 	
 	/**
@@ -336,7 +304,7 @@ public class VersionManagementService {
 		Set<Integer> fileIdSet = new HashSet<>();
 		
 		if(!isLeaf(leafPtr)) {
-			String leafPtrJson = Utils.jsonStringIfExceptionToString(leafPtr);
+			String leafPtrJson = JsonUtils.jsonStringIfExceptionToString(leafPtr);
 			throw new NotLeafNodeException("node 정보" + leafPtrJson);
 		}
 		
@@ -348,7 +316,7 @@ public class VersionManagementService {
 				break;
 			}
 			NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
-
+			
 			fileIdSet.addAll(boardService.deleteBoardAndReturnfileIdSet(leafPtr));
 			fileIdSet.add(boardService.deleteBoardHistoryAndReturnfileId(leafPtr));
 
@@ -360,21 +328,18 @@ public class VersionManagementService {
 			leafPtr = parentPtr;
 		}
 		fileService.deleteNoMoreUsingFile(fileIdSet);
+
 	}
 
-	// TODO : 임시 게시글 만들기.
 	@Transactional
 	public void createTempArticleOverwrite(Board tempArticle) {
-		
 		tempArticle.setRoot_board_id(tempArticle.getBoard_id());			// getHistoryByRootId에서 검색이 가능하도록
-
- 		Board dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
-		
+	
 		if(dbTempArticle != null) {
 
 			int articleUpdatedCnt = boardMapper.boardUpdate(tempArticle);
 			if(articleUpdatedCnt != 1 ) {
-				String json = Utils.jsonStringIfExceptionToString(tempArticle);
+				String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
 				throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
 				"articleUpdatedCnt : " + articleUpdatedCnt);
 			}
@@ -383,7 +348,7 @@ public class VersionManagementService {
 		else {
 			int createdCnt = boardMapper.boardCreate(tempArticle);
 			if(createdCnt != 1) {
-				String json = Utils.jsonStringIfExceptionToString(tempArticle);
+				String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
 				throw new RuntimeException("createTempArticle에서 게시글 생성 실패 : " + json);
 			}
 			
