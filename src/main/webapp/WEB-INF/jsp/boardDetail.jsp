@@ -33,7 +33,7 @@
 		<div class="infor _infor">
 			<span class="name">게시물 번호 : <span class="_group">${board.board_id}</span> <span class="_company"></span></span>
 			<span class="name">버전 : <span class="_group">${board.version}</span> <span class="_company"></span></span>
-			<span class="date">최종 수정시간 :  ${board.created}</span>
+			<span class="date">최종 수정시간 :  ${board.created_time}</span>
 			<span class="date">첨부 파일 :   <a href="${path}/assignment/boards/download/${file.file_id}" name="file">${file.file_name}     </a> (${file.file_size})</span>
 			<button class="btn btn-primary" id="btnAutoList" onclick="location.href='${path}/assignment/autos/${board.board_id}/${board.version}'">자동저장리스트</button>
 		<div class="cont _content translateArea" id="contents">
@@ -54,7 +54,7 @@
 					<input name="version" type="text" id="version" value="${board.version}" style="display:none;">
 		            <input name="cookie_id" type="text" id="cookie_id" value="${board.cookie_id}" style="display:none;">
 		            <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">
-		            <input name="created" type="text" id="created" value="${board.created}" style="display:none;">
+		            <input name="created_time" type="text" id="created_time" value="${board.created_time}" style="display:none;">
 		            <textarea name="content" id="content"  style="display:none;"><c:out value="${board.content}" escapeXml="true" /></textarea>
 		            <input name="file_id" type="text" id="file_id" value="${file.file_id}" style="display:none;">
 		            <input name="file_name" type="text" id="file_name" value="${file.file_name}" style="display:none;">

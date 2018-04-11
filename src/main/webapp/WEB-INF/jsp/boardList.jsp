@@ -34,7 +34,7 @@
             <td>${board.board_id}</td>
             <td>${board.version}</td>
        		<td><a href="${path}/assignment/boards/${board.board_id}/${board.version}/${board.cookie_id}">${board.subject}</a></td>
-            <td>${board.created}</td>
+            <td>${board.created_time}</td>
 			<td> 
 			<button class="btn btn-primary" id="btnDelete" onclick="btnDelete(${board.board_id},${board.version});">삭제</button> 
 			<button class="btn btn-primary" id="btnManagement" onclick="location.href='${path}/assignment/boards/management/${board.board_id}/${board.version}'">버전관리</button>
