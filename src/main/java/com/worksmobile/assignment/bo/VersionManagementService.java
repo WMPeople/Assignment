@@ -98,7 +98,7 @@ public class VersionManagementService {
 		byte[] compressedContent = Compress.compressArticleContent(article);
 
 		NodePtr createdNodePtr;
-		if (article.getBoard_id() == NodePtr.ISSUE_NEW_BOARD_ID) { // 새로 발급하는 경우..? 새로운 게시글, 충돌 관리 일때
+		if (article.getBoard_id() == NodePtr.ISSUE_NEW_BOARD_ID) { // 새로 발급하는 경우 새로운 게시글, 충돌 관리 일때
 			createdNodePtr = new NodePtr(article.getBoard_id(), version, NodePtr.ROOT_BOARD_ID);
 		} else {
 			createdNodePtr = new NodePtr(parentNodePtr.getBoard_id(), version, parentNodePtr.getRoot_board_id());
@@ -201,7 +201,7 @@ public class VersionManagementService {
 	 * @param status 게시글 이력에 남길 상태
 	 * @return 생성된 게시글의 포인터
 	 */
-	synchronized private NodePtr createVersionWithBranch(Board board, NodePtr parentPtr, final String status) {
+	private NodePtr createVersionWithBranch(Board board, NodePtr parentPtr, final String status) {
 		NodePtr dbParentPtr = boardHistoryMapper.selectHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
 		List<BoardHistory> childrenList= boardHistoryMapper.selectChildren(dbParentPtr);
 		if(childrenList.size() == 0) {
@@ -225,7 +225,7 @@ public class VersionManagementService {
 	public NodePtr deleteVersion(final NodePtr deletePtr) {
 		BoardHistory deleteHistory = boardHistoryMapper.selectHistory(deletePtr);
 		NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
-		NodePtr newCreatedLeafPtr = null;
+		NodePtr rtnNewLeafPtr = null;
 		
 		List<BoardHistory> deleteNodeChildren = boardHistoryMapper.selectChildren(deletePtr);
 		boardService.deleteBoardAndAutoSave(deletePtr);
@@ -235,9 +235,9 @@ public class VersionManagementService {
 			BoardHistory parentHistory = boardHistoryMapper.selectHistory(parentPtr);
 			
 			Board parent = new Board(parentHistory);
-			List<BoardHistory> parentChildren = boardHistoryMapper.selectChildren(parent);
+			List<BoardHistory> brothers = boardHistoryMapper.selectChildren(parent);
 			
-			if(parentChildren.size() == 0) {
+			if(brothers.size() == 0) {
 				if(parentHistory.isInvisibleRoot()) {// 부모가 안보이는 루트만 존재있으면 삭제합니다.
 					boardService.deleteBoardHistory(parentHistory);
 				} else {	// 부모가 안보이는 루트가 아닌 노드는 board테이블에 존재해야 함.
@@ -246,7 +246,7 @@ public class VersionManagementService {
 						throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
 								" createdCnt : " + createdCnt);
 					}
-					newCreatedLeafPtr = parent;
+					rtnNewLeafPtr = parent;
 				}
 			}
 		}	// 리프 노드일때 끝
@@ -264,7 +264,7 @@ public class VersionManagementService {
 				}
 			}
 		}
-		return newCreatedLeafPtr;
+		return rtnNewLeafPtr;
 	}
 	
 	/**
@@ -293,9 +293,9 @@ public class VersionManagementService {
 			boardService.deleteBoardAndAutoSave(leafPtr);
 			boardService.deleteBoardHistory(leafPtr);
 
-			List<BoardHistory> children = boardHistoryMapper.selectChildren(parentPtr);
+			List<BoardHistory> brothers = boardHistoryMapper.selectChildren(parentPtr);
 			
-			if(children.size() >= 1) {
+			if(brothers.size() != 0) {
 				break;
 			}
 			leafPtr = parentPtr;
