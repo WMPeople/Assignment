@@ -308,8 +308,8 @@ public class VersionManagementService {
 		
 		Board dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
 		if(dbTempArticle != null) {
-			if (type.equals("withfile")) {
-				articleUpdatedCnt = boardMapper.boardUpdate(tempArticle);
+			if (("withfile").equals(type)) {
+				int articleUpdatedCnt = boardMapper.boardUpdate(tempArticle);
 				if(articleUpdatedCnt != 1 ) {
 					String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
 					throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
@@ -317,17 +317,19 @@ public class VersionManagementService {
 				}
 				
 			} else {
-				articleUpdatedCnt = boardMapper.boardUpdateWithoutFile(tempArticle);
+				int articleUpdatedCnt = boardMapper.boardUpdateWithoutFile(tempArticle);
 				if(articleUpdatedCnt != 1 ) {
 					String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
 					throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
 					"articleUpdatedCnt : " + articleUpdatedCnt);
 				}
 			}
-			
-			
 		}
-
+		else {
+			boardService.copyBoardAndCreateTempBoard(tempArticle);
+		}
 		return tempArticle;
 	}
+
+	
 }

@@ -186,7 +186,7 @@ public class BoardController {
 	 * @param board 사용자가 수정한 board 데이터를 받습니다.
 	 * @param attachment 첨부파일 데이터를 받습니다.
 	 */
-	@RequestMapping(value = "/boards/update2", method = RequestMethod.POST)
+	@RequestMapping(value = "/boards/updatewithoutattachment", method = RequestMethod.POST)
 	public Map<String,Object> updateWithoutAttachment(Board board, MultipartHttpServletRequest attachment, HttpServletRequest req) {	
 		System.out.println(board.getCookie_id());
 		Map<String,Object> resultMap = new HashMap<>();
@@ -204,7 +204,9 @@ public class BoardController {
 			resultMap.put("result", "수정 실패");
 		}
 		else {
+			
 			resultMap.put("result", "success");
+			resultMap.put("updatedBoard",newNode);
 		}
 
 		return resultMap;
@@ -215,7 +217,7 @@ public class BoardController {
 	 * @param board 사용자가 수정한 board 데이터를 받습니다.
 	 * 글 수정 전 자신의 첨부파일을 DB에서 가져와 새로운 게시물에 등록합니다.
 	 */
-	@RequestMapping(value = "/boards/update3", method = RequestMethod.POST)
+	@RequestMapping(value = "/boards/updatemaintainattachment", method = RequestMethod.POST)
 	public Map<String,Object> updateMaintainAttachment(Board board, HttpServletRequest req) {
 		
 		Map<String,Object> resultMap = new HashMap<String,Object>();
@@ -225,7 +227,7 @@ public class BoardController {
 			Board pastBoard = boardMapper.viewDetail(board.toMap());	
 			if(pastBoard == null) {
 				String json = JsonUtils.jsonStringIfExceptionToString(pastBoard);
-				throw new RuntimeException("update3 메소드에서 viewDetail 메소드 실행 에러" + json);
+				throw new RuntimeException("updatemaintainattachment 메소드에서 viewDetail 메소드 실행 에러" + json);
 			}
 			board.setFile_id(pastBoard.getFile_id());
 			

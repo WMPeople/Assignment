@@ -17,6 +17,7 @@
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
 <script src="../js/auto_save.js"></script>
+<script src="../js/diff_match_patch.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>게시글 수정</title>
@@ -59,7 +60,6 @@
 				%>
 				<textarea name="content" id="content"
 					style="min-height: 500px; min-width: 700px;">${param.content}</textarea>
-				
 				<div class="btn_area _btn_area">
 					<input type="text" name="board_id" id="board_id"
 						style="display: none;"
@@ -68,8 +68,6 @@
 						value="<%=request.getParameter("version")%>">  <input
 						type="text" name="cookie_id" id="cookie_id" style="display: none;"
 						value="<%=request.getParameter("cookie_id")%>">
-						
-						
 					<button type="button" id="btnUpdate" class="btn tx_point _save">
 						<strong>수정</strong>
 					</button>
@@ -159,9 +157,9 @@ $("#btnUpdate").click(function(){
 		var urlStr;
 		//원본 게시물에 파일이 있지만 수정하지 않았을 때
 		if (file_name != null && $("#fileUp").val() == null) {
-			urlStr = "/assignment/boards/update3";
+			urlStr = "/assignment/boards/updatemaintainattachment";
 		} else {
-			urlStr = "/assignment/boards/update2";
+			urlStr = "/assignment/boards/updatewithoutattachment";
 		}
 		$.ajax({
 			type : "POST",

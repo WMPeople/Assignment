@@ -60,7 +60,7 @@ public class AutoController {
 	 * @return
 	 */
 	@RequestMapping(value = "/boards/autosavewithfile", method = RequestMethod.POST)
-	public Map<String,Object> tempArticle(Board board, 
+	public Map<String,Object> tempArticleWithFile(Board board, 
 			HttpServletRequest req, 
 			MultipartHttpServletRequest attachment) {	
 		
@@ -82,7 +82,7 @@ public class AutoController {
 	}
 	
 	@RequestMapping(value = "/boards/autosavewithoutfile", method = RequestMethod.POST)
-	public Map<String,Object> tempArticle2(Board board, 
+	public Map<String,Object> tempArticleWithoutFile(Board board, 
 			HttpServletRequest req, MultipartHttpServletRequest attachment) {	
 		
 		Map<String,Object> resultMap = new HashMap<>();

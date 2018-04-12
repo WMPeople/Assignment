@@ -173,6 +173,18 @@ public class BoardService{
 		} 
 		
 	}
+
+	public void copyBoardAndCreateTempBoard(Board tempArticle) {
+		String cookie_id = tempArticle.getCookie_id();
+		Board board = tempArticle;
+		board.setCookie_id(Board.LEAF_NODE_COOKIE_ID);
+		Board updatedBoard = boardMapper.viewDetail(board.toMap());
+		updatedBoard.setCookie_id(cookie_id);
+		int insertedRowCnt = boardMapper.boardCreate(updatedBoard);
+		if(insertedRowCnt != 1) {
+			throw new RuntimeException("createTempArticleOverwrite메소드에서 boardCreate error");
+		}
+	}
 	
 	
 }
