@@ -154,7 +154,7 @@ public class VersionManagementTest {
 		Board newleaf = boardMapper.viewDetail(newleafPtr.toMap());
 		
 		prevleaf.setNodePtr(newleafPtr);
-		prevleaf.setCreated_time(prevleaf.getCreated_time()); // 버전 복구시 시간이 달라짐
+		prevleaf.setCreated_time(newleaf.getCreated_time()); // 버전 복구시 시간이 달라짐
 		
 		assertNotNull(recoveredHistory);
 		JsonUtils.assertConvertToJsonObject(newleaf, prevleaf);
