@@ -45,7 +45,7 @@ public class FileService {
 	 * @param attachment 프론트 -> 컨트롤러 -> 서비스로 들어온 첨부파일
 	 * @return file 객체
 	 */
-	public File uploadFile(MultipartHttpServletRequest attachment) {
+	public File multiFileToFile(MultipartHttpServletRequest attachment) {
 
 		MultipartFile mFile = null;
 		Iterator<String> iter = attachment.getFileNames();

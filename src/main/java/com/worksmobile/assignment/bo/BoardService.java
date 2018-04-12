@@ -24,7 +24,7 @@ import com.worksmobile.assignment.util.JsonUtils;
  *
  */
 @Service
-class BoardService{
+public class BoardService{
 	@Autowired
 	BoardMapper boardMapper;
 	
@@ -36,6 +36,9 @@ class BoardService{
 	
 	public void deleteBoardAndAutoSave(NodePtr deleteNodePtr) {
 		List<Board> boardList = boardMapper.getBoardList(deleteNodePtr);
+		if (boardList.size() == 0) {
+			return;
+		}
 		Set<Integer> fileIdSet = new HashSet<>();
 		for(Board ele : boardList) {
 			fileIdSet.add(ele.getFile_id());
@@ -118,6 +121,36 @@ class BoardService{
 			historyMap.put(ele.toBoardIdAndVersionEntry(), ele);
 		}
 		return historyMap;
+	}
+	
+	public void createTempBoard (Board tempArticle) {
+		int createdCnt = boardMapper.boardCreate(tempArticle);
+		if(createdCnt != 1) {
+			String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
+			throw new RuntimeException("createTempArticle에서 게시글 생성 실패 : " + json);
+		}
+	}
+	
+	public void makeBoard (int board_id, int version, String cookie_id, String created_time, String content, int file_id, String subject) {
+		
+		Board updateBoard = new Board();
+		updateBoard.setBoard_id(board_id);
+		updateBoard.setContent(content);
+		updateBoard.setCookie_id(cookie_id);
+		updateBoard.setCreated_time(created_time);
+		updateBoard.setFile_id(file_id);
+		updateBoard.setSubject(subject);
+		updateBoard.setVersion(version);
+		
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("board_id", board_id);
+		params.put("version", version);
+		params.put("cookie_id",cookie_id);
+		Board board = boardMapper.viewDetail(params);
+		if (board == null ) {
+			boardMapper.boardCreate(updateBoard);
+		} 
+		
 	}
 	
 	

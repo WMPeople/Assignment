@@ -74,6 +74,16 @@
         WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id}
     </update>
     
+     <update id="boardUpdateWithoutFile" parameterType="hashmap">
+        UPDATE board 
+        SET 
+        subject = #{subject},
+        content = #{content},
+        created_time = CURRENT_TIMESTAMP,
+        root_board_id = #{root_board_id}
+        WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id}
+    </update>
+    
     <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.assignment.model.File">
         SELECT b.file_name, b.file_data, b.file_size
         FROM board as a

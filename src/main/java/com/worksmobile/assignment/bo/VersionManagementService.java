@@ -245,8 +245,8 @@ public class VersionManagementService {
 		NodePtr newCreatedLeafPtr = null;
 		
 		List<BoardHistory> deleteNodeChildren = boardHistoryMapper.selectChildren(deletePtr);
-		boardService.deleteBoardHistory(deletePtr);
 		boardService.deleteBoardAndAutoSave(deletePtr);
+		boardService.deleteBoardHistory(deletePtr);
 
 		if(deleteNodeChildren.size() == 0) {	// 리프 노드라면
 			BoardHistory parentHistory = boardHistoryMapper.selectHistory(parentPtr);
@@ -320,27 +320,38 @@ public class VersionManagementService {
 	}
 
 	@Transactional
-	public void createTempArticleOverwrite(Board tempArticle) {
+	public void createTempArticleOverwrite(Board tempArticle, String type) {
 		tempArticle.setRoot_board_id(tempArticle.getBoard_id());			// getHistoryByRootId에서 검색이 가능하도록
 		
 		Board dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
+		int articleUpdatedCnt =0;
 		if(dbTempArticle != null) {
-
-			int articleUpdatedCnt = boardMapper.boardUpdate(tempArticle);
-			if(articleUpdatedCnt != 1 ) {
-				String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
-				throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
-				"articleUpdatedCnt : " + articleUpdatedCnt);
-			}
-			fileService.deleteFile(tempArticle, dbTempArticle);
-		}
-		else {
-			int createdCnt = boardMapper.boardCreate(tempArticle);
-			if(createdCnt != 1) {
-				String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
-				throw new RuntimeException("createTempArticle에서 게시글 생성 실패 : " + json);
+			if (type.equals("withfile")) {
+				articleUpdatedCnt = boardMapper.boardUpdate(tempArticle);
+				if(articleUpdatedCnt != 1 ) {
+					String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
+					throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
+					"articleUpdatedCnt : " + articleUpdatedCnt);
+				}
+				
+			} else {
+				articleUpdatedCnt = boardMapper.boardUpdateWithoutFile(tempArticle);
+				if(articleUpdatedCnt != 1 ) {
+					String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
+					throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
+					"articleUpdatedCnt : " + articleUpdatedCnt);
+				}
 			}
 			
+			
 		}
+//		else {
+//			int createdCnt = boardMapper.boardCreate(tempArticle);
+//			if(createdCnt != 1) {
+//				String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
+//				throw new RuntimeException("createTempArticle에서 게시글 생성 실패 : " + json);
+//			}
+//			
+//		}
 	}
 }
