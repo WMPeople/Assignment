@@ -22,11 +22,12 @@ $(document).ready(function(){
         window.localStorage.setItem('textval-01', encodedTextVal);
         window.localStorage.setItem('textval-02', ref1);
         window.localStorage.setItem('textval-03', ref2);
-        var originalContent = document.getElementById('content').defaultValue;
+       
         var tempContent = textVal;
         
     	var dmp = new diff_match_patch();
     	function launch() {
+    		var originalContent = document.getElementById('content').defaultValue;
     		dmp.Diff_Timeout = parseFloat(2);
 			dmp.Diff_EditCost = parseFloat(4);
 			dmp.Diff_Sensitive = 0;
@@ -37,6 +38,9 @@ $(document).ready(function(){
 			var diffLength = diff.length;
 			var diffCount = 0;
 			var nextVal =0;
+			var originalContentLength = originalContent.length;
+			var tempContentLength = tempContent.length;
+			var stringSizeDifference = Math.abs(originalContentLength - tempContentLength) / originalContentLength ;
 			for(var i = 0 ; i < diff.length ; i++){
 				if(diff[i][0] != 0){
 					diffCount++;
@@ -48,17 +52,18 @@ $(document).ready(function(){
 					}
 				}
 			}
-			console.log(diffLength); // 배열사이즈
-			console.log(diffCount); //-1 ,1 개수
-			console.log(nextVal); // 개행 개수
+			console.log('diff 크기 : '+ diffLength); // 배열사이즈
+			console.log('-1, 1 개수 : '+ diffCount); //-1 ,1 개수
+			console.log('개행 수 : '+ nextVal); // 개행 개수
+			console.log('o-t/o : '+ stringSizeDifference);
+			console.log('orginalContent : ' + originalContent);
 			
-			if (diffLength >=10 || diffCount >= 20 || nextVal >= 10) {
+			if (diffLength >=10 || diffCount >= 20 || nextVal >= 10 || stringSizeDifference >= 5) {
 				var file_name = '<%=request.getParameter("file_name")%>';
 			   	if(file_name != ''){
 			   		file_name = '<%=request.getParameter("file_name")%>';
 					}
 					var formData = new FormData($("#fileForm")[0]);
-
 					var urlStr;
 					//원본 게시물에 파일이 있지만 수정하지 않았을 때
 					if (file_name != null && $("#fileUp").val() == null) {
@@ -79,8 +84,6 @@ $(document).ready(function(){
 								$('#board_id').val(result.updatedBoard.board_id);
 								$('#version').val(result.updatedBoard.version);
 								document.getElementById('content').defaultValue = document.getElementById('content').value;
-								
-								//여기서 템프 아티클을 하나 만들어 줘야한다.. 흠 ..
 							} else {
 								alert(result.result);
 							}
