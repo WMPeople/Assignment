@@ -22,16 +22,16 @@ $(document).ready(function(){
         window.localStorage.setItem('textval-01', encodedTextVal);
         window.localStorage.setItem('textval-02', ref1);
         window.localStorage.setItem('textval-03', ref2);
-		
-		// do TempArticleUpload
-		var formData = new FormData($("#fileForm")[0]);
+        var formData = new FormData($("#fileForm")[0]);
+       
+        formData = new FormData($("#fileForm")[0]);
 		$.ajax({
 			type : "POST",
 			contentType : "application/json; charset=UTF-8",
 			data : formData,
 			processData : false,
 			contentType : false,
-			url : "/assignment/boards/autosave",
+			url : "/assignment/boards/autosavewithoutfile",
 			success : function(result) {
 				if (result.result == 'success') {
 					console.log("자동 저장 성공");

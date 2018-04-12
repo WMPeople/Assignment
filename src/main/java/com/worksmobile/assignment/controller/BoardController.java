@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.nhncorp.lucy.security.xss.XssPreventer;
+import com.worksmobile.assignment.bo.BoardService;
 import com.worksmobile.assignment.bo.CookieService;
 import com.worksmobile.assignment.bo.FileService;
 import com.worksmobile.assignment.bo.PageService;
@@ -53,6 +54,9 @@ public class BoardController {
     
     @Autowired
     private CookieService cookieService;
+   
+    @Autowired
+    private BoardService boardService;
     
     /***
 	 * 게시물 작성입니다. 글쓰기 폼 페이지로 이동합니다.
@@ -63,10 +67,12 @@ public class BoardController {
 	}
 	
 	/***
-	 * 게시물 수정입니다. 글수정 폼 페이지로 이동합니다.
+	 * 게시물 수정 버튼을 눌렀을 때 자동 저장 게시글이 없으면 만들고, 수정 페이지로 이동합니다.
 	 */
 	@RequestMapping(value = "/boards/update", method = RequestMethod.POST)
-	public ModelAndView updateForm() throws Exception {
+	public ModelAndView updateForm(int board_id, int version, String cookie_id, String created_time, String content, int file_id, String subject, HttpServletRequest req) throws Exception {
+		
+		boardService.makeBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time, content, file_id, subject);
 		return new ModelAndView("boardUpdate");
 	}
     
@@ -161,7 +167,7 @@ public class BoardController {
 	public Map<String,Object> create(Board board, MultipartHttpServletRequest attachment) {
 		Map<String,Object> resultMap = new HashMap<>();
 		
-		File file = fileService.uploadFile(attachment);
+		File file = fileService.multiFileToFile(attachment);
 		if (file == null) {
 			board.setFile_id(0);
 		}
@@ -181,11 +187,10 @@ public class BoardController {
 	 * @param attachment 첨부파일 데이터를 받습니다.
 	 */
 	@RequestMapping(value = "/boards/update2", method = RequestMethod.POST)
-	public Map<String,Object> updateWithoutAttachment(Board board, MultipartHttpServletRequest attachment, HttpServletRequest req) 
-	{	
+	public Map<String,Object> updateWithoutAttachment(Board board, MultipartHttpServletRequest attachment, HttpServletRequest req) {	
 		System.out.println(board.getCookie_id());
 		Map<String,Object> resultMap = new HashMap<>();
-		File file = fileService.uploadFile(attachment);
+		File file = fileService.multiFileToFile(attachment);
 		
 		if(file != null) {
 			fileMapper.createFile(file);
@@ -224,6 +229,7 @@ public class BoardController {
 			}
 			board.setFile_id(pastBoard.getFile_id());
 			
+			System.out.println("여기냐?");
 			NodePtr leapPtr = new NodePtr(board.getBoard_id(),board.getVersion());
 			NodePtr newNode = versionManagementService.modifyVersion(board, leapPtr, cookieService.getCookie(req).getValue());	
 			if (newNode== null) {

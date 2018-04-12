@@ -27,6 +27,8 @@ public interface BoardMapper {
 
 	public int deleteBoardWithCookieId(HashMap<String, Object> params);
 
+	public int boardUpdateWithoutFile(Board board) ;
+	
 	public int boardUpdate(Board board) ;
 	
 	public Board viewDetail(HashMap<String, Object> parmas) ;

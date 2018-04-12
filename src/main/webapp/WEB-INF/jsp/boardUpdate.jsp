@@ -61,12 +61,6 @@
 					style="min-height: 500px; min-width: 700px;">${param.content}</textarea>
 				
 				<div class="btn_area _btn_area">
-					<!-- 			<p class="next"> -->
-					<!-- 				<button type="button" class="btn _cancel">작성취소</button> -->
-					<!-- 				<button type="button" class="btn _atc_delete">삭제</button> -->
-					<!-- 			</p> -->
-					<!-- 			<button type="button" class="btn _temp">임시저장</button> -->
-					<!-- 			<button type="button" class="btn _preview">미리보기</button> -->
 					<input type="text" name="board_id" id="board_id"
 						style="display: none;"
 						value="<%=request.getParameter("board_id")%>"> <input
@@ -74,6 +68,7 @@
 						value="<%=request.getParameter("version")%>">  <input
 						type="text" name="cookie_id" id="cookie_id" style="display: none;"
 						value="<%=request.getParameter("cookie_id")%>">
+						
 						
 					<button type="button" id="btnUpdate" class="btn tx_point _save">
 						<strong>수정</strong>
@@ -85,10 +80,75 @@
 </body>
 <script>
 $(document).ready(function(){
+	 var formData = new FormData($("#fileForm")[0]);
+	 $('#fileUp').on('change' , function(){ 
+         formData = new FormData($("#fileForm")[0]);
+         $.ajax({
+             type : "POST",
+             contentType : "application/json; charset=UTF-8",
+             data : formData,
+             processData : false,
+             contentType : false,
+             url : "/assignment/boards/autosavewithfile",
+             success : function(result) {
+                 if (result.result == 'success') {
+                     console.log("자동 저장 성공");
+                 } else {
+                     alert("자동 저장 실패");
+                 }
+             },
+             error : function(xhr, status, error) {
+                 alert(error);
+             }
+         });
+     });
 	$("#fileUpdate").click(function(){
 		document.getElementById('test').innerHTML='<input type="file" id="fileUp" name="fileUp" />'
+		formData = new FormData($("#fileForm")[0]);
+		$.ajax({
+            type : "POST",
+            contentType : "application/json; charset=UTF-8",
+            data : formData,
+            processData : false,
+            contentType : false,
+            url : "/assignment/boards/autosavewithfile",
+            success : function(result) {
+                if (result.result == 'success') {
+                    console.log("자동 저장 성공");
+                } else {
+                    alert("자동 저장 실패");
+                }
+            },
+            error : function(xhr, status, error) {
+                alert(error);
+            }
+        });
+		
+		$('#fileUp').on('change' , function(){ 
+            formData = new FormData($("#fileForm")[0]);
+            $.ajax({
+                type : "POST",
+                contentType : "application/json; charset=UTF-8",
+                data : formData,
+                processData : false,
+                contentType : false,
+                url : "/assignment/boards/autosavewithfile",
+                success : function(result) {
+                    if (result.result == 'success') {
+                        console.log("자동 저장 성공");
+                    } else {
+                        alert("자동 저장 실패");
+                    }
+                },
+                error : function(xhr, status, error) {
+                    alert(error);
+                }
+            });
+        });
+		
 	});
 });
+
 $("#btnUpdate").click(function(){
    	var file_name = '<%=request.getParameter("file_name")%>';
    	if(file_name != ''){

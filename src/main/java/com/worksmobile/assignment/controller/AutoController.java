@@ -59,28 +59,39 @@ public class AutoController {
 	 * @param attachment
 	 * @return
 	 */
-	@RequestMapping(value = "/boards/autosave", method = RequestMethod.POST)
+	@RequestMapping(value = "/boards/autosavewithfile", method = RequestMethod.POST)
 	public Map<String,Object> tempArticle(Board board, 
 			HttpServletRequest req, 
 			MultipartHttpServletRequest attachment) {	
 		
 		Map<String,Object> resultMap = new HashMap<>();
 		
-		File file = fileService.uploadFile(attachment);
-		if (file == null) {
+		File file = fileService.multiFileToFile(attachment);
+ 		if (file == null) {
 			board.setFile_id(0);
 		}else {
-			fileMapper.createFile(file);
-			board.setFile_id(file.getFile_id());
+  			fileMapper.createFile(file);
+  			board.setFile_id(file.getFile_id());
 		}
 
 		board.setCookie_id((cookieService.getCookie(req).getValue()));
-		versionManagementService.createTempArticleOverwrite(board);
+		versionManagementService.createTempArticleOverwrite(board,"withfile");
 		resultMap.put("result", "success");
 
 		return resultMap;
 	}
 	
+	@RequestMapping(value = "/boards/autosavewithoutfile", method = RequestMethod.POST)
+	public Map<String,Object> tempArticle2(Board board, 
+			HttpServletRequest req, MultipartHttpServletRequest attachment) {	
+		
+		Map<String,Object> resultMap = new HashMap<>();
+		board.setCookie_id((cookieService.getCookie(req).getValue()));
+		versionManagementService.createTempArticleOverwrite(board,"withoutfile");
+		resultMap.put("result", "success");
+
+		return resultMap;
+	}
 	
 	/***
 	 * 자동 저장 게시클 리스트 페이지로, 사용자가 요청한 페이지에 해당하는 자동 저장 게시물을 보여줍니다.
