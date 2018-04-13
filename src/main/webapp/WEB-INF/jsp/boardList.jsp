@@ -48,6 +48,7 @@
 		<c:when test="${paging.numberOfRecords ne NULL and paging.numberOfRecords ne '' and paging.numberOfRecords ne 0}">
 			<div class="text-center marg-top">
 				<ul class="pagination">
+				<li><a href="javascript:goPage(1, 10)" style = "margin-right : 10px;">처음</a></li>
 					<c:if test="${paging.currentPageNo gt 5}">  											  <!-- 현재 페이지가 5보다 크다면(즉, 6페이지 이상이라면) -->
 						<li><a href="javascript:goPage(${paging.prevPageNo}, ${paging.maxPost})">이전</a></li> <!-- 이전페이지 표시 -->
 					</c:if>
@@ -74,6 +75,7 @@
 					<c:if test="${currentPage < finalPage}"> <!-- 현재 페이지가 마지막 페이지보다 작으면 '다음'을 표시한다. -->
 						<li><a href="javascript:goPage(${paging.nextPageNo}, ${paging.maxPost})">다음</a></li>
 					</c:if> 
+					<li><a href="javascript:goPage(${paging.numberOfRecords/10},${paging.maxPost})" style = "margin-left : 10px;">끝</a></li>
 				</ul>
 			</div>
 		</c:when>
@@ -108,6 +110,7 @@ function btnDelete(board_id,version){
 }
 
 function goPage(pages, lines) {
+	pages = Math.ceil(pages);
     location.href = '?' + "pages=" + pages;
 }
 </script>
