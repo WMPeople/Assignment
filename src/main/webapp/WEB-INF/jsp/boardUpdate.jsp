@@ -165,10 +165,39 @@ $(document).ready(function(){
 	});
 });
 
+function fileCheck(file){
+    var maxSize  = 5 * 1024 * 1024    //5MB
+    var fileSize = 0;
+
+    var browser=navigator.appName;
+
+    // 익스플로러
+    if (browser=="Microsoft Internet Explorer") {
+        var oas = new ActiveXObject("Scripting.FileSystemObject");
+        fileSize = oas.getFile( file.value ).size;
+    } else{ // 익스플로러가 아닐경우
+        fileSize = file.files[0].size;
+    }
+    var s = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
+    var e = Math.floor(Math.log(fileSize) / Math.log(1024));
+    var transformedFileSize = (fileSize / Math.pow(1024, e)).toFixed(2) + " " + s[e];
+    alert("파일사이즈 : "+ transformedFileSize +", 최대파일사이즈 : 5MB");
+
+    if(fileSize > maxSize) {
+        alert("첨부파일 사이즈는 5MB 이내로 등록 가능합니다.    ");
+        return false;
+    }
+    return true;
+}
+
 $("#btnUpdate").click(function(){
 	if ($('#subject').val() == '' || $('#content').val() == '') {
         alert("제목과 내용을 입력하세요.");
-        location.reaload();
+        return;
+    }
+    var availableFile = fileCheck(this.form.fileUp);
+    if (!availableFile) {
+        return;
     }
    	var file_name = '<%=request.getParameter("file_name")%>';
    	if(file_name != ''){
