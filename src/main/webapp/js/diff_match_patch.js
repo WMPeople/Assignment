@@ -70,6 +70,13 @@ var DIFF_DELETE = -1;
 var DIFF_INSERT = 1;
 var DIFF_EQUAL = 0;
 
+/**
+ * 아래는 문서 비교 결과 다르다고 나왔으나, 옵션에 의해 같다고 표기해야 하는 것들을 
+ * 나타낸 것입니다.
+ */
+var DIFF_DELETE_EQUAL = DIFF_DELETE * 2;
+var DIFF_INSERT_EQUAL = DIFF_INSERT * 2;
+
 /** @typedef {{0: number, 1: string}} */
 diff_match_patch.Diff;
 
@@ -85,6 +92,7 @@ diff_match_patch.Diff;
  * @param {number} opt_deadline Optional time when the diff should be complete
  *     by.  Used internally for recursive calls.  Users should set DiffTimeout
  *     instead.
+ * @param {boolean=} opt_case_sensitive Optional 
  * @return {!Array.<!diff_match_patch.Diff>} Array of diff tuples.
  */
 diff_match_patch.prototype.diff_main = function(text1, text2,opt_checklines,
@@ -118,66 +126,42 @@ diff_match_patch.prototype.diff_main = function(text1, text2,opt_checklines,
   }
   var checklines = opt_checklines;
 
-  if(this.Diff_Sensitive==0){
-	  // Trim off common prefix (speedup).
-	  var commonlength = this.diff_commonPrefix(text1, text2);
-	  var commonprefix = text1.substring(0, commonlength);
-	  text1 = text1.substring(commonlength);
-	  text2 = text2.substring(commonlength);
-	  
-	  
-	  // Trim off common suffix (speedup).
-	  commonlength = this.diff_commonSuffix(text1, text2);
-	  var commonsuffix = text1.substring(text1.length - commonlength);
-	  text1 = text1.substring(0, text1.length - commonlength);
-	  text2 = text2.substring(0, text2.length - commonlength);
-
-	  // Compute the diff on the middle block.
-	  var diffs = this.diff_compute_(text1, text2, checklines, deadline);
-	  
-	  // Restore the prefix and suffix.
-	  if (commonprefix) {
-	    diffs.unshift([DIFF_EQUAL, commonprefix]);
-	  }
-	  if (commonsuffix) {
-	    diffs.push([DIFF_EQUAL, commonsuffix]);
-	  }
-	  this.diff_cleanupMerge(diffs);
-	  return diffs;
+  var commonPrefixArg1;
+  var commonPrefixArg2;
+  if(typeof this.Diff_Sensitive != 'undefined' &&
+		  this.Diff_Sensitive === 1) {
+	  commonPrefixArg1 = text1.toUpperCase();
+	  commonPrefixArg2 = text2.toUpperCase();
+  } else {
+	  commonPrefixArg1 = text1;
+	  commonPrefixArg2 = text2;
   }
-  else{
-	  // Trim off common prefix (speedup).
-	  
-	  var text10 = text1.toUpperCase();
-	  var text20 = text2.toUpperCase();
-	  var commonlength = this.diff_commonPrefix(text10, text20);
-	  var commonprefix = text1.substring(0, commonlength);
-	  text1 = text1.substring(commonlength);
-	  text2 = text2.substring(commonlength);
-	  
-	  
-	  // Trim off common suffix (speedup).
-	  commonlength = this.diff_commonSuffix(text10, text20);
-	  var commonsuffix = text1.substring(text1.length - commonlength);
-	  text1 = text1.substring(0, text1.length - commonlength);
-	  text2 = text2.substring(0, text2.length - commonlength);
-
-
-	  
-	  // Compute the diff on the middle block.
-	  var diffs = this.diff_compute_(text1, text2, checklines, deadline);
-	  // Restore the prefix and suffix.
-	  if (commonprefix) {
-	    diffs.unshift([DIFF_EQUAL, commonprefix]);
-	  }
-	  if (commonsuffix) {
-	    diffs.push([DIFF_EQUAL, commonsuffix]);
-	  }
-	  this.diff_cleanupMerge(diffs);
-	  return diffs;
-  }
-	  
   
+  // Trim off common prefix (speedup).
+  var commonlength = this.diff_commonPrefix(commonPrefixArg1, commonPrefixArg2);
+  var commonprefix = text1.substring(0, commonlength);
+  text1 = text1.substring(commonlength);
+  text2 = text2.substring(commonlength);
+  
+  
+  // Trim off common suffix (speedup).
+  commonlength = this.diff_commonSuffix(commonPrefixArg1, commonPrefixArg2);
+  var commonsuffix = text1.substring(text1.length - commonlength);
+  text1 = text1.substring(0, text1.length - commonlength);
+  text2 = text2.substring(0, text2.length - commonlength);
+
+  // Compute the diff on the middle block.
+  var diffs = this.diff_compute_(text1, text2, checklines, deadline);
+  
+  // Restore the prefix and suffix.
+  if (commonprefix) {
+	diffs.unshift([DIFF_EQUAL, commonprefix]);
+  }
+  if (commonsuffix) {
+	diffs.push([DIFF_EQUAL, commonsuffix]);
+  }
+  this.diff_cleanupMerge(diffs);
+  return diffs;
 };
 
 
@@ -1253,7 +1237,7 @@ diff_match_patch.prototype.diff_xIndex = function(diffs, loc) {
 /**
  * Convert a diff array into a pretty HTML report.
  * @param {!Array.<!diff_match_patch.Diff>} diffs Array of diff tuples.
- * @return {string} HTML representation.
+ * @return {!Array.<!string>} HTML representation.
  */
 diff_match_patch.prototype.diff_prettyHtml = function(diffs,diffs2) {
  
@@ -1264,6 +1248,7 @@ diff_match_patch.prototype.diff_prettyHtml = function(diffs,diffs2) {
   var pattern_lt = /</g;
   var pattern_gt = />/g;
   var pattern_para = /\n/g;
+  var pattern_space = /\ /g;
 
   for (var x = 0; x < diffs.length; x++) {
     var op = diffs[x][0];    // Operation (insert, delete, equal)
@@ -1278,10 +1263,12 @@ diff_match_patch.prototype.diff_prettyHtml = function(diffs,diffs2) {
     	}		
     }
     var text = data.replace(pattern_amp, '&amp;').replace(pattern_lt, '&lt;')
-        .replace(pattern_gt, '&gt;').replace(pattern_para, '&para;<br>');
+        .replace(pattern_gt, '&gt;').replace(pattern_para, '&para;<br>')
+        .replace(pattern_space, '&nbsp;');
    
     var text2 = data2.replace(pattern_amp, '&amp;').replace(pattern_lt, '&lt;')
-    .replace(pattern_gt, '&gt;').replace(pattern_para, '&para;<br>');
+		.replace(pattern_gt, '&gt;').replace(pattern_para, '&para;<br>')
+		.replace(pattern_space, '&nbsp;');
   
     switch (op) {
       case DIFF_INSERT:
@@ -1290,21 +1277,25 @@ diff_match_patch.prototype.diff_prettyHtml = function(diffs,diffs2) {
       case DIFF_DELETE:
         html1[x] = '<del style="background:#ffe6e6;">' + text + '</del>';
         break;
+      case DIFF_INSERT * 2:
+    	html2[x] = '<span>' + text + '</ins>';
+    	break;
+      case DIFF_DELETE * 2:
+    	html1[x] = '<span>' + text + '</ins>';
+    	break;
       case DIFF_EQUAL:
         if(this.Diff_Sensitive == 1){
         	html1[x] = '<span>' + text + '</span>';
         	html2[x] = '<span>' + text2 + '</span>';
-            break;
+        	break;
         }
         else{
         	 html1[x] = '<span>' + text + '</span>';
              html2[x] = '<span>' + text + '</span>';
-             break;
+        	break;
         }
-      
     }
    }
-  
   returnHtml.push(html1.join(''));
   returnHtml.push(html2.join(''));
   
