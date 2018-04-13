@@ -25,7 +25,7 @@
             <th>버전</th>
             <th>제목</th>
             <th>최종수정시간</th>
-            <th>삭제</th>
+            <th>동작</th>
         </tr>
         
         <c:forEach var="board" items="${board}">

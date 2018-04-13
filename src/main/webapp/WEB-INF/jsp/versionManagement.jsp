@@ -18,7 +18,7 @@
 <body>
 	
 
-    <h3>버전 관리 페이지 <button TYPE="BUTTON" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/assignment'">홈으로</button></h3> 
+    <h3>버전 관리 페이지 <button class="btn btn-primary" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/assignment'">홈으로</button></h3> 
     
     <!--     DIFF 임 -->
 	<form method="post" name="diffForm">

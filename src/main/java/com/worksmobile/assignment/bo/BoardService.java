@@ -152,15 +152,19 @@ public class BoardService{
 		}
 	}
 	
-	public void makeBoard (int board_id, int version, String cookie_id, String created_time, String content, int file_id, String subject) {
-		
-		Board updateBoard = new Board();
+	/***
+	 * 사용자가 수정버튼을 눌렀을 때 자동저장 게시물이 없다면 LeafNode 게시글을 복제하여 자신의 쿠키 ID 값을 넣어 자동 저장 게시글을 생성합니다.
+	 * @param board_id
+	 * @param version
+	 * @param cookie_id
+	 * @param created_time
+	 * @param content
+	 * @param file_id
+	 * @param subject
+	 */
+	public void makeTempBoard (int board_id, int version, String cookie_id, String created_time, String content, int file_id, String subject) {
+		Board updateBoard = new Board(subject, content, created_time, file_id, cookie_id);
 		updateBoard.setBoard_id(board_id);
-		updateBoard.setContent(content);
-		updateBoard.setCookie_id(cookie_id);
-		updateBoard.setCreated_time(created_time);
-		updateBoard.setFile_id(file_id);
-		updateBoard.setSubject(subject);
 		updateBoard.setVersion(version);
 		
 		HashMap<String, Object> params = new HashMap<String, Object>();
@@ -173,7 +177,10 @@ public class BoardService{
 		} 
 		
 	}
-
+	/***
+	 * 자동저장 -> 버전업 되었을 때 버전업 된 LeafNode를 복사하여 새로운 자동저장 용 tempBoard를 만들어줍니다.
+	 * @param tempArticle
+	 */
 	public void copyBoardAndCreateTempBoard(Board tempArticle) {
 		String cookie_id = tempArticle.getCookie_id();
 		Board board = tempArticle;

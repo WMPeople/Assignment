@@ -34,31 +34,47 @@ $(document).ready(function(){
 			
 			var diff = dmp.diff_main(originalContent,tempContent);
 			dmp.diff_cleanupSemantic(diff);
-			console.log(diff);
+
 			var diffLength = diff.length;
 			var diffCount = 0;
+			var minorCount = 0;
 			var nextVal =0;
 			var originalContentLength = originalContent.length;
+			
+			// 문자열 비교를 위한 크기 값을 오리지널 게시물의 문자열 크기에 반비례 하게 넣어준다.
+			if (originalContentLength < 50) {
+				originalContentLength = originalContentLength / 1.3;
+			} else if (originalContentLength <100 ) {
+				originalContentLength = originalContentLength / 1.2;
+			} else if (originalContentLength < 200) { 
+				originalContentLength = originalContentLength / 1.1 
+				}
+			
 			var tempContentLength = tempContent.length;
 			var stringSizeDifference = Math.abs(originalContentLength - tempContentLength) / originalContentLength ;
-			for(var i = 0 ; i < diff.length ; i++){
-				if(diff[i][0] != 0){
-					diffCount++;
-					
-					while(diff[i][1].search('\n')!= -1){
+			for (var i = 0 ; i < diff.length ; i++){
+				if (diff[i][0] != 0){
+					if (diff[i][1].length >=3) {
+						diffCount++;
+					} else {
+						minorCount++;
+					}
+					while (diff[i][1].search('\n')!= -1){
 						nextVal++;
 						diff[i][1] = diff[i][1].substring(diff[i][1].search('\n')+2);
 						
 					}
 				}
 			}
-			console.log('diff 크기 : '+ diffLength); // 배열사이즈
-			console.log('-1, 1 개수 : '+ diffCount); //-1 ,1 개수
-			console.log('개행 수 : '+ nextVal); // 개행 개수
-			console.log('o-t/o : '+ stringSizeDifference);
-			console.log('orginalContent : ' + originalContent);
+			console.log(diff);
+			console.log('사소한 변경을 제외한 diff 크기 : '+ (diffLength - minorCount) + ' , 8 까지'); // 배열사이즈
+			console.log('-1, 1 개수 : '+ diffCount+ ' , 17 까지'); //-1 ,1 개수. 단 , 사소한 수정은 제외
+			console.log('개행 수 : '+ nextVal+ ' , 7까지'); // 개행 개수
+			console.log('o-t/o : '+ stringSizeDifference+ ' , 1.5까지'); // 문자열 변화량 / 오리지날 문자열 크기
+			console.log('사소한 변경 개수 : '+ minorCount+ ' '); //짧게 변한 것은 제외하기 위한 카운트
 			
-			if (diffLength >=10 || diffCount >= 20 || nextVal >= 10 || stringSizeDifference >= 5) {
+			//버전업 조건
+			if ((diffLength - minorCount) >= 8 || diffCount >= 17 || nextVal >= 7 || stringSizeDifference >= 1.5) {
 				var file_name = '<%=request.getParameter("file_name")%>';
 			   	if(file_name != ''){
 			   		file_name = '<%=request.getParameter("file_name")%>';
@@ -84,6 +100,7 @@ $(document).ready(function(){
 								$('#board_id').val(result.updatedBoard.board_id);
 								$('#version').val(result.updatedBoard.version);
 								document.getElementById('content').defaultValue = document.getElementById('content').value;
+								alert('board_id : ' + result.updatedBoard.board_id + ' version : ' + result.updatedBoard.version + ' 으로 버전업 되었습니다. ');
 							} else {
 								alert(result.result);
 							}
@@ -98,8 +115,6 @@ $(document).ready(function(){
     	}
         launch();
        
-        
-        
         var formData = new FormData($("#fileForm")[0]);
        
         formData = new FormData($("#fileForm")[0]);
