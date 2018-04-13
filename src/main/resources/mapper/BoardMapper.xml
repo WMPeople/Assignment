@@ -92,7 +92,11 @@
         content = #{content},
         created_time = CURRENT_TIMESTAMP,
         root_board_id = #{root_board_id}
-        WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id}
+        WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+        <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
+     		SELECT created_time FROM board
+     		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+     	</selectKey>
     </update>
     
     <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.assignment.model.File">

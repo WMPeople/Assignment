@@ -55,7 +55,9 @@ public class VersionManagementServiceAutoSaveTest {
 		autoSaveArticle.setNodePtr(defaultCreated);
 		autoSaveArticle.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
 		
-		autoSaveArticle = versionManagementService.createTempArticleOverwrite(autoSaveArticle);
+		int createdCnt = boardMapper.boardCreate(autoSaveArticle);	// TODO : 함수이름이 create인데 생성을 안함 변경 필요.
+		assertEquals(1, createdCnt);
+		autoSaveArticle = versionManagementService.createTempArticleOverwrite(autoSaveArticle, null);
 	}
 	
 	private NodePtr makeChild(NodePtr parentPtr) throws JsonProcessingException {
@@ -80,7 +82,8 @@ public class VersionManagementServiceAutoSaveTest {
 		Board autoSave = new Board();
 		autoSave.setNodePtr(nodePtr);
 		autoSave.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
-		versionManagementService.createTempArticleOverwrite(autoSave);
+		boardMapper.boardCreate(autoSave);	// TODO : 함수이름이 create인데 생성을 안함 변경 필요.
+		versionManagementService.createTempArticleOverwrite(autoSave, null);
 		return autoSave;
 	}
 	

@@ -25,6 +25,7 @@ import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.mapper.FileMapper;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
+import com.worksmobile.assignment.model.File;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
@@ -52,7 +53,7 @@ public class BoardHistoryMapperTest {
 		defaultHistory = new BoardHistory();
 		defaultHistory.setBoard_id(defaultNodePtr.getBoard_id());
 		defaultHistory.setVersion(defaultNodePtr.getVersion());
-		defaultHistory.setFile_id(1000);
+		defaultHistory.setFile_id(0);
 
 		defaultHistory.setStatus("Created");
 		defaultHistory.setHistory_subject("sub");
@@ -157,7 +158,11 @@ public class BoardHistoryMapperTest {
 	public void testGetFileCount() {
 		BoardHistory boardHistory = null;
 		boardHistory = boardHistoryMapper.selectHistory(defaultNodePtr);
-		if (boardHistory == null) {
+		if (boardHistory == null || boardHistory.getFile_id() == 0) {
+			boardHistoryMapper.deleteHistory(boardHistory);
+			File file = new File();
+			fileMapper.createFile(file);
+			defaultHistory.setFile_id(file.getFile_id());
 			boardHistoryMapper.createHistory(defaultHistory);
 			boardHistory = boardHistoryMapper.selectHistory(defaultNodePtr);
 		}
