@@ -17,12 +17,11 @@
 </HEAD>
 
 <BODY>
-	<button TYPE="BUTTON" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/assignment'">홈으로</button> 
+	<button class="btn btn-primary" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/assignment'">홈으로</button> 
 	<H2>Demo of Diff</H2>
 	<SCRIPT>
 		var dmp = new diff_match_patch();
-
-		
+	
 		function launch() {
 			var text1 = document.getElementById('text1').value;
 			var text2 = document.getElementById('text2').value;

@@ -23,8 +23,7 @@
 <title>게시글 수정</title>
 </head>
 <body>
-
-
+     <button class="btn btn-primary" style="float:right; VALUE="HOME" ONCLICK="location.href='${path}/assignment'">홈으로</button>
 	<form id="fileForm" action="fileUpload" method='post'
 		enctype="multipart/form-data">
 		<div id="articleEditor">

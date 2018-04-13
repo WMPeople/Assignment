@@ -2,9 +2,11 @@ package com.worksmobile.assignment.model;
 
 import java.util.HashMap;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+@AllArgsConstructor
 public class Board extends NodePtr{
 	@Setter @Getter private String subject;
 	@Setter @Getter private String content;

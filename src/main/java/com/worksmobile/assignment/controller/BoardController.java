@@ -72,7 +72,7 @@ public class BoardController {
 	@RequestMapping(value = "/boards/update", method = RequestMethod.POST)
 	public ModelAndView updateForm(int board_id, int version, String cookie_id, String created_time, String content, int file_id, String subject, HttpServletRequest req) throws Exception {
 		
-		boardService.makeBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time, content, file_id, subject);
+		boardService.makeTempBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time, content, file_id, subject);
 		return new ModelAndView("boardUpdate");
 	}
     
@@ -87,7 +87,6 @@ public class BoardController {
     	}
     	
     	Page page = pageService.getPage(req);
-
 		ArrayList<Board> board = new ArrayList<Board>(); 
 		
 		HashMap<String, Integer> params = new HashMap<String, Integer>(); 
