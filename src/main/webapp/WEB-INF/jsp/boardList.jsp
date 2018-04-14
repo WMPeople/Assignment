@@ -48,7 +48,7 @@
 		<c:when test="${paging.numberOfRecords ne NULL and paging.numberOfRecords ne '' and paging.numberOfRecords ne 0}">
 			<div class="text-center marg-top">
 				<ul class="pagination">
-				<li><a href="javascript:goPage(1, ${paging.maxPost}" style = "margin-right : 10px;">처음</a></li>
+				<li><a href="javascript:goPage(1, ${paging.maxPost})" style = "margin-right : 10px;">처음</a></li>
 					<c:if test="${paging.currentPageNo gt 5}">  											  <!-- 현재 페이지가 5보다 크다면(즉, 6페이지 이상이라면) -->
 						<li><a href="javascript:goPage(${paging.prevPageNo}, ${paging.maxPost})">이전</a></li> <!-- 이전페이지 표시 -->
 					</c:if>
