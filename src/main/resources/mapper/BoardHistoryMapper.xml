@@ -22,6 +22,14 @@
 		WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
+    <select id="selectAllHistory"
+    resultType="com.worksmobile.assignment.model.BoardHistory">
+    	SELECT board_id, version, created_time, status, 
+        		history_subject, history_content, file_id, 
+        		parent_board_id, parent_version, root_board_id
+        FROM board_history
+    </select>
+    
     <delete id="deleteHistory" parameterType="int">
 		DELETE FROM board_history
 		WHERE board_id = #{board_id} AND version = #{version};

@@ -14,6 +14,12 @@ public interface BoardHistoryMapper {
 	public List<BoardHistory> selectHistoryByRootBoardId(@Param("root_board_id")int root_board_id);
 	
 	public BoardHistory selectHistory(NodePtr nodePtr);
+	
+	/**
+	 * board_history의 모든 것을 반환합니다. 디버깅 용도입니다.
+	 * @return
+	 */
+	public List<BoardHistory> selectAllHistory();
 			
 	public int deleteHistory(NodePtr nodePtr);
 	

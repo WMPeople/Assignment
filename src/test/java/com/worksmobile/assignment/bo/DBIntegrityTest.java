@@ -141,6 +141,9 @@ public class DBIntegrityTest {
 		
 		for(File ele : allFileList) {
 			int fileId = ele.getFile_id();
+			if(fileId == 0) {
+				continue;
+			}
 			collector.checkThat(JsonUtils.jsonStringFromObject(ele), true, is(allFileIdInBoardList.contains(fileId)));
 		}
 	}
