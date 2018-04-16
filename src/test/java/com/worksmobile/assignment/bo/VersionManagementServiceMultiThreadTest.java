@@ -10,8 +10,9 @@ import java.util.concurrent.ExecutionException;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,7 +28,6 @@ import com.worksmobile.assignment.util.JsonUtils;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@Ignore
 public class VersionManagementServiceMultiThreadTest {
 
 	@Autowired
@@ -39,6 +39,9 @@ public class VersionManagementServiceMultiThreadTest {
 	@Autowired
 	BoardHistoryMapper boardHistoryMapper;
 
+	@Rule
+	public ErrorCollector collector = new ErrorCollector();
+	
 	private final static int THREAD_COUNT = 100;
 	
 	private Board defaultBoard;
@@ -92,8 +95,8 @@ public class VersionManagementServiceMultiThreadTest {
 					Board dbBoard = boardMapper.viewDetail(nodePtr.toMap());
 					assertEquals(copyedBoard, dbBoard);
 				}
-				catch(JsonProcessingException e) {
-					e.printStackTrace();
+				catch(Exception e) {
+					collector.addError(e);
 				}
 			});
 			threadList.add(thread);
@@ -129,8 +132,8 @@ public class VersionManagementServiceMultiThreadTest {
 						NodePtr child = VersionManagementServiceMultiThreadTest.makeChild(versionManagementService,
 								boardMapper, defaultCreated);
 					}
-				} catch (JsonProcessingException e) {
-					e.printStackTrace();
+				} catch(Exception e) {
+					collector.addError(e);
 				}
 			});
 			threadList.add(thread);
@@ -156,10 +159,14 @@ public class VersionManagementServiceMultiThreadTest {
 		int i = 0;
 		for(; i < THREAD_COUNT / 2; i++) {
 			Thread thread = new Thread(()-> {
-				int randIdx = (int) (Math.random() * THREAD_COUNT);
-				NodePtr nodePtr = generation.get(randIdx);
+				try {
+					int randIdx = (int) (Math.random() * THREAD_COUNT);
+					NodePtr nodePtr = generation.get(randIdx);
 
-				versionManagementService.modifyVersion(modifiedBoard, nodePtr, null);
+					versionManagementService.modifyVersion(modifiedBoard, nodePtr, null);
+				} catch(Exception e) {
+					collector.addError(e);
+				}
 			});
 			threadList.add(thread);
 		}
@@ -171,14 +178,18 @@ public class VersionManagementServiceMultiThreadTest {
 
 		for(; i < THREAD_COUNT; i++) {
 			Thread thread = new Thread(()-> {
-				List<Board> sameRoot = boardMapper.articleList(articleListParams);
-				sameRoot.removeIf(item -> { return item.getRoot_board_id() != root_board_id; } );
-				int maxIdx = sameRoot.size() - 1;
-				int randIdx = (int) (Math.random() * maxIdx);
+				try {
+					List<Board> sameRoot = boardMapper.articleList(articleListParams);
+					sameRoot.removeIf(item -> { return item.getRoot_board_id() != root_board_id; } );
+					int maxIdx = sameRoot.size() - 1;
+					int randIdx = (int) (Math.random() * maxIdx);
 
-				NodePtr deletePtr = sameRoot.get(randIdx);
-				
-				versionManagementService.deleteVersion(deletePtr);
+					NodePtr deletePtr = sameRoot.get(randIdx);
+					
+					versionManagementService.deleteVersion(deletePtr);
+				} catch(Exception e) {
+					collector.addError(e);
+				}
 			});
 			threadList.add(thread);
 		}

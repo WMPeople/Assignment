@@ -33,9 +33,6 @@ public class VersionManagementService {
 	@Autowired
 	private BoardService boardService;
 	
-	@Autowired
-	private FileService fileService;
-	
 	/***
 	 * 한 게시글과 연관된 모든 게시글 이력을 반환합니다.
 	 * @param leafPtr 가져올 리프 노드 포인터.(board_id, version만 사용)
@@ -241,6 +238,7 @@ public class VersionManagementService {
 				if(parentHistory.isInvisibleRoot()) {// 부모가 안보이는 루트만 존재있으면 삭제합니다.
 					boardService.deleteBoardHistory(parentHistory);
 				} else {	// 부모가 안보이는 루트가 아닌 노드는 board테이블에 존재해야 함.
+					parent.setContent(Compress.deCompressHistoryContent(parentHistory));
 					int createdCnt = boardMapper.boardCreate(parent);
 					if(createdCnt == 0) {
 						throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
