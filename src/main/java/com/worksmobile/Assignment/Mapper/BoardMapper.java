@@ -37,6 +37,11 @@ public interface BoardMapper {
 
 	public int getMaxCookieId();
 	
+	/**
+	 * 
+	 * @param params #{offset}, #{noOfRecords} 을 매개변수로 받습니다.
+	 * @return
+	 */
 	public List<Board> articleList(HashMap<String, Integer> params);
 	
 	/***

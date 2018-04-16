@@ -13,69 +13,45 @@
 <TITLE>Diff, Match and Patch: Demo of Diff</TITLE>
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
-<SCRIPT SRC="${pageContext.request.contextPath}/js/diff_match_patch.js"></SCRIPT>
+<script SRC="${pageContext.request.contextPath}/js/diff_match_patch.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 </HEAD>
 
 <BODY>
-	<button class="btn btn-primary" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/assignment'">홈으로</button> 
+	<button class="btn btn-primary" style="float:right;" onclick="location.href='${path}/assignment'">홈으로</button> 
 	<H2>Demo of Diff</H2>
 	<SCRIPT>
+	$(document).ready(function(){
+		launch();
+	});
+	function launch(){
 		var dmp = new diff_match_patch();
-	
-		function launch() {
-			var text1 = document.getElementById('text1').value;
-			var text2 = document.getElementById('text2').value;
-			
-			dmp.Diff_Timeout = parseFloat(2);
-			dmp.Diff_EditCost = parseFloat(4);
-			dmp.Diff_Sensitive = 1;
-			
-			//체크 박스 만든 후 수정 예정 
-// 			if(대소문자구분없을시) dmp.sensitive = 1;
-// 			else 대소문자구분할시 dmp.sensitive = 0;
-			
-			var ms_start = (new Date()).getTime();
-			var d1 = dmp.diff_main(text1, text2);
-			var ms_end = (new Date()).getTime();
+        var text1 = document.getElementById('text1').value;
+        var text2 = document.getElementById('text2').value;
+         
+        dmp.Diff_Timeout = parseFloat(2);
+        dmp.Diff_EditCost = parseFloat(4);
+        dmp.Diff_Sensitive = 1;
+            
+// TODO 체크 박스 만든 후 수정 예정 
+//   if(대소문자구분없을시) dmp.sensitive = 1;
+//     else 대소문자구분할시 dmp.sensitive = 0;
+            
+        var ms_start = (new Date()).getTime();
+        var d1 = dmp.diff_main(text1, text2);
+        var ms_end = (new Date()).getTime();
 
-			dmp.diff_cleanupSemantic(d1);
-			var d2 = dmp.diff_main(text2, text1);
-			dmp.diff_cleanupSemantic(d2);
-			var ds = dmp.diff_prettyHtml(d1,d2);
-			
-			console.log(d1);
-			var length = d1.length;
-			var count = 0;
-			var nextVal =0;
-			for(var i = 0 ; i < d1.length ; i++){
-				if(d1[i][0] != 0){
-					count++;
-					
-					while(d1[i][1].search('\n')!= -1){
-						nextVal++;
-						console.log (d1[i][0]+ ' test '+d1[i][1]);
-						d1[i][1] = d1[i][1].substring(d1[i][1].search('\n')+2);
-						
-					}
-				}
-			}
-			console.log(text1.length); //text1 길이
-			console.log(text2.length); //text2 길이
-			//TODO tex2 - text 1 절댓값 구해야함 
-			console.log(length); // 배열사이즈
-			console.log(count); //-1 ,1 개수
-			console.log(nextVal); // 개행 개수
-			
-			
-			//시간 출력
-// 			document.getElementById('outputdiv').innerHTML = ds + '<BR>Time: '
-// 					+ (ms_end - ms_start) / 1000 + 's';
-			
-			document.getElementById('outputdivLeft').innerHTML = ds[0]
-			document.getElementById('outputdivRight').innerHTML = ds[1]
-			
-			
-		}
+        dmp.diff_cleanupSemantic(d1);
+        var d2 = dmp.diff_main(text2, text1);
+        dmp.diff_cleanupSemantic(d2);
+        var ds = dmp.diff_prettyHtml(d1,d2);
+        
+        document.getElementById('outputdivLeft').innerHTML = ds[0]
+        document.getElementById('outputdivRight').innerHTML = ds[1]
+	}
+		
+
 	</SCRIPT>
 	<FORM action="#" onsubmit="return false">
 		<TABLE WIDTH="100%">
@@ -90,10 +66,10 @@
 				</TD>
 			</TR>
 		</TABLE>
-		<P>
-			<INPUT TYPE="button" onClick="launch()" VALUE="Compute Diff">
-		</P>
 	</FORM>
+	<p>
+	   <button class="btn btn-primary" type="button"  onclick="launch();">Compute Diff</button>
+	</p>
 
 	<DIV ID="outputdivLeft" style="float: left; width: 50%;"></DIV>
 	<DIV ID="outputdivRight"style="float: right; width: 50%;"></DIV>

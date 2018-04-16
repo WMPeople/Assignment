@@ -2,14 +2,15 @@
     pageEncoding="utf-8"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/jquery-ui-1.11.0.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/common_ncs.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home_editor.min.css">
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
+<script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
+<script src="${pageContext.request.contextPath}/js/board.js" type="text/javascript"> </script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Insert title here</title>
@@ -38,88 +39,11 @@
 			</ul>
 			<textarea  name="content" id="content" style="min-height: 500px; min-weight: 500px;" ></textarea>
 			<div class="btn_area _btn_area">
-				 <button type="button" id= "btnCreate"class="btn tx_point _save"><strong>확인</strong></button>
+				 <button type="button" id= "btnCreate" class="btn tx_point _save"><strong>확인</strong></button>
 			</div>
 		</div>
 	</div>
 </form>
+
 </body>
-<script>
-$(document).ready(function(){
-	//textarea 70만자 제한
-	var textCountLimit = 700000;
-	$('textarea[name=content]').keyup(function() {
-        // 텍스트영역의 길이를 체크
-        var textLength = $(this).val().length;
- 
-        // 입력된 텍스트 길이를 #textCount 에 업데이트 해줌
-        $('#textCount').text(textLength);
-         
-        // 제한된 길이보다 입력된 길이가 큰 경우 제한 길이만큼만 자르고 텍스트영역에 넣음
-        if (textLength > textCountLimit) {
-        	alert("Warning : 70만자 제한 ");
-            $(this).val($(this).val().substr(0, textCountLimit));
-        }
-    });
-	
-	function fileCheck(file){
-        var maxSize  = 5 * 1024 * 1024    //5MB
-        var fileSize = 0;
-
-	    var browser=navigator.appName;
-
-	    // 익스플로러
-	    if (browser=="Microsoft Internet Explorer") {
-	        var oas = new ActiveXObject("Scripting.FileSystemObject");
-	        fileSize = oas.getFile( file.value ).size;
-	    } else{ // 익스플로러가 아닐경우
-	        fileSize = file.files[0].size;
-	    }
-	    var s = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
-	    var e = Math.floor(Math.log(fileSize) / Math.log(1024));
-	    var transformedFileSize = (fileSize / Math.pow(1024, e)).toFixed(2) + " " + s[e];
-	    alert("파일사이즈 : "+ transformedFileSize +", 최대파일사이즈 : 5MB");
-
-        if(fileSize > maxSize) {
-            alert("첨부파일 사이즈는 5MB 이내로 등록 가능합니다.    ");
-            return false;
-        }
-        return true;
-	}
-	
-    $("#btnCreate").click(function(){
-    	var availableFile = fileCheck(this.form.fileUp);
-    	if (!availableFile) {
-    		return;
-    	}
-    	
-    	if ($('#subject').val() == '' || $('#content').val() == '') {
-    		alert("제목과 내용을 입력하세요.");
-    		return;
-    	}
-
-    	var formData = new FormData($("#fileForm")[0]);
-    	console.log(fileUp);
-        $.ajax({                
-            type: "post",
-            contentType: false,
-            processData: false,
-            url: "/assignment/boards",
-            data: formData,
-            success: function(result){
-            	if(result.result == "success"){
-            		alert("보드 생성 완료");
-                   	location.href = "/assignment/";
-            	}
-            	else{
-            		alert(result.result);
-            	}
-            },
-        	error : function(xhr, status, error) {
-        		alert(error);
-        	}
-        });
-    });
-});
-</script>
 </html>

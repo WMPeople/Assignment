@@ -5,20 +5,24 @@
 <!DOCTYPE html>
 <html lang="ko">
 
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
 <head>
 <meta http-equiv="Content-Type" content= "text/html; charset=UTF-8">
+<script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
+<script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
+<script src="${pageContext.request.contextPath}/js/board.js" type="text/javascript"> </script>
+<script src="${pageContext.request.contextPath}/js/version.js" type="text/javascript"> </script>
 <!-- BootStrap CDN -->
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home.css">
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/common_ncs.css">
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home_editor.min.css">
 <title>버전 관리 페이지</title>
 </head>
 <body>
 	
-
-    <h3>버전 관리 페이지 <button class="btn btn-primary" style="float:right;" VALUE="HOME" ONCLICK="location.href='${path}/assignment'">홈으로</button></h3> 
+    <h3>버전 관리 페이지 <button class="btn btn-primary" style="float:right;" onclick="location.href='${path}/assignment'">홈으로</button></h3> 
     
     <!--     DIFF 임 -->
 	<form method="post" name="diffForm">
@@ -67,118 +71,7 @@
         </tr>
         </c:forEach>
     </table>
-<script>
-function remain_two_obj(prefix){
-	this.old = new Array();
-	this.prefix = prefix;
-	this.remain_two = function(cur){
-		items = document.getElementsByName(this.prefix + '[]');
-		for( i = 0, count = 0 ; i < items.length; i++ )
-			if( items[i].checked )
-				count++;	
-		if( count > 0 && cur.checked == false && this.old[0] == cur.value )
-			this.old[0] = this.old[1];
-		if( cur.checked == false )
-			return;
-		if( count < 2 )
-			this.old[count] = cur.value;
-		else {
-			this.old[0] = this.old[1];
-			this.old[1] = cur.value;
-			items = document.getElementsByName(this.prefix + '[]');
-			for( j = 0 ; j < items.length ; j++ ){
-				if( items[j].value != this.old[0] && items[j].value != this.old[1] )
-					items[j].checked = false;
-			}
-		}
-	}
-}
-var cbox = new remain_two_obj('cbox'); 
-function btnVersionDelete(board_id,version){
-	  $.ajax({
-	        type: "DELETE",
-	        url: "${path}/assignment/boards/version/"+board_id+"/"+version,
-	        success: function(result){
-	        	if(result.result == 'success'){
-	        		alert("삭제완료");
-	        		location.reload();
-	        	}
-	        	else{
-	        		alert("삭제실패");
-	        	}
-	        },
-	        error : function(xhr, status, error) {
-				alert(error);
-			}
-	    })
-}
-function btnDelete(board_id,version){
-	  $.ajax({
-	        type: "DELETE",
-	        url: "${path}/assignment/boards/"+board_id+"/"+version,
-	        success: function(result){
-	        	if(result.result == 'success'){
-	        		alert("삭제완료");
-	        		location.href = "/assignment/";
-	        	}
-	        	else{
-	        		alert(result.result);
-	        	}
-	        },
-	        error : function(xhr, status, error) {
-				alert(error);
-			}
-	    })
-}
 
-function btnRecover(board_id,version){
-	var tableSearch = ${"table"};
-	
-	var leafBoard_id = Number(tableSearch.rows[1].cells[1].innerHTML);
-	var leafVersion = Number(tableSearch.rows[1].cells[2].innerHTML);
-	  $.ajax({
-	        type: "GET",
-	        url: "${path}/assignment/boards/recover/"+board_id+"/"+version+"/"+leafBoard_id+"/"+leafVersion,
-	        success: function(result){
-	        	if(result.result == 'success'){
-	        		alert("복원완료");
-	        		location.href='${path}/assignment/boards/management/'+result.board_id+'/'+result.version;
-	        	}
-	        	else{
-	        		alert(result.result);
-	        	}
-	        },
-	        error : function(xhr, status, error) {
-				alert(error);
-			}
-	    })
-}
-
-function btnDiff(){
-
-	var num = 0;  
- 	var checkArr = [];
- 	$(":checkbox[name='cbox[]']:checked").each(function (index){  
-    	num += 1;  
-   		checkArr.push($(this).val());
- 	});  
-	if (num==2){
-		
-		 var firstNode = checkArr[0].split('-');
-		 var secondNode = checkArr[1].split('-');
-	
-	     $("#board_id1").val(Number(firstNode[0]));
-	     $("#version1").val(Number(firstNode[1]));
-	     
-	     $("#board_id2").val(Number(secondNode[0]));
-	     $("#version2").val(Number(secondNode[1]));
-	}
-	var fm = document.diffForm;
-	fm.method='post';
-	fm.action='${path}/assignment/boards/diff';
-	fm.submit();
-}
-</script>
 </body>
 </html>
 

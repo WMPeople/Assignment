@@ -5,14 +5,16 @@
 <!DOCTYPE html>
 <html lang="ko">
 
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+
 <head>
 <meta http-equiv="Content-Type" content= "text/html; charset=UTF-8">
 <!-- BootStrap CDN -->
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
+<script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
+<script src="${pageContext.request.contextPath}/js/board.js"></script>
 <title>자동 게시글 목록</title>
 </head>
 <body>
@@ -46,6 +48,7 @@
 		<c:when test="${paging.numberOfRecords ne NULL and paging.numberOfRecords ne '' and paging.numberOfRecords ne 0}">
 			<div class="text-center marg-top">
 				<ul class="pagination">
+				<li><a href="javascript:goPage(1, ${paging.maxPost}" style = "margin-right : 10px;">처음</a></li>
 					<c:if test="${paging.currentPageNo gt 5}">  											  <!-- 현재 페이지가 5보다 크다면(즉, 6페이지 이상이라면) -->
 						<li><a href="javascript:goPage(${paging.prevPageNo}, ${paging.maxPost})">이전</a></li> <!-- 이전페이지 표시 -->
 					</c:if>
@@ -72,16 +75,11 @@
 					<c:if test="${currentPage < finalPage}"> <!-- 현재 페이지가 마지막 페이지보다 작으면 '다음'을 표시한다. -->
 						<li><a href="javascript:goPage(${paging.nextPageNo}, ${paging.maxPost})">다음</a></li>
 					</c:if> 
+					<li><a href="javascript:goPage(${paging.numberOfRecords/10},${paging.maxPost})" style = "margin-left : 10px;">끝</a></li>
 				</ul>
 			</div>
 		</c:when>
 		</c:choose>
-<script>
-
-function goPage(pages, lines) {
-    location.href = '?' + "pages=" + pages;
-}
-</script>
 </body>
 </html>
 

@@ -243,6 +243,7 @@ public class BoardController {
 			}
 			else {
 				resultMap.put("result","success");
+				resultMap.put("updatedBoard",newNode);
 			}
 			
 		}catch (Exception e) {
