@@ -1,7 +1,7 @@
 $(function(){
-	
 	// content에 70만자 까지만 들어가도록 하는 메쏘드
 	function textCheck(){
+		console.log('asdasd');
 		//textarea 70만자 제한
 		var textCountLimit = 700000;
 		$('textarea[name=content]').keyup(function() {
@@ -16,6 +16,7 @@ $(function(){
 		    }
 		});
 	}
+	textCheck();
 	
 	// 5MB 이하 파일만 업로드 할 수 있게 하는 메쏘드
 	function fileCheck(file){
@@ -82,40 +83,6 @@ $(function(){
 	    });
 	});
 
-	function btnDelete(board_id,version){
-		
-		var deleteConfirm;
-		deleteConfirm = confirm("leaf노드 삭제시 자동 저장 게시글도 모두 삭제됩니다. 동의하시나요?");
-		
-		if(deleteConfirm){
-			 $.ajax({
-			        type: "DELETE",
-			        url: "boards/"+board_id+"/"+version,
-			        success: function(result){
-			        	if(result.result == 'success'){
-			        		alert("삭제완료");
-			        		location.href = "/assignment/";
-			        	}
-			        	else{
-			        		alert(result.result);
-			        		location.href = "/assignment/";
-			        	}
-			        },
-			        error : function(xhr, status, error) {
-			    		alert(error);
-			    	} 
-			    })	
-			
-		}
-	};
-
-
-
-	function goPage(pages, lines) {
-		pages = Math.ceil(pages);
-	    location.href = '?' + "pages=" + pages;
-	}
-
 	$("#btnUpdate").click(function(){
 		if ($('#subject').val() == '' || $('#content').val() == '') {
 	        alert("제목과 내용을 입력하세요.");
@@ -159,8 +126,37 @@ $(function(){
 			});
 		
 		});
-
-	
 });
+
+function btnDelete(board_id,version){
+	var deleteConfirm;
+	deleteConfirm = confirm("leaf노드 삭제시 자동 저장 게시글도 모두 삭제됩니다. 동의하시나요?");
+	
+	if(deleteConfirm){
+		 $.ajax({
+		        type: "DELETE",
+		        url: "/assignment/boards/"+board_id+"/"+version,
+		        success: function(result){
+		        	if(result.result == 'success'){
+		        		alert("삭제완료");
+		        		location.href = "/assignment/";
+		        	}
+		        	else{
+		        		alert(result.result);
+		        		location.href = "/assignment/";
+		        	}
+		        },
+		        error : function(xhr, status, error) {
+		    		alert(error);
+		    	} 
+		    })	
+		
+	}
+};
+
+function goPage(pages, lines) {
+	pages = Math.ceil(pages);
+    location.href = '?' + "pages=" + pages;
+}
 
 

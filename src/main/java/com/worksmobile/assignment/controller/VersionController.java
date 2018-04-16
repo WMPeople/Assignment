@@ -187,6 +187,8 @@ public class VersionController {
 		
 		//압출 해결 후 리턴 , 맵으로 리턴
 		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.addObject("left", left);
+		modelAndView.addObject("right", right);
 		modelAndView.addObject("leftContent", leftContent);
 		modelAndView.addObject("rightContent", rightContent);
 		modelAndView.setViewName("diff");

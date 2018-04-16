@@ -1,4 +1,4 @@
-$(document).ready(function(){
+$(function(){
      var formData = new FormData($("#fileForm")[0]);
      $('#fileUp').on('change' , function(){ 
          formData = new FormData($("#fileForm")[0]);

@@ -1,4 +1,4 @@
-$(function(){
+var cbox = new remain_two_obj('cbox'); 
 	
 	function remain_two_obj(prefix){
 		this.old = new Array();
@@ -26,51 +26,9 @@ $(function(){
 		}
 	}
 	
-	var cbox = new remain_two_obj('cbox'); 
-	function btnVersionDelete(board_id,version){
-		  $.ajax({
-		        type: "DELETE",
-		        url: "/assignment/boards/version/"+board_id+"/"+version,
-		        success: function(result){
-		        	if(result.result == 'success'){
-		        		alert("삭제완료");
-		        		location.reload();
-		        	}
-		        	else{
-		        		alert("삭제실패");
-		        	}
-		        },
-		        error : function(xhr, status, error) {
-					alert(error);
-				}
-		    })
-	}
-
-	function btnRecover(board_id,version){
-		var tableSearch = document.getElementById('table');
-		
-		var leafBoard_id = Number(tableSearch.rows[1].cells[1].innerHTML);
-		var leafVersion = Number(tableSearch.rows[1].cells[2].innerHTML);
-		  $.ajax({
-		        type: "GET",
-		        url: "/assignment/boards/recover/"+board_id+"/"+version+"/"+leafBoard_id+"/"+leafVersion,
-		        success: function(result){
-		        	if(result.result == 'success'){
-		        		alert("복원완료");
-		        		location.href='/assignment/boards/management/'+result.board_id+'/'+result.version;
-		        	}
-		        	else{
-		        		alert(result.result);
-		        	}
-		        },
-		        error : function(xhr, status, error) {
-					alert(error);
-				}
-		    })
-	}
-
+	
+	
 	function btnDiff(){
-
 		var num = 0;  
 	 	var checkArr = [];
 	 	$(":checkbox[name='cbox[]']:checked").each(function (index){  
@@ -93,5 +51,46 @@ $(function(){
 		fm.action='/assignment/boards/diff';
 		fm.submit();
 	}
-});
+
+function btnVersionDelete(board_id,version){
+	  $.ajax({
+	        type: "DELETE",
+	        url: "/assignment/boards/version/"+board_id+"/"+version,
+	        success: function(result){
+	        	if(result.result == 'success'){
+	        		alert("삭제완료");
+	        		location.reload();
+	        	}
+	        	else{
+	        		alert("삭제실패");
+	        	}
+	        },
+	        error : function(xhr, status, error) {
+				alert(error);
+			}
+	    })
+}
+
+function btnRecover(board_id,version){
+	var tableSearch = document.getElementById('table');
+	
+	var leafBoard_id = Number(tableSearch.rows[1].cells[1].innerHTML);
+	var leafVersion = Number(tableSearch.rows[1].cells[2].innerHTML);
+	  $.ajax({
+	        type: "GET",
+	        url: "/assignment/boards/recover/"+board_id+"/"+version+"/"+leafBoard_id+"/"+leafVersion,
+	        success: function(result){
+	        	if(result.result == 'success'){
+	        		alert("복원완료");
+	        		location.href='/assignment/boards/management/'+result.board_id+'/'+result.version;
+	        	}
+	        	else{
+	        		alert(result.result);
+	        	}
+	        },
+	        error : function(xhr, status, error) {
+				alert(error);
+			}
+	    })
+}
 

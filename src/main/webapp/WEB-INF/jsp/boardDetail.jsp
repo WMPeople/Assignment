@@ -53,7 +53,9 @@
 	            <input name="file_data" type="file" id="file_data" value="${file.file_data}" style="display:none;">
 	            <input name="file_size" type="text" id="file_size" value="${file.file_size}" style="display:none;">
 	            <button class="_edit_atc" type="submit">수정</button>	
+	            <c:if test="${board.cookie_id eq 'LEAF_NODE_COOKIE_ID'}">
 	            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version});">삭제</button>
+       		    </c:if>
        		</form>
 		</div>
 	</div>
