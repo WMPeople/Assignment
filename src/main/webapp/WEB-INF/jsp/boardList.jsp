@@ -5,12 +5,13 @@
 <!DOCTYPE html>
 <html lang="ko">
 
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
+<script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
+<script src="${pageContext.request.contextPath}/js/board.js"></script>
 <head>
 <meta http-equiv="Content-Type" content= "text/html; charset=UTF-8">
 <!-- BootStrap CDN -->
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="css/jquery-ui-1.11.0.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 <title>게시물 목록</title>
@@ -80,40 +81,6 @@
 			</div>
 		</c:when>
 		</c:choose>
-<script>
-
-function btnDelete(board_id,version){
-	
-	var deleteConfirm;
-	deleteConfirm = confirm("leaf노드 삭제시 자동 저장 게시글도 모두 삭제됩니다. 동의하시나요?");
-	
-	
-	if(deleteConfirm){
-		 $.ajax({
-		        type: "DELETE",
-		        url: "${path}/assignment/boards/"+board_id+"/"+version,
-		        success: function(result){
-		        	if(result.result == 'success'){
-		        		alert("삭제완료");
-		        		location.href = "/assignment/";
-		        	}
-		        	else{
-		        		alert(result.result);
-		        	}
-		        },
-		        error : function(xhr, status, error) {
-		    		alert(error);
-		    	} 
-		    })	
-		
-	}
-}
-
-function goPage(pages, lines) {
-	pages = Math.ceil(pages);
-    location.href = '?' + "pages=" + pages;
-}
-</script>
 </body>
 </html>
 
