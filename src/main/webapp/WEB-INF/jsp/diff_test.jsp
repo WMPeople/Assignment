@@ -19,11 +19,11 @@
 					<h3>Text Version 1:</h3> <textarea id="text1" style="width: 100%" rows="10">
 ABCDEFG
 
+&lt;br&gt;
 
+&lt;br&gt;
 
-
-
-
+&lt;br&gt;
 
 
 피감기관 돈 외유·후원금으로 퇴직금 지급·보좌직원과 해외출장·출장시 관광
@@ -51,6 +51,8 @@ ABCDEFG
 				<td width="50%">
 					<h3>Text Version 2:</h3> <textarea id="text2" style="width: 100%" rows="10">
 abcdefg
+
+&lt;/br&gt;
 
 피감기관 돈 외유·후원금으로 퇴직금 지급·보좌직원과 해외출장·출장시 관광
 
