@@ -25,14 +25,17 @@ function DiffMatchCustom(Diff_Timeout, Diff_EditCost, Diff_IgnoreCase, leastRepe
 	this.dmp.Diff_EditCost = parseFloat(Diff_EditCost);
 	this.dmp.Diff_Sensitive = Diff_IgnoreCase;
 	this.preMatchList = [];	// [ [ text1MatchObj, text1Flag ], [text2MatchObj , text2Flag ] ] sorted by index
+	this.text1Match = [];	// [ text1MatchObj]
+	this.text2Match = [];	// [ text2MatchObj]
 	this.text1 = text1;
 	this.text2 = text2;
 	this.isPreFilterOn = true;
 	
 
-	this.replacedChar = 'a';
+	this.replacedChar = 'a';	// TODO : 만약 text에 'a'가 있다면 겹칠 수 있으므로 다른 문자로 변환할것.
 	this.replacedLength = this.replacedChar.length;
 }
+
 /**
  * diff_cleanupCustom의 helper 메소드입니다.
  * 정규식에 해당되는 문자를 같은 문자열로 취급하게 합니다.
@@ -70,7 +73,7 @@ DiffMatchCustom.prototype.addDiffsSubstrRegularExp = function(diffs, curIdx, ori
 		diffs.splice(curIdx++, 0, [ originalStatus, diffStr ]);
 	}
 	return [ curIdx, diffs ];
-}
+}	
 
 /**
  * 대소문자를 구분하지 않고 같다고 합시다.
@@ -88,6 +91,9 @@ DiffMatchCustom.prototype.diff_cleanupCustom = function(diffs) {
 	var curTextLengths = [0, 0];	// 현재 문서의 위치
 	var textDiffLengths = [0, 0];	// 정규식으로 인하여 달라진 문서의 길이의 총합
 	var preMatchIdx = 0; // preMatchList의 idx
+	var text1MatchIdx = 0;
+	var text2MatchIdx = 0;
+	var curMatchNum = 0;	// text1인지 text2인지 판단
 	
 	var leftMatchIdx = 0;
 	var rightMatchIdx = 0;
@@ -95,25 +101,52 @@ DiffMatchCustom.prototype.diff_cleanupCustom = function(diffs) {
 	for (var i = 0; i < diffs.length; i++) {
 		var diffStatus = diffs[i][0];
 		var diffStr = diffs[i][1];
-
+		
 		if(this.isPreFilterOn !== true){
 			break;
 		}
 		
-		var diffBlock = this.preMatchList[preMatchIdx];	// [ matchResult, textFlag ]
-		if(		// 왼쪽 텍스트에 속하고, 변경 위치가 왼쪽 텍스트 위치에 속하지 않고
+		var matchBlock;
+		// text1이 가까운지, text2가 가까운지 비교..
+		if((text2MatchIdx >= this.text2Match.length) ||	// index out of range 방지
+			(text1MatchIdx < this.text1Match.length &&
+			(this.text1Match[text1MatchIdx].index < this.text2Match[text2MatchIdx].index))) {
+			curMatchNum = window.DIFF_DELETE;
+			matchBlock = this.text1Match[text1MatchIdx];
+		} else {
+			curMatchNum = window.DIFF_INSERT;
+			matchBlock = this.text2Match[text2MatchIdx];
+		}
+		
+		//var matchBlock = this.preMatchList[preMatchIdx];	// [ matchResult, textFlag ]
+		if(		// 변경이 없으면 둘다 검사, 삭제 된것이면 왼쪽만 검사, 추가된것이면 오른쪽만 검사. 하여 포함 되지 않으면.
+				// 왼쪽 텍스트에 속하고, 변경 위치가 왼쪽 텍스트 위치에 속하지 않고
 				// 오른쪽 텍스트에 속하고, 변경 위치가 오른쪽 텍스트 위치에 속하지 않을때.
 			!(
-				(
-				diffBlock[1] == window.DIFF_DELETE &&
-					(curTextLengths[0] <= diffBlock[0].index &&
-					diffBlock[0].index < curTextLengths[0] + diffStr.length)
+				(diffStatus == window.DIFF_EQUAL &&
+					(
+						( curMatchNum == window.DIFF_DELETE &&
+						(curTextLengths[0] <= matchBlock.index &&
+						matchBlock.index < curTextLengths[0] + diffStr.length)
+						)
+							||
+						( curMatchNum == window.DIFF_INSERT &&
+						(curTextLengths[1] <= matchBlock.index &&
+						matchBlock.index < curTextLengths[1] + diffStr.length)
+						)
+					)
 				)
 					||
 				(
-				diffBlock[1] == window.DIFF_INSERT &&
-					(curTextLengths[1] <= diffBlock[0].index &&
-					diffBlock[0].index < curTextLengths[1] + diffStr.length) 
+				diffStatus == window.DIFF_DELETE &&
+					(curTextLengths[0] <= matchBlock.index &&
+					matchBlock.index < curTextLengths[0] + diffStr.length)
+				)
+					||
+				(
+				diffStatus == window.DIFF_INSERT &&
+					(curTextLengths[1] <= matchBlock.index &&
+					matchBlock.index < curTextLengths[1] + diffStr.length) 
 				)
 			)
 		  ) {
@@ -130,25 +163,43 @@ DiffMatchCustom.prototype.diff_cleanupCustom = function(diffs) {
 		
 		// 한개의 블럭에 대한 것이므로 블럭을 다시 만듦.
 		diffs.splice(i, 1);
-		
+											// 같은 경우에는 2번 치환 되지 않을 수 있음..(같은 것을 변환 하였기에)
 		if(diffStatus == window.DIFF_EQUAL) { // 같은 경우에는 2번 치환 됨을 명심할것. this.preMatchList은 -1, 1 와 같이 번갈아 나올것이라는 예측
-			var textNum = diffBlock[1] == window.DIFF_INSERT ? 1 : 0;	// 1 오른쪽, 0 왼쪽	 순서를 정렬 했으면, 이것이 필요 없음.
-			var oppositTextNum = textNum == 1 ? 0 : 1;
+			var textNum = curMatchNum == window.DIFF_INSERT ? 1 : 0;	// 1 오른쪽, 0 왼쪽	 순서를 정렬 했으면, 이것이 필요 없음.
+			var oppositTextNum = curMatchNum == window.DIFF_INSERT ? 0 : 1;
 			
-			var replacePos = diffBlock[0].index - curTextLengths[textNum];
+			var replacePos = matchBlock.index - curTextLengths[textNum];
 			if(replacePos !== 0) {
 				var beforeReplaceStr = diffStr.substr(0, replacePos);
 				diffs.splice(i++, 0, [ diffStatus, beforeReplaceStr ]);
 			}
 			
-			if(diffStatus == window.DIFF_EQUAL) {
-				diffs.splice(i++, 0, [ diffBlock[1] * 2, diffBlock[0][0] ]);
-				preMatchIdx++;
-				if(preMatchIdx >= this.preMatchList.length) {
-					throw new Exception("index out of reange! 2개 연속으로 있을 것이라는 예측이...");
+			{
+				diffs.splice(i++, 0, [ curMatchNum * 2, matchBlock[0] ]);
+				if(curMatchNum == window.DIFF_DELETE) {
+					text1MatchIdx++;
+				} else {
+					text2MatchIdx++;
 				}
-				var nextDiffBlock = this.preMatchList[preMatchIdx];
-				diffs.splice(i++, 0, [ nextDiffBlock[1] * 2, nextDiffBlock[0][0] ]);
+
+				if(	text1MatchIdx >= this.text1Match.length &&
+					text2MatchIdx >= this.text2Match.length) {
+					throw new Exception("이게 실행되나?");
+					break;
+				}
+				
+				var nextMatchBlock;
+				if((text2MatchIdx >= this.text2Match.length) ||	// index out of range 방지
+					(text1MatchIdx < this.text1Match.length &&
+					(this.text1Match[text1MatchIdx].index < this.text2Match[text2MatchIdx].index))) {
+					curMatchNum = window.DIFF_DELETE;
+					nextMatchBlock = this.text1Match[text1MatchIdx];		// 이건 마지막에서 증가 시켜줌. curMatchNum에 종속적.
+				} else {
+					curMatchNum = window.DIFF_INSERT;
+					nextMatchBlock = this.text2Match[text2MatchIdx];
+				}
+				
+				diffs.splice(i++, 0, [ curMatchNum * 2, nextMatchBlock[0] ]);
 			}
 			
 			var lastReplaceBeginPos= replacePos + this.replacedLength;
@@ -158,11 +209,11 @@ DiffMatchCustom.prototype.diff_cleanupCustom = function(diffs) {
 			}
 			
 			curTextLengths[textNum] += lastReplaceBeginPos;
-			curTextLengths[oppositTextNum] += nextDiffBlock[0].index - curTextLengths[oppositTextNum] + this.replacedLength;
+			curTextLengths[oppositTextNum] += matchBlock.index - curTextLengths[oppositTextNum] + this.replacedLength;
 		}
 		else {
-			if(diffBlock[1] == window.DIFF_INSERT) {	// right 에 속하면
-				var replacePos = diffBlock[0].index - curTextLengths[1];
+			if(curMatchNum == window.DIFF_INSERT) {	// right 에 속하면
+				var replacePos = matchBlock.index - curTextLengths[1];
 				if(replacePos !== 0) {
 					var beforeReplaceStr = diffStr.substr(0, replacePos);
 					diffs.splice(i++, 0, [ diffStatus, beforeReplaceStr ]);
@@ -170,9 +221,9 @@ DiffMatchCustom.prototype.diff_cleanupCustom = function(diffs) {
 				
 				if(diffStatus == window.DIFF_EQUAL) {
 					curTextLengths[0] += replacePos;
-					diffs.splice(i++, 0, [ window.DIFF_INSERT_EQUAL , diffBlock[0][0] ]);
+					diffs.splice(i++, 0, [ window.DIFF_INSERT_EQUAL , matchBlock[0] ]);
 				} else {
-					diffs.splice(i++, 0, [ diffStatus, diffBlock[0][0] ]);
+					diffs.splice(i++, 0, [ diffStatus, matchBlock[0] ]);
 				}
 				
 				var lastReplaceBeginPos= replacePos + this.replacedLength;
@@ -184,8 +235,8 @@ DiffMatchCustom.prototype.diff_cleanupCustom = function(diffs) {
 				curTextLengths[1] += lastReplaceBeginPos
 			}
 			
-			if(diffBlock[1] == window.DIFF_DELETE) {	// left 에 속하면
-				var replacePos = diffBlock[0].index - curTextLengths[0];
+			else if(curMatchNum == window.DIFF_DELETE) {	// left 에 속하면
+				var replacePos = matchBlock.index - curTextLengths[0];
 				if(replacePos !== 0) {
 					var beforeReplaceStr = diffStr.substr(0, replacePos);
 					diffs.splice(i++, 0, [ diffStatus, beforeReplaceStr ]);
@@ -193,9 +244,9 @@ DiffMatchCustom.prototype.diff_cleanupCustom = function(diffs) {
 				
 				if(diffStatus == window.DIFF_EQUAL) {	// 서로 같은 것에 속하는 것. 즉, 연속적으로 나올 것임.
 					curTextLengths[1] += replacePos;
-					diffs.splice(i++, 0, [ window.DIFF_DELETE_EQUAL , diffBlock[0][0] ]);
+					diffs.splice(i++, 0, [ window.DIFF_DELETE_EQUAL , matchBlock[0] ]);
 				} else {
-					diffs.splice(i++, 0, [ diffStatus, diffBlock[0][0] ]);
+					diffs.splice(i++, 0, [ diffStatus, matchBlock[0] ]);
 				}
 				
 				var lastReplaceBeginPos = replacePos + this.replacedLength;
@@ -208,10 +259,21 @@ DiffMatchCustom.prototype.diff_cleanupCustom = function(diffs) {
 			}
 		}
 		i--; // 이전 블록을 꺼낸다.
-		preMatchIdx++;	// 다음 매치 블럭을 찾자.
+		//preMatchIdx++;	// 다음 매치 블럭을 찾자.
+		if(curMatchNum == window.DIFF_DELETE) {
+			text1MatchIdx++;
+		} else {
+			text2MatchIdx++;
+		}
+		if(	text1MatchIdx >= this.text1Match.length &&
+			text2MatchIdx >= this.text2Match.length) {
+			break;
+		}
+		/*
 		if(preMatchIdx >= this.preMatchList.length) {
 			break;
 		}
+		*/
 	}
 	return diffs;
 }
@@ -310,27 +372,36 @@ DiffMatchCustom.prototype.diff_cleanupCustom = function(diffs) {
 	return diffs;
 }*/
 
-DiffMatchCustom.prototype.preFilter = function (leftRegularExp, rightRegularExp) {
+DiffMatchCustom.prototype.preFilter = function (regularExp) {
 	var match, matchRight;
-
+	var leftRegularExp = regularExp;
 	while(( match = leftRegularExp.exec(this.text1)) !== null) {
-		this.preMatchList.push([ match, window.DIFF_DELETE ]);
+		//this.preMatchList.push([ match, window.DIFF_DELETE ]);
+		this.text1Match.push(match);
 		this.text1 = this.text1.substr(0, match.index) + 'a' + this.text1.substr(match.index + match[0].length);
 		leftRegularExp.lastIndex -= match[0].length;
 	}
-
+	var rightRegularExp = regularExp;
 	while(( matchRight = rightRegularExp.exec(this.text2)) !== null) {
-		this.preMatchList.push([ matchRight, window.DIFF_INSERT ]);
+		//this.preMatchList.push([ matchRight, window.DIFF_INSERT ]);
+		this.text2Match.push(matchRight);
 		this.text2 = this.text2.substr(0, matchRight.index) + 'a' + this.text2.substr(matchRight.index + matchRight[0].length);
 		rightRegularExp.lastIndex -= matchRight[0].length;
 	}
 	
+	/*
 	this.preMatchList.sort(function(lhs, rhs){
 		return lhs[0].index > rhs[0].index;
 	});
+	*/
 }
 
 DiffMatchCustom.prototype.doReverse = function () {
+	var temp = this.text1Match;
+	this.text1Match = this.text2Match;
+	this.text2Match = temp;
+
+	// deprecated
 	for(var i = 0; i < this.preMatchList.length; i++ ){
 		this.preMatchList[i][1] = this.preMatchList[i][1] * -1;
 	}
@@ -405,7 +476,7 @@ function launch() {
 	var text2 = document.getElementById('text2').value;
 
 	var diffMatch = new DiffMatchCustom(2, 4, 1, 2, text1, text2);
-	diffMatch.preFilter(/<br>/g, /<\/br>/g);
+	diffMatch.preFilter(/<br>|<\/br>/g);
 	var ds = diffMatch.start(cleanupOpt.efficiencyCleanup);
 
 	document.getElementById('outputdivLeft').innerHTML = ds[0];
