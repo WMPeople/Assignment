@@ -39,7 +39,6 @@ public class NodePtr {
 		return map;
 	}
 	
-	
 	@Override
 	public String toString() {
 		return String.format("%d-%d", board_id, version);

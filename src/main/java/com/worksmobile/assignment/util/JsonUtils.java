@@ -16,12 +16,13 @@ public class JsonUtils {
 		}
 		return json;
 	}
-    public static String jsonStringFromObject(Object object) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(object);
-    }
+
+	public static String jsonStringFromObject(Object object) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.writeValueAsString(object);
+	}
 	
-    public static void assertConvertToJsonObject(Object expect, Object actual) throws JsonProcessingException{
-    		assertEquals(jsonStringFromObject(expect), jsonStringFromObject(actual));
-    }
+	public static void assertConvertToJsonObject(Object expect, Object actual) throws JsonProcessingException{
+		assertEquals(jsonStringFromObject(expect), jsonStringFromObject(actual));
+	}
 }

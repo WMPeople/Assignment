@@ -22,6 +22,8 @@ public class BoardHistory extends NodePtr{
 	public static final String STATUS_TEMP = "Temp";
 	public static final String STATUS_ROOT = "Root";
 	
+	public static final byte[] EMPTY_BYTE_ARRAY = new byte[1];
+	
 	public BoardHistory() {};
 	/***
 	 * 게시글을 새롭게 만들때 사용. (내용 제외)공통된 내용을 전부 복사합니다.

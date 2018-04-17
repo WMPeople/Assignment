@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.worksmobile.assignment.bo.Compress;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.model.Board;
@@ -36,28 +34,13 @@ public class CompressTest {
 	@Autowired
 	private BoardHistoryMapper boardHistoryMapper;
 	
-	private Huffman huffman;
 	private final String plainText = "CDDCACBCBCCCBBCDA";
 	private final String hangulText = "가나다라마바사abcefegjwegioj";
-	
-	@Before
-	public void init() {
-		huffman = new Huffman();
-	}
-	
-	@Test
-	public void testEncoding() {
-		huffman.handleNewText(plainText);
-		String encodedText = huffman.encodeText();
-		assertNotNull(encodedText);
-		String decodedText = huffman.decodeText();
-		assertEquals(plainText, decodedText);
-	}
 	
 	@Test
 	public void testZipping() throws IOException {
 		byte[] stringToBytes = plainText.getBytes(StandardCharsets.UTF_8);
-		byte[] zippedBytes = Compress.zipBytes("memory.one", stringToBytes);
+		byte[] zippedBytes = Compress.zipBytes(Compress.ZIP_FILE_NAME, stringToBytes);
 		byte[] unzippedBytes = Compress.unzip(zippedBytes);
 		assertFalse(Arrays.equals(zippedBytes, unzippedBytes));
 		assertTrue(Arrays.equals(stringToBytes, unzippedBytes));
@@ -68,7 +51,7 @@ public class CompressTest {
 	@Test
 	public void testHangulZipping() throws IOException {
 		byte[] stringToBytes = hangulText.getBytes(StandardCharsets.UTF_8);
-		byte[] zippedBytes = Compress.zipBytes("memory.one", stringToBytes);
+		byte[] zippedBytes = Compress.zipBytes(Compress.ZIP_FILE_NAME, stringToBytes);
 		byte[] unzippedBytes = Compress.unzip(zippedBytes);
 		assertFalse(Arrays.equals(zippedBytes, unzippedBytes));
 		assertTrue(Arrays.equals(stringToBytes, unzippedBytes));
@@ -81,7 +64,7 @@ public class CompressTest {
 	public void testDBEquals() throws IOException {
 		HashMap<String, Integer> map = new HashMap<>();
 		map.put("offset", 0);
-		map.put("noOfRecords", 1000);
+		map.put("noOfRecords", Integer.MAX_VALUE);
 		List<Board> boardList = boardMapper.articleList(map);
 		List<String> contentStrList = new ArrayList<>(boardList.size());
 		List<byte[]> historyContentList = new ArrayList<>(boardList.size());

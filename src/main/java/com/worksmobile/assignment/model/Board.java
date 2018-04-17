@@ -37,6 +37,7 @@ public class Board extends NodePtr{
 		version = nodePtr.getVersion();
 		root_board_id = nodePtr.getRoot_board_id();
 	}
+
 	@Override
 	public HashMap<String, Object> toMap() {
 		HashMap<String, Object> map = new HashMap<>();

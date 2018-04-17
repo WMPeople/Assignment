@@ -33,6 +33,9 @@ public class VersionManagementService {
 	@Autowired
 	private BoardService boardService;
 	
+	@Autowired
+	private BoardHistoryService boardHistoryService;
+	
 	/***
 	 * 한 게시글과 연관된 모든 게시글 이력을 반환합니다.
 	 * @param leafPtr 가져올 리프 노드 포인터.(board_id, version만 사용)
@@ -46,7 +49,7 @@ public class VersionManagementService {
 			throw new NotLeafNodeException("leaf node 정보" + leafPtrJson);
 		}
 
-		Map<Map.Entry<Integer, Integer>, BoardHistory> boardHisotryMap = boardService.getHistoryMap(board.getRoot_board_id());
+		Map<Map.Entry<Integer, Integer>, BoardHistory> boardHisotryMap = boardHistoryService.getHistoryMap(board.getRoot_board_id());
 		List<BoardHistory> relatedHistoryList = new ArrayList<>(boardHisotryMap.size());
 		
 		NodePtr curPosPtr = leafPtr;
@@ -80,7 +83,7 @@ public class VersionManagementService {
 
 	/**
 	 *  게시판 DB 와 이력 DB 에 둘다 등록합니다.
-	 *  article의 board_id가 새로 발급 해야 하면 DB의 자동 증가를 통해 증가 됩니다.
+	 *  루트를 만들거나, 충돌 관리시에 게시글 번호가 새로 발급됩니다. (DB의 자동 증가를 통해 증가)
 	 * @param article 등록할 게시물의 제목, 내용, 첨부파일이 사용됩니다.
 	 * @param version 새로운 게시물의 버전
 	 * @param status 게시물 이력의 상태에 들어갈 내용
@@ -91,63 +94,33 @@ public class VersionManagementService {
 		if(parentNodePtr == null) {
 			throw new RuntimeException("createArticleAndHistory메소드 parentNodePtr은 null 이 될 수 없습니다. ");
 		}
-
-		byte[] compressedContent = Compress.compressArticleContent(article);
-
-		NodePtr createdNodePtr;
-		if (article.getBoard_id() == NodePtr.ISSUE_NEW_BOARD_ID) { // 새로 발급하는 경우 새로운 게시글, 충돌 관리 일때
-			createdNodePtr = new NodePtr(article.getBoard_id(), version, NodePtr.ROOT_BOARD_ID);
-		} else {
-			createdNodePtr = new NodePtr(parentNodePtr.getBoard_id(), version, parentNodePtr.getRoot_board_id());
+		if(article.getSubject().length() == 0) {
+			throw new RuntimeException("제목이 비어있을 수 없습니다.");
+		}
+		if(article.getContent() == null || article.getContent().length() == 0) {
+			throw new RuntimeException("내용이 null 이거나 비어 있습니다. content : " + article.getContent());
 		}
 
-		BoardHistory boardHistory;
+		BoardHistory createdHistory;
 		if(version == 0) {	// 루트 노드일 경우
-			// 안보이는 루트를 먼저 만듦.
-			BoardHistory rootHistory = new BoardHistory(new Board(), createdNodePtr, BoardHistory.STATUS_ROOT);
-			int insertedRowCnt = boardHistoryMapper.createHistory(rootHistory);
-			if(insertedRowCnt != 1) {
-				String json = JsonUtils.jsonStringIfExceptionToString(rootHistory);
-				throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\nrootHistory : " + json);
-			}
+			BoardHistory rootHistory = boardHistoryService.createInvisibleRoot();
 			
-			// 보이는 루트를 만듦.
-			boardHistory = new BoardHistory(article, rootHistory, status);
-			boardHistory.setParentNodePtrAndRoot(rootHistory);
-			boardHistory.setVersion(NodePtr.VISIBLE_ROOT_VERSION);
-			boardHistory.setRoot_board_id(rootHistory.getBoard_id());
-			
-			boardHistory.setHistory_content(compressedContent);
-			insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
-			if(insertedRowCnt != 1) {
-				String json = JsonUtils.jsonStringIfExceptionToString(boardHistory);
-				throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\nrootHistory : " + json);
-			}
-		}
-		else {// 루트가 아닌 리프 노드일 경우 (중간 노드일 경우는 없음)
-			boardHistory = new BoardHistory(article, createdNodePtr, status);
-			boardHistory.setParentNodePtrAndRoot(parentNodePtr);
-			boardHistory.setHistory_content(compressedContent);
-			int insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
-			if(insertedRowCnt != 1) {
-				String json = JsonUtils.jsonStringIfExceptionToString(boardHistory);
-				throw new RuntimeException("createArticleAndHistory메소드에서 게시글 이력 추가 에러 insertedRowCnt : " + insertedRowCnt + "\nrootHistory : " + json);
-			}
+			createdHistory = boardHistoryService.createVisibleRoot(article, rootHistory, status);
+		} else {// 루트가 아닌 리프 노드일 경우 (중간 노드일 경우는 없음)
+			createdHistory = boardHistoryService.createLeafHistory(article, version, status, parentNodePtr);
 		}
 		
-		article.setNodePtr(boardHistory);
-		article.setCreated_time(boardHistory.getCreated_time());
+		article.setNodePtr(createdHistory);
+		article.setCreated_time(createdHistory.getCreated_time());
 		
 		int insertedRowCnt = boardMapper.boardCreate(article);
 		if(insertedRowCnt != 1) {
-			throw new RuntimeException("createArticle메소드에서 boardCreate error" + boardHistory);
+			throw new RuntimeException("createArticle메소드에서 boardCreate error" + createdHistory);
 		}
 		
-		return boardHistory;
+		return createdHistory;
 	}
 	
-	// TODO : 생성시에 잎 노드 인지 보장을 하지 않음.
-	// TODO : 충돌 관리?? 만약 잎 노드가 아닌경우 새로운 게시물 번호로 만들어짐을 유의할것.
 	/***
 	 * 버전 복구 기능입니다. board DB및  boardHistory 둘다 등록 됩니다.
 	 * @param recoverPtr 복구할 버전에 대한 포인터.
@@ -186,6 +159,9 @@ public class VersionManagementService {
 			HashMap<String, Object> deleteParams = modifiedBoard.toMap();
 			deleteParams.put("cookie_id", cookieId);
 			boardService.deleteBoardWithCookieId(deleteParams);
+		}
+		if(modifiedBoard.getContent() == null || modifiedBoard.getContent().length() == 0) {
+			throw new RuntimeException("내용이 null 이거나 비어 있습니다. content : " + modifiedBoard.getContent());
 		}
 		return createVersionWithBranch(modifiedBoard, parentPtr, BoardHistory.STATUS_MODIFIED);
 	}
@@ -229,6 +205,7 @@ public class VersionManagementService {
 		boardService.deleteBoardHistory(deletePtr);
 
 		if(deleteNodeChildren.size() == 0) {	// 리프 노드라면
+			// 이력 및 게시글을 지웁니다.
 			BoardHistory parentHistory = boardHistoryMapper.selectHistory(parentPtr);
 			
 			Board parent = new Board(parentHistory);

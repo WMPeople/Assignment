@@ -13,8 +13,9 @@ import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.util.JsonUtils;
 
 public class Compress {
+	
+	public static final String ZIP_FILE_NAME = "memory.one";
 
-	// 출처 : https://stackoverflow.com/questions/357851/in-java-how-to-zip-file-from-byte-array
 	public static byte[] zipBytes(String filename, byte[] input) throws IOException {
 	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	    ZipOutputStream zos = new ZipOutputStream(baos);
@@ -52,7 +53,7 @@ public class Compress {
 			return null;
 		}
 		byte[] stringToBytes = plainText.getBytes(StandardCharsets.UTF_8);
-		return Compress.zipBytes("memory.one", stringToBytes);
+		return Compress.zipBytes(ZIP_FILE_NAME, stringToBytes);
 	}
 	
 	public static String deCompress(byte[] compressed) throws IOException {
