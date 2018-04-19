@@ -18,33 +18,32 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-
-@SpringBootApplication // @SpringBootApplication 애노테이션은 @Configuration, @EnableAutoConfiguration 과@ComponentScan의 기본속성을 사용한 것과 동일하다:
+@SpringBootApplication
 public class AssignmentApplication extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
 		SpringApplication.run(AssignmentApplication.class, args);
 	}
-	
+
 	// 외장 톰캣을 사용할때
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
 		return application.sources(AssignmentApplication.class);
 	}
-		
+
 	// 외장 톰캣 사용시 에러 패이지 출력안되는 것을 방지.
 	@Bean
 	public ErrorPageFilter errorPageFilter() {
-	    return new ErrorPageFilter();
+		return new ErrorPageFilter();
 	}
 
 	// 외장 톰캣 사용시 에러 패이지 출력안되는 것을 방지.
 	@Bean
 	public FilterRegistrationBean<ErrorPageFilter> disableSpringBootErrorFilter(ErrorPageFilter filter) {
-	    FilterRegistrationBean<ErrorPageFilter> filterRegistrationBean = new FilterRegistrationBean<ErrorPageFilter>();
-	    filterRegistrationBean.setFilter(filter);
-	    filterRegistrationBean.setEnabled(false);
-	    return filterRegistrationBean;
+		FilterRegistrationBean<ErrorPageFilter> filterRegistrationBean = new FilterRegistrationBean<ErrorPageFilter>();
+		filterRegistrationBean.setFilter(filter);
+		filterRegistrationBean.setEnabled(false);
+		return filterRegistrationBean;
 	}
 
 	@Value("${tomcat.ajp.protocol}")

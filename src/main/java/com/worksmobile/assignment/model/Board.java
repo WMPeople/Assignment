@@ -15,8 +15,9 @@ public class Board extends NodePtr{
 	@Setter @Getter private String cookie_id = LEAF_NODE_COOKIE_ID;
 	
 	public final static String LEAF_NODE_COOKIE_ID = "LEAF_NODE_COOKIE_ID";
-	
-	public Board() { }
+
+	public Board() {}
+
 	/***
 	 * BoardHistory의 내용제외하고 공통된 내용을 전부 가져옵니다.
 	 * 중요! : 내용을 압축 해제 역할은 담당하지 않습니다.
@@ -43,7 +44,7 @@ public class Board extends NodePtr{
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("board_id", board_id);
 		map.put("version", version);
-		map.put("cookie_id",cookie_id);
+		map.put("cookie_id", cookie_id);
 		return map;
 	}
 	

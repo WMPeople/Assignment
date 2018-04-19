@@ -21,7 +21,8 @@ public class NodePtr {
 	public static final Integer ISSUE_NEW_BOARD_ID = null;
 	public static final int ROOT_BOARD_ID = -1;
 	
-	public NodePtr() { }
+	public NodePtr() {}
+
 	public NodePtr(Integer board_id, Integer version) {
 		this.board_id = board_id;
 		this.version = version;
@@ -38,12 +39,12 @@ public class NodePtr {
 		map.put("cookie_id", Board.LEAF_NODE_COOKIE_ID);
 		return map;
 	}
-	
+
 	@Override
 	public String toString() {
 		return String.format("%d-%d", board_id, version);
 	}
-	
+
 	public Map.Entry<Integer, Integer> toBoardIdAndVersionEntry() {
 		return new AbstractMap.SimpleEntry<>(board_id, version);
 	}

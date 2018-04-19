@@ -1,4 +1,4 @@
-package com.worksmobile.assignment.util;
+﻿package com.worksmobile.assignment.util;
 
 import static org.junit.Assert.assertEquals;
 
@@ -10,7 +10,7 @@ public class JsonUtils {
 		String json = "";
 		try {
 			json = JsonUtils.jsonStringFromObject(object);
-		} catch(JsonProcessingException jsonErr) {
+		} catch (JsonProcessingException jsonErr) {
 			jsonErr.printStackTrace();
 			json = object.toString();
 		}
