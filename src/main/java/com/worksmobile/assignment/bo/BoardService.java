@@ -3,7 +3,6 @@
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,8 @@ import com.worksmobile.assignment.util.JsonUtils;
 
 /***
  * Board, BoardHistory 삭제할 경우 이 서비스를 통해 삭제 됩니다.
- * 현재는 DAO 같은 역할을 하고 있습니다.
- * @author khh, rws
+ * @author khh
+ * @author rws
  *
  */
 @Service
@@ -53,9 +52,7 @@ public class BoardService {
 
 		return deletedCnt;
 	}
-
-	// TODO : deleteNoMoreUsingFile메소드가 Set을 매개변수로 취하고 있으나, 한개 만을 넘기는 경우가 있어
-	// 이를 개선할 방안이 있으면 좋을것 같습니다.
+	
 	/***
 	 * 만약, 존재하지 않는 게시글이라면 삭제 되지 않습니다.
 	 * @param deleteParams 삭제할 board의 board_id, version, cookie_id를 사용합니다.
@@ -121,15 +118,6 @@ public class BoardService {
 		boardHistoryMapper.deleteHistory(leafPtr);
 
 		return boardHistory.getFile_id();
-	}
-
-	Map<Map.Entry<Integer, Integer>, BoardHistory> getHistoryMap(int root_board_id) {
-		List<BoardHistory> historyList = boardHistoryMapper.selectHistoryByRootBoardId(root_board_id);
-		Map<Map.Entry<Integer, Integer>, BoardHistory> historyMap = new HashMap<>();
-		for (BoardHistory ele : historyList) {
-			historyMap.put(ele.toBoardIdAndVersionEntry(), ele);
-		}
-		return historyMap;
 	}
 
 	public boolean isLeaf(final NodePtr nodePtr) {

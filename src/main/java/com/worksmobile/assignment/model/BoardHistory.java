@@ -21,7 +21,9 @@ public class BoardHistory extends NodePtr{
 	public static final String STATUS_RECOVERED = "Recovered";
 	public static final String STATUS_TEMP = "Temp";
 	public static final String STATUS_ROOT = "Root";
-
+	
+	public static final byte[] EMPTY_BYTE_ARRAY = new byte[1];
+	
 	public BoardHistory() {};
 
 	/***

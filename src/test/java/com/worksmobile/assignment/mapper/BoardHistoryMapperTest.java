@@ -52,7 +52,7 @@ public class BoardHistoryMapperTest {
 		defaultNodePtr = new NodePtr(1000, 6, 1);
 		defaultHistory = new BoardHistory();
 		defaultHistory.setBoard_id(defaultNodePtr.getBoard_id());
-		defaultHistory.setHistory_content(new byte[1]);
+		defaultHistory.setHistory_content(BoardHistory.EMPTY_BYTE_ARRAY);
 		defaultHistory.setVersion(defaultNodePtr.getVersion());
 		defaultHistory.setFile_id(0);
 

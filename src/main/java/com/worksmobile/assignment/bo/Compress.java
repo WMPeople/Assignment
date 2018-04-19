@@ -13,6 +13,8 @@ import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.util.JsonUtils;
 
 public class Compress {
+	
+	public static final String ZIP_FILE_NAME = "memory.one";
 
 	public static byte[] zipBytes(String filename, byte[] input) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -48,7 +50,7 @@ public class Compress {
 			return null;
 		}
 		byte[] stringToBytes = plainText.getBytes(StandardCharsets.UTF_8);
-		return Compress.zipBytes("memory.one", stringToBytes);
+		return Compress.zipBytes(ZIP_FILE_NAME, stringToBytes);
 	}
 
 	public static String deCompress(byte[] compressed) throws IOException {

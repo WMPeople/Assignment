@@ -1,4 +1,4 @@
-package com.worksmobile.assignment.util;
+﻿package com.worksmobile.assignment.util;
 
 import static org.junit.Assert.assertEquals;
 
@@ -21,8 +21,8 @@ public class JsonUtils {
 		ObjectMapper mapper = new ObjectMapper();
 		return mapper.writeValueAsString(object);
 	}
-
-	public static void assertConvertToJsonObject(Object expect, Object actual) throws JsonProcessingException {
+	
+	public static void assertConvertToJsonObject(Object expect, Object actual) throws JsonProcessingException{
 		assertEquals(jsonStringFromObject(expect), jsonStringFromObject(actual));
 	}
 }
