@@ -22,12 +22,10 @@ public class Page {
 	public final static int SIZE_OF_PAGE = 5;
 	public final static int MAX_POST = 10;
 
-	
 	public Page() {
 		this.currentPageNo = CURRENT_PAGE_NO;
 		this.sizeOfPage = SIZE_OF_PAGE;
 		this.maxPost = MAX_POST;
 	}
-	
 
 }

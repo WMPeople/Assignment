@@ -10,18 +10,19 @@ public class JsonUtils {
 		String json = "";
 		try {
 			json = JsonUtils.jsonStringFromObject(object);
-		} catch(JsonProcessingException jsonErr) {
+		} catch (JsonProcessingException jsonErr) {
 			jsonErr.printStackTrace();
 			json = object.toString();
 		}
 		return json;
 	}
-    public static String jsonStringFromObject(Object object) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(object);
-    }
-	
-    public static void assertConvertToJsonObject(Object expect, Object actual) throws JsonProcessingException{
-    		assertEquals(jsonStringFromObject(expect), jsonStringFromObject(actual));
-    }
+
+	public static String jsonStringFromObject(Object object) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.writeValueAsString(object);
+	}
+
+	public static void assertConvertToJsonObject(Object expect, Object actual) throws JsonProcessingException {
+		assertEquals(jsonStringFromObject(expect), jsonStringFromObject(actual));
+	}
 }

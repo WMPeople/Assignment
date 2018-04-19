@@ -25,11 +25,11 @@ public class DiffNodePtr {
 			return "parse error";
 		}
 	}
-	
+
 	public NodePtr getLeftPtr() {
 		return new NodePtr(board_id1, version1);
 	}
-	
+
 	public NodePtr getRightPtr() {
 		return new NodePtr(board_id2, version2);
 	}
