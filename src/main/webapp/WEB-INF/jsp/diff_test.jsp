@@ -15,7 +15,7 @@
 	아래의 정규식에 대항되는 것들은 비교에서 같은 것으로 취급합니다.<br>
 	적용 순위는 개행, 공백 -> 정규식 규칙 -> 대소문자 구분 <br>
 	정규식 안에서의 대소문자 구분은 옵션에 i를 줌으로써 가능합니다. <br>
-	정규식  규칙 1 : <input type="text" id="regularExp" value="&lt;br&gt;|&lt;/br&gt;"/>
+	정규식  규칙 : <input type="checkbox" id="regularExpChkBox" /> <input type="text" id="regularExp" value="&lt;br&gt;|&lt;/br&gt;"/>
 	옵션 : <input type="text" id="regularExpOpt" value="g"/>
 	대소문자 구분 <input type="checkbox" id="caseSensitive" checked="checked" />
 	공백 및 개행 무시 <input type="number" id="ignoreWhiteCharCnt" value="1" />
