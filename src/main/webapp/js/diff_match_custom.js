@@ -417,7 +417,7 @@ DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, 
 				curTextLengths[1] += diffStr.length;
 				continue;
 			} else {
-				var rtn = this.restore(diffs, i, text2Match, text2MatchIdx, replacedChar, curTextLengths[1], diffStatus);
+				var rtn = this.restore(diffs, i, text2Match, text2MatchIdx, replacedChar, curTextLengths[1], diffStatus * 2);
 				curTextLengths[1] += rtn[1];
 				i = rtn[0];
 				text2MatchIdx++;
@@ -428,7 +428,7 @@ DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, 
 				curTextLengths[0] += diffStr.length;
 				continue;
 			} else {
-				var rtn = this.restore(diffs, i, text1Match, text1MatchIdx, replacedChar, curTextLengths[0], diffStatus);
+				var rtn = this.restore(diffs, i, text1Match, text1MatchIdx, replacedChar, curTextLengths[0], diffStatus * 2);
 				curTextLengths[0] += rtn[1];
 				i = rtn[0];
 				text1MatchIdx++;
