@@ -199,7 +199,7 @@ diff_match_patch.prototype.diff_compute_ = function(text1, text2, checklines,
   if (text1 == longtext) {
 	  temp = 2;
   }
-  if (this.Diff_Sensitive == true) {
+  if (this.Diff_Sensitive == false) {
 	  var tempLongtext = longtext ;
 	  var tempShorttext = shorttext;
 	  tempLongtext = tempLongtext.toUpperCase();
@@ -212,11 +212,11 @@ diff_match_patch.prototype.diff_compute_ = function(text1, text2, checklines,
   if (i != -1) {
     // Shorter text is inside the longer text (speedup).
 	  
-	if (this.Diff_Sensitive == true && temp == 1) {
+	if (this.Diff_Sensitive == false && temp == 1) {
 		 diffs = [[DIFF_INSERT, longtext.substring(0, i)],
              	[DIFF_EQUAL, shorttext],
              	[DIFF_INSERT, longtext.substring(i + shorttext.length)]];
-	} else if (this.Diff_Sensitive == true && temp == 2) {
+	} else if (this.Diff_Sensitive == false && temp == 2) {
 		diffs = [[DIFF_INSERT, longtext.substring(0, i)],
          		[DIFF_EQUAL, text1.substring(i , i + shorttext.length)],
          		[DIFF_INSERT, longtext.substring(i + shorttext.length)]];
@@ -390,7 +390,7 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
       }
       var y1 = x1 - k1;
       
-      if (this.Diff_Sensitive == true) {
+      if (this.Diff_Sensitive == false) {
     	  while (x1 < text1_length && y1 < text2_length &&
         		  text1Upper.charAt(x1) == text2Upper.charAt(y1)) {
             x1++;
@@ -436,7 +436,7 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
       }
       var y2 = x2 - k2;
       
-      if (this.Diff_Sensitive == true) {
+      if (this.Diff_Sensitive == false) {
     	  
           while (x2 < text1_length && y2 < text2_length &&
         		text1Upper.charAt(text1_length - x2 - 1) ==

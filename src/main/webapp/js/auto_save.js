@@ -46,7 +46,7 @@ $(function() {
 						console.log(originalContent);
 						dmp.Diff_Timeout = parseFloat(2);
 						dmp.Diff_EditCost = parseFloat(4);
-						dmp.Diff_Sensitive = 0;
+						dmp.Diff_Sensitive = false;
 						var diff = dmp.diff_main(originalContent, tempContent);
 						/**
 						 * diff 구조는 길이가 2인 배열을 인덱스로 갖는 배열이다. [Array(2),Array(2),Array(2),Array(2)...]
