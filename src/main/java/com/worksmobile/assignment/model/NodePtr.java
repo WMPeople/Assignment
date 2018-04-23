@@ -18,6 +18,7 @@ public class NodePtr {
 	
 	public static final int INVISIBLE_ROOT_VERSION = 0;
 	public static final int VISIBLE_ROOT_VERSION = INVISIBLE_ROOT_VERSION + 1;
+	public static final int INVISIALBE_ROOT_BOARD_ID = 0;
 	public static final Integer ISSUE_NEW_BOARD_ID = null;
 	public static final int ROOT_BOARD_ID = -1;
 	

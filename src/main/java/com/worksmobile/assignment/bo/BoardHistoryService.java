@@ -54,7 +54,7 @@ public class BoardHistoryService {
 		return boardHistory;
 	}
 	
-	public BoardHistory createLeafHistory(Board article, int version, String status, NodePtr parentNodePtr) {
+	public BoardHistory createLeafHistory(Board article, int version, String status, final NodePtr parentNodePtr) {
 		NodePtr createdNodePtr;
 		if (article.getBoard_id() == NodePtr.ISSUE_NEW_BOARD_ID) {
 			createdNodePtr = new NodePtr(NodePtr.ISSUE_NEW_BOARD_ID, version, NodePtr.ROOT_BOARD_ID);

@@ -164,4 +164,23 @@ public class DBIntegrityTest {
 			collector.checkThat(JsonUtils.jsonStringFromObject(ele), null, not(dbParent));
 		}
 	}
+	
+	/*
+	 * 보이지 않는 루트는 버전이 0, 부모NodePtr이 null, 루트 게시판id 가 0 이어야 합니다.
+	 */
+	@Test
+	public void testInvisibleRootVersionIsCorrect() {
+		List<BoardHistory> historyList = boardHistoryMapper.selectAllHistory();
+		for(BoardHistory ele : historyList) {
+			if(ele.getVersion() == BoardHistory.INVISIBLE_ROOT_VERSION ||
+				ele.getParent_board_id() == null ||
+				ele.getParent_version() == null ||
+				ele.getRoot_board_id() == BoardHistory.INVISIALBE_ROOT_BOARD_ID) {
+				assertEquals((Integer)BoardHistory.INVISIBLE_ROOT_VERSION, ele.getVersion());
+				assertEquals(null, ele.getParent_board_id());
+				assertEquals(null, ele.getParent_version());
+				assertEquals(BoardHistory.INVISIALBE_ROOT_BOARD_ID, ele.getRoot_board_id());
+			}
+		}
+	}
 }

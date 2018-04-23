@@ -18,7 +18,7 @@ import com.worksmobile.assignment.util.JsonUtils;
 
 /***
  * 
- * @author KHH
+ * @author khh
  *
  */
 @Service
@@ -124,7 +124,7 @@ public class VersionManagementService {
 	/***
 	 * 버전 복구 기능입니다. board DB및  boardHistory 둘다 등록 됩니다.
 	 * @param recoverPtr 복구할 버전에 대한 포인터.
-	 * @param leafPtr 복구 후 부모가 될 리프 포인터.
+	 * @param leafPtr 복구 후 부모가 될 리프 포인터. 리프 게시글인지 검사하지 않습니다.
 	 * @return 새롭게 등록된 버전에 대한 포인터.
 	 */
 	@Transactional
@@ -146,6 +146,7 @@ public class VersionManagementService {
 
 	/***
 	 * 새로운 버전을 등록합니다. 충돌 관리가 적용되어 있습니다.
+	 * 자동저장이 없을 수도 있으므로 자동저장 삭제를 확인하지 않습니다.
 	 * @param modifiedBoard 새롭게 등록될 게시글에 대한 정보. cookie_id가 존재하면 자동 저장 내역이 삭제 됩니다.
 	 * @param parentPtr 부모를 가리키는 노드 포인터.
 	 * @param cookieId 자신의 쿠키 id, 자동 저장에서 삭제 됩니다.
@@ -257,9 +258,6 @@ public class VersionManagementService {
 
 		while (true) {
 			BoardHistory deleteHistory = boardHistoryMapper.selectHistory(leafPtr);
-			if (deleteHistory == null) {
-				break;
-			}
 			NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
 
 			boardService.deleteBoardAndAutoSave(leafPtr);
@@ -267,13 +265,16 @@ public class VersionManagementService {
 
 			List<BoardHistory> brothers = boardHistoryMapper.selectChildren(parentPtr);
 
-			if (brothers.size() != 0) {
+			if (brothers.size() != 0 ||
+				deleteHistory.isInvisibleRoot()) {
 				break;
 			}
 			leafPtr = parentPtr;
 		}
 	}
 	
+	// TODO : 함수명이 임시 게시글을 만든다 이지만, 만들고 있지 않습니다.
+	// TODO : 매개 변수명 type의 의미를 파악하기 힘듭니다. 또한 type이 "withfile"일 경우만 분기를 나뉘는데, 그러한 목적이면 String일 필요가 없을것 같습니다.
 	@Transactional
 	public Board createTempArticleOverwrite(Board tempArticle, String type) {
 		tempArticle.setRoot_board_id(tempArticle.getBoard_id()); // getHistoryByRootId에서 검색이 가능하도록

@@ -152,23 +152,24 @@ public class VersionManagementServiceMultiThreadTest {
 			generation.add(child);
 		}
 		
-		Board modifiedBoard = new Board();
-		modifiedBoard.setSubject("modifiedSub");
-		modifiedBoard.setSubject("modifiedContent");
 
 		int i = 0;
 		for(; i < THREAD_COUNT / 2; i++) {
-			Thread thread = new Thread(()-> {
+			Thread modifyThread = new Thread(()-> {
 				try {
-					int randIdx = (int) (Math.random() * THREAD_COUNT);
-					NodePtr nodePtr = generation.get(randIdx);
+					List<BoardHistory> list = boardHistoryMapper.selectHistoryByRootBoardId(defaultCreated.getRoot_board_id());
+					int randIdx = (int) (Math.random() * list.size());
+					NodePtr nodePtr = list.get(randIdx);
 
+					Board modifiedBoard = new Board();
+					modifiedBoard.setSubject("modifiedSub");
+					modifiedBoard.setContent("modifiedContent");
 					versionManagementService.modifyVersion(modifiedBoard, nodePtr, null);
 				} catch(Exception e) {
 					collector.addError(e);
 				}
 			});
-			threadList.add(thread);
+			threadList.add(modifyThread);
 		}
 		
 		HashMap<String, Integer> articleListParams = new HashMap<>();
@@ -177,7 +178,7 @@ public class VersionManagementServiceMultiThreadTest {
 		int root_board_id = defaultCreated.getRoot_board_id();
 
 		for(; i < THREAD_COUNT; i++) {
-			Thread thread = new Thread(()-> {
+			Thread deleteThread = new Thread(()-> {
 				try {
 					List<Board> sameRoot = boardMapper.articleList(articleListParams);
 					sameRoot.removeIf(item -> { return item.getRoot_board_id() != root_board_id; } );
@@ -191,7 +192,7 @@ public class VersionManagementServiceMultiThreadTest {
 					collector.addError(e);
 				}
 			});
-			threadList.add(thread);
+			threadList.add(deleteThread);
 		}
 	}
 }
