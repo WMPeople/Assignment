@@ -213,14 +213,14 @@ DiffMatchCustom.prototype.restoreFilter = function(diffs, text1Match, text2Match
 	var leftMatchIdx = 0;
 	var rightMatchIdx = 0;
 	
+	if(this.isPreFilterOn !== true){
+		return diffs;
+	}
+	
 	for (var i = 0; i < diffs.length; i++) {
 		var diffStatus = diffs[i][0];
 		var diffStr = diffs[i][1];
 		
-		if(this.isPreFilterOn !== true){
-			break;
-		}
-
 		if(diffStatus == window.DIFF_EQUAL){ 
 			if(	!(this.isInside(text1MatchIdx, text1Match, curTextLengths[0], diffStr) ||
 				this.isInside(text2MatchIdx, text2Match, curTextLengths[1], diffStr) )) {
@@ -244,7 +244,7 @@ DiffMatchCustom.prototype.restoreFilter = function(diffs, text1Match, text2Match
 				
 				diffs.splice(i++, 0, [ window.DIFF_DELETE * 2, text1Match[text1MatchIdx][0] ]);
 				text1MatchIdx++;
-
+				
 				// 오른쪽 거를 치환합시다.
 				if(text2MatchIdx >= text2Match.length) {
 					throw "오른쪽을 할 차례인데 더이상 배열에 없네요.";
@@ -340,6 +340,10 @@ DiffMatchCustom.prototype.restore = function(diffs, i, matchArr, matchIdx, repla
 		diffs.splice(i++, 0, [ diffStatus, beforeReplaceStr ]);
 	}
 	
+	if(Math.abs(insertDiffStatus) == 1) {
+		insertDiffStatus *= 2;
+	}
+
 	diffs.splice(i++, 0, [ insertDiffStatus, matchBlock[0] ]);
 	
 	var lastReplaceBeginPos = replacePos + replacedChar.length;
@@ -367,12 +371,17 @@ DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, 
 	var leftMatchIdx = 0;
 	var rightMatchIdx = 0;
 	
+	if(this.isPreFilterOn !== true){
+		return diffs;
+	}
+	
 	for (var i = 0; i < diffs.length; i++) {
 		var diffStatus = diffs[i][0];
 		var diffStr = diffs[i][1];
 		
-		if(this.isPreFilterOn !== true){
-			break;
+		if(	text1MatchIdx >= text1Match.length &&
+			text2MatchIdx >= text2Match.length) {
+				break;
 		}
 
 		if(diffStatus == window.DIFF_EQUAL){ 
@@ -380,7 +389,6 @@ DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, 
 				this.isInside(text2MatchIdx, text2Match, curTextLengths[1], diffStr)) ) {
 				curTextLengths[0] += diffStr.length;
 				curTextLengths[1] += diffStr.length;
-				continue;
 			} else {
 				// 범위 벗어나지 않았고, 왼쪽이 포함이면 일단 왼쪽
 				// 범위 벗어나지 않았고, 오른쪽이 포함이면 일단 오른쪽
@@ -401,43 +409,39 @@ DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, 
 					curTextLengths[0] += diffLen[1];
 					curTextLengths[1] += diffLen[1];
 					i = diffLen[0];
+					i--;		// 이전 블럭을 꺼낸다.
 					text1MatchIdx++;
 				} else {
 					var diffLen = this.restore(diffs, i, text2Match, text2MatchIdx, replacedChar, curTextLengths[1], window.DIFF_INSERT * 2);
 					curTextLengths[0] += diffLen[1];
 					curTextLengths[1] += diffLen[1];
 					i = diffLen[0];
+					i--;
 					text2MatchIdx++;
 				}
 			}
-		}
-		else if(diffStatus == window.DIFF_INSERT ||
+		} else if(diffStatus == window.DIFF_INSERT ||
 				diffStatus == window.DIFF_INSERT * 2) {	// right 에 속하면
 			if(!this.isInside(text2MatchIdx, text2Match, curTextLengths[1], diffStr)){
 				curTextLengths[1] += diffStr.length;
-				continue;
 			} else {
-				var rtn = this.restore(diffs, i, text2Match, text2MatchIdx, replacedChar, curTextLengths[1], diffStatus * 2);
+				var rtn = this.restore(diffs, i, text2Match, text2MatchIdx, replacedChar, curTextLengths[1], diffStatus);
 				curTextLengths[1] += rtn[1];
 				i = rtn[0];
+				i--;
 				text2MatchIdx++;
 			}
 		} else if(diffStatus == window.DIFF_DELETE ||
 					diffStatus == window.DIFF_DELETE * 2) {	// left 에 속하면
 			if(!this.isInside(text1MatchIdx, text1Match, curTextLengths[0], diffStr)) {
 				curTextLengths[0] += diffStr.length;
-				continue;
 			} else {
-				var rtn = this.restore(diffs, i, text1Match, text1MatchIdx, replacedChar, curTextLengths[0], diffStatus * 2);
+				var rtn = this.restore(diffs, i, text1Match, text1MatchIdx, replacedChar, curTextLengths[0], diffStatus);
 				curTextLengths[0] += rtn[1];
 				i = rtn[0];
+				i--;
 				text1MatchIdx++;
 			}
-		}
-		i--; // 이전 블록을 꺼낸다.
-		if(	text1MatchIdx >= text1Match.length &&
-			text2MatchIdx >= text2Match.length) {
-			break;
 		}
 	}
 	return diffs;
@@ -448,13 +452,15 @@ DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, 
  * @param text2 비교할 텍스트 2입니다.(보통 오른쪽)
  * @param cleanupOption diff 알고리즘의 옵션입니다. cleanupOpt의 sementic, efficiency, no 중에 설정 가능합니다.
  * @param {Number} whiteCharLeastCnt 개수 이상으로 반복되는 공백문자를 무시합니다. (0이면 실행하지 않습니다.)
+ * @param {Number} priority 공백 및 개행 무시 우선이면 1, 정규식 무시 우선이면 0 입니다.
  * @return {!Array.<String>} 비교한 후의 html 입니다. 0이 왼쪽, 1이 오른쪽입니다.
  */
-DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, regularExp, regularExpOpt) {
+DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, regularExp, regularExpOpt, priority) {
 	var ms_start = (new Date()).getTime();
 	
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
-			ignoreWhiteCharCnt > 0) {
+			ignoreWhiteCharCnt > 0 &&
+			priority == 1) {
 		this.cleanupWhiteCharater(ignoreWhiteCharCnt);
 	}
 	if(typeof regularExp != 'undefined') {
@@ -482,8 +488,14 @@ DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, re
 			d1 = this.restoreRegularExp(d1);
 		}
 		if(typeof ignoreWhiteCharCnt != 'undefined' &&
-				ignoreWhiteCharCnt > 0) {
+				ignoreWhiteCharCnt > 0 &&
+				priority == 1) {
 			d1 = this.restoreWhiteSpace(d1);
+		}
+		if(typeof ignoreWhiteCharCnt != 'undefined' &&
+				ignoreWhiteCharCnt > 0 &&
+				priority == 0) {
+			d1 = this.ignoreWhiteCharater(d1, ignoreWhiteCharCnt);
 		}
 	}
 	var ds = this.dmp.diff_prettyHtml(d1, '', this.originText2);
@@ -504,11 +516,19 @@ function launch() {
 	var regularExp = $('#regularExp').val();
 	var regularExpOpt = $("#regularExpOpt").val();
 	var ignoreWhiteCharCnt = $("#ignoreWhiteCharCnt").val();
+	var whiteCharPri = $('#whiteCharPriorityOpt').prop("checked");
+	var regExpPri = $('#regularExpPriorityOpt').prop("checked");
+	var pri;
+	if(whiteCharPri) {
+		pri = 1;
+	} else if(regExpPri) {
+		pri = 0;
+	}
 
 	var diffMatch = new DiffMatchCustom(2, 4, caseSensitive, text1, text2);
 	var ds;
 	if(regularExpChkBox){
-		ds = diffMatch.start(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExp, regularExpOpt);
+		ds = diffMatch.start(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExp, regularExpOpt, pri);
 	} else {
 		ds = diffMatch.start(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt);
 	}

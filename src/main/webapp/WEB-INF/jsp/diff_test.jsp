@@ -18,7 +18,10 @@
 	정규식  규칙 : <input type="checkbox" id="regularExpChkBox" /> <input type="text" id="regularExp" value="&lt;br&gt;|&lt;/br&gt;"/>
 	옵션 : <input type="text" id="regularExpOpt" value="g"/>
 	대소문자 구분 <input type="checkbox" id="caseSensitive" checked="checked" />
-	공백 및 개행 무시 <input type="number" id="ignoreWhiteCharCnt" value="1" />
+	공백 및 개행 무시 <input type="number" min="0" id="ignoreWhiteCharCnt" value="1" />
+	<br>
+	우선순위 옵션 <input type="radio" id="whiteCharPriorityOpt" name="priOpt" value="whitePri" checked="checked"/> <label for="whiteCharPriorityOpt">공백 및 개행 무시 우선</label>
+			<input type="radio" id="regularExpPriorityOpt" name="priOpt" value="regularPri" /> <label for="regularExpPriorityOpt">정규식 무시 우선</label>
 	<form action="http://localhost/assignment/boards/diff#" onsubmit="return false">
 		<table width="100%">
 			<tbody><tr>
