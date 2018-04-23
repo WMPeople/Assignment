@@ -66,7 +66,8 @@
 						style="display: none;"
 						value="<%=request.getParameter("board_id")%>"> <input
 						type="text" name="version" id="version" style="display: none;"
-						value="<%=request.getParameter("version")%>">  <input
+						value="<%=request.getParameter("version")%>">  
+						<input
 						type="text" name="cookie_id" id="cookie_id" style="display: none;"
 						value="<%=request.getParameter("cookie_id")%>">
 					<button type="button" id="btnUpdate" class="btn tx_point _save">

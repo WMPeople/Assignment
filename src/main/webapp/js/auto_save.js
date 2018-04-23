@@ -1,16 +1,16 @@
-	        /**
-	        2018-04-19 10:12 류원상 현재 자동 저장 형태 . 
+/**
+2018-04-19 10:12 류원상 현재 자동 저장 형태 . 
 
-	        삭제 된 것은 생각하지 않고 추가만 수정만 고려하여 버전업을 합니다.
+삭제 된 것은 생각하지 않고 추가만 수정만 고려하여 버전업을 합니다.
 
-	        단, 자동 저장시에는 textarea에 적혀 있는 내용 그대로 저장됩니다. 
+단, 자동 저장시에는 textarea에 적혀 있는 내용 그대로 저장됩니다. 
 
-	        사용자가 게시글의 일정부분을 지우고 저장하지 않고 종료했다면
+사용자가 게시글의 일정부분을 지우고 저장하지 않고 종료했다면
 
-	        자동 저장 게시글에는 일정 부분이 삭제된 내용을 확인 할 수 있고, 
-	        
-	        리프 노드에서는 삭제 되기 전 내용을 확인 할 수 있습니다
-	        */
+자동 저장 게시글에는 일정 부분이 삭제된 내용을 확인 할 수 있고, 
+
+리프 노드에서는 삭제 되기 전 내용을 확인 할 수 있습니다
+*/
 $(function() {
 	(function() {
 		var autoSave = new Object();
@@ -93,66 +93,7 @@ $(function() {
 						// newLineCount 개행이 추가된 부분을 카운트 한다.
 						// stringSizeDifference (원본 내용 - 현재 내용) / 원본내용   으로  원본내용이 적을 수록 수치가 올라간다. 문자열 크기에 반비례하도록  적용
 						// addLength 원본 내용보다 추가된 문자열 길이
-						if (addCount >= 8 || newLineCount >= 10 || stringSizeDifference <= -0.88 || addLength >= 300) {
-							var file_name = '<%=request.getParameter("file_name")%>';
-							if (file_name != '') {
-								file_name = '<%=request.getParameter("file_name")%>';
-							}
-							var formData = new FormData($("#fileForm")[0]);
-							var urlStr;
-							//원본 게시물에 파일이 있지만 수정하지 않았을 때
-							if (file_name != null && $("#fileUp").val() == null) {
-								urlStr = "/assignment/boards/updatemaintainattachment";
-							} else {
-								urlStr = "/assignment/boards/updatewithoutattachment";
-							}
-							$.ajax({
-								type : "POST",
-								contentType : "application/json; charset=UTF-8",
-								data : formData,
-								processData : false,
-								contentType : false,
-								url : urlStr,
-								async : false,
-								success : function(result) {
-									if (result.result == "success") {
-										$('#board_id').val(result.updatedBoard.board_id);
-										$('#version').val(result.updatedBoard.version);
-										document.getElementById('content').defaultValue = document.getElementById('content').value;
-										document.getElementById('currentBoard').innerText = 'board_id : ' + $('#board_id').val() + ' version : ' + $('#version').val();
-										document.getElementById('notice').innerText = new Date().toGMTString() + " 버전업 완료.";
-									} else {
-										alert(result.result);
-									}
-								},
-								error : function(xhr, status, error) {
-									alert('버전업 실패');
-								}
-							});
-
-						} else {
-							var formData = new FormData($("#fileForm")[0]);
-
-							formData = new FormData($("#fileForm")[0]);
-							$.ajax({
-								type : "POST",
-								contentType : "application/json; charset=UTF-8",
-								data : formData,
-								processData : false,
-								contentType : false,
-								url : "/assignment/boards/autosavewithoutfile",
-								success : function(result) {
-									if (result.result == 'success') {
-										document.getElementById('notice').innerText = new Date().toGMTString() + " 자동 저장 완료.";
-									} else {
-										alert("자동 저장 실패");
-									}
-								},
-								error : function(xhr, status, error) {
-									alert('자동 저장 실패');
-								}
-							});
-						}
+						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -0.5, 300, 1);
 					}
 					launch();
 				} else if (!window.localStorage) {
@@ -172,3 +113,79 @@ $(function() {
 	})();
 
 });
+
+function testFunction(addCount, newLineCount, stringSizeDifference, addLength, data1, data2, data3, data4, urlData) {
+	if (addCount >= data1 || newLineCount >= data2 || stringSizeDifference <= data3 || addLength >= data4) {
+		var file_name = '<%=request.getParameter("file_name")%>';
+		if (file_name != '') {
+			file_name = '<%=request.getParameter("file_name")%>';
+		}
+		var formData = new FormData($("#fileForm")[0]);
+		if (urlData == 1 ) {
+			formData.set("board_id",  $('#board_id').val());
+			formData.set("version",  $('#version').val());
+		}
+		
+		var urlStr;
+		//원본 게시물에 파일이 있지만 수정하지 않았을 때
+		if (file_name != null && $("#fileUp").val() == null) {
+			urlStr = "/assignment/boards/updatemaintainattachment";
+		} else {
+			urlStr = "/assignment/boards/updatewithoutattachment";
+		}
+		$.ajax({
+			type : "POST",
+			contentType : "application/json; charset=UTF-8",
+			data : formData,
+			processData : false,
+			contentType : false,
+			url : urlStr,
+			async : false,
+			success : function(result) {
+				if (result.result == "success") {
+					if (urlData == 1){
+						$('#board_id').val(result.updatedBoard.board_id);
+						$('#version').val(result.updatedBoard.version);
+						document.getElementById('content').defaultValue = document.getElementById('content').value;
+						document.getElementById('currentBoard').innerText = 'board_id : ' + $('#board_id').val() + ' version : ' + $('#version').val();
+						document.getElementById('notice').innerText = new Date().toGMTString() + " 버전업 완료.";
+						
+					}
+				} else {
+					alert(result.result);
+				}
+			},
+			error : function(xhr, status, error) {
+				alert('버전업 실패');
+			}
+		});
+
+	} else {
+		var formData = new FormData($("#fileForm")[0]);
+
+		formData = new FormData($("#fileForm")[0]);
+		if (urlData == 1 ) {
+			formData.set("board_id",  $('#board_id').val());
+			formData.set("version",  $('#version').val());
+		$.ajax({
+			type : "POST",
+			contentType : "application/json; charset=UTF-8",
+			data : formData,
+			processData : false,
+			contentType : false,
+			url : "/assignment/boards/autosavewithoutfile",
+			success : function(result) {
+				if (result.result == 'success') {
+					document.getElementById('notice').innerText = new Date().toGMTString() + " 자동 저장 완료.";
+				} else {
+					alert("자동 저장 실패");
+				}
+			},
+			error : function(xhr, status, error) {
+				alert('자동 저장 실패');
+			}
+		});
+	}
+	}
+
+}

@@ -6,9 +6,9 @@ function launch(){
     var text1 = document.getElementById('text1').value;
     var text2 = document.getElementById('text2').value;
      
-    dmp.Diff_Timeout = parseFloat(2);
+    dmp.Diff_Timeout = parseFloat(1);
     dmp.Diff_EditCost = parseFloat(4);
-    dmp.Diff_Sensitive = 1;
+    dmp.Diff_Sensitive = 0;
 //    dmp.Diff_Temp = 0;
         
 // TODO 체크 박스 만든 후 수정 예정 
@@ -17,12 +17,12 @@ function launch(){
         
     var ms_start = (new Date()).getTime();
     var d1 = dmp.diff_main(text1, text2);
+//    dmp.diff_cleanupSemantic(d1);
     var ms_end = (new Date()).getTime();
 
-    dmp.diff_cleanupSemantic(d1);
     var d2 = dmp.diff_main(text2, text1);
-    dmp.diff_cleanupSemantic(d2);
-    var ds = dmp.diff_prettyHtml(d1,d2);
+//    dmp.diff_cleanupSemantic(d2);
+    var ds = dmp.diff_prettyHtml(d1, d2, text2);
     
     document.getElementById('outputdivLeft').innerHTML = ds[0]
     document.getElementById('outputdivRight').innerHTML = ds[1]

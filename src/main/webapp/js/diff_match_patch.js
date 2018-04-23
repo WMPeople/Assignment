@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Diff Match and Patch
  *
  * Copyright 2006 Google Inc.
@@ -192,12 +192,41 @@ diff_match_patch.prototype.diff_compute_ = function(text1, text2, checklines,
 
   var longtext = text1.length > text2.length ? text1 : text2;
   var shorttext = text1.length > text2.length ? text2 : text1;
-  var i = longtext.indexOf(shorttext);
+  var temp;
+  if (text1 == shorttext) {
+	  temp = 1;
+  }
+  if (text1 == longtext) {
+	  temp = 2;
+  }
+  if (this.Diff_Sensitive == true) {
+	  var tempLongtext = longtext ;
+	  var tempShorttext = shorttext;
+	  tempLongtext = tempLongtext.toUpperCase();
+	  tempShorttext = tempShorttext.toUpperCase()
+	  var i = tempLongtext.indexOf(tempShorttext);
+  } else {
+	  var i = longtext.indexOf(shorttext);
+  }
+
   if (i != -1) {
     // Shorter text is inside the longer text (speedup).
-    diffs = [[DIFF_INSERT, longtext.substring(0, i)],
-             [DIFF_EQUAL, shorttext],
-             [DIFF_INSERT, longtext.substring(i + shorttext.length)]];
+	  
+	if (this.Diff_Sensitive == true && temp == 1) {
+		 diffs = [[DIFF_INSERT, longtext.substring(0, i)],
+             	[DIFF_EQUAL, shorttext],
+             	[DIFF_INSERT, longtext.substring(i + shorttext.length)]];
+	} else if (this.Diff_Sensitive == true && temp == 2) {
+		diffs = [[DIFF_INSERT, longtext.substring(0, i)],
+         		[DIFF_EQUAL, text1.substring(i , i + shorttext.length)],
+         		[DIFF_INSERT, longtext.substring(i + shorttext.length)]];
+         		
+	} else {
+		 diffs = [[DIFF_INSERT, longtext.substring(0, i)],
+			 	[DIFF_EQUAL, shorttext],
+			 	[DIFF_INSERT, longtext.substring(i + shorttext.length)]];
+	}
+   
     // Swap insertions for deletions if diff is reversed.
     if (text1.length > text2.length) {
       diffs[0][0] = diffs[2][0] = DIFF_DELETE;
@@ -341,6 +370,9 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
   var k1end = 0;
   var k2start = 0;
   var k2end = 0;
+  
+  var text1Upper = text1.toUpperCase();
+  var text2Upper = text2.toUpperCase();
   for (var d = 0; d < max_d; d++) {
     // Bail out if deadline is reached.
     if ((new Date()).getTime() > deadline) {
@@ -357,11 +389,22 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
         x1 = v1[k1_offset - 1] + 1;
       }
       var y1 = x1 - k1;
-      while (x1 < text1_length && y1 < text2_length &&
-             text1.charAt(x1) == text2.charAt(y1)) {
-        x1++;
-        y1++;
+      
+      if (this.Diff_Sensitive == true) {
+    	  while (x1 < text1_length && y1 < text2_length &&
+        		  text1Upper.charAt(x1) == text2Upper.charAt(y1)) {
+            x1++;
+            y1++;
+          }
+    	  
+      } else {
+    	  while (x1 < text1_length && y1 < text2_length &&
+        		  text1.charAt(x1) == text2.charAt(y1)) {
+            x1++;
+            y1++;
+          }
       }
+      
       v1[k1_offset] = x1;
       if (x1 > text1_length) {
         // Ran off the right of the graph.
@@ -392,12 +435,26 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
         x2 = v2[k2_offset - 1] + 1;
       }
       var y2 = x2 - k2;
-      while (x2 < text1_length && y2 < text2_length &&
-             text1.charAt(text1_length - x2 - 1) ==
-             text2.charAt(text2_length - y2 - 1)) {
-        x2++;
-        y2++;
+      
+      if (this.Diff_Sensitive == true) {
+    	  
+          while (x2 < text1_length && y2 < text2_length &&
+        		text1Upper.charAt(text1_length - x2 - 1) ==
+        		text2Upper.charAt(text2_length - y2 - 1)) {
+            x2++;
+            y2++;
+          }
+    	  
+      } else {
+    	  
+          while (x2 < text1_length && y2 < text2_length &&
+        		text1.charAt(text1_length - x2 - 1) ==
+        		text2.charAt(text2_length - y2 - 1)) {
+            x2++;
+            y2++;
+          }
       }
+      
       v2[k2_offset] = x2;
       if (x2 > text1_length) {
         // Ran off the left of the graph.
