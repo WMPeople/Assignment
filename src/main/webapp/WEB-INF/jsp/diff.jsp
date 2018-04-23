@@ -11,6 +11,8 @@
 	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 <link rel="stylesheet"
 	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/tooltip.css">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>버전 비교</title>
 </head>
@@ -20,22 +22,32 @@
 	<button class="btn btn-primary" style="float: right;"
 		onclick="location.href='${path}/assignment'">홈으로</button>
 	<h2>버전 비교</h2>
-	<br> 아래의 정규식에 대항되는 것들은 비교에서 같은 것으로 취급합니다.
-	<br> 적용 순위는 개행, 공백 -> 정규식 규칙 -> 대소문자 구분
-	<br> 정규식 안에서의 대소문자 구분은 옵션에 i를 줌으로써 가능합니다.
-	<br> 
-	정규식 규칙 :
-	<input type="checkbox" id="regularExpChkBox" />
-	<input type="text" id="regularExp" value="&lt;br&gt;|&lt;/br&gt;" />
-	옵션:
-	<input type="text" id="regularExpOpt" value="g" /> 
-	대소문자 구분
-	<input type="checkbox" id="caseSensitive" checked="checked" /> 
-	공백 및 개행 무시
-	<input type="number" id="ignoreWhiteCharCnt" value="1" />
+	<span class="toolTip">
+	<label for="regularExpChkBox">정규식 On/Off </label><input type="checkbox" id="regularExpChkBox" onchange="regularChkboxChanged()"/>
+		<span class="tooltiptext">정규식에 해당되는 것들은 비교에서 같은 것으로 나옵니다.</span>
+	</span>
+	<span id="regularOptSpan" style="display:none">
+	<label for="regularExp">정규식</label><input type="text" id="regularExp" value="&lt;br&gt;|&lt;/br&gt;"/>
+		<span class="toolTip">
+		<label for="regularExpOpt">옵션</label><input type="text" id="regularExpOpt" value="g"/>
+			<span class="tooltiptext">옵션에는 g, i 가 올수 있습니다.</span>
+		</span>
+	</span>
 	<br>
-        우선순위 옵션 <input type="radio" id="whiteCharPriorityOpt" name="priOpt" value="whitePri" checked="checked"/> <label for="whiteCharPriorityOpt">공백 및 개행 무시 우선</label>
-            <input type="radio" id="regularExpPriorityOpt" name="priOpt" value="regularPri" /> <label for="regularExpPriorityOpt">정규식 무시 우선</label>
+	<label for="caseSensitive">대소문자 구분하기</label><input type="checkbox" id="caseSensitive" checked="checked" />
+	<br>
+	<label for="ignoreWhiteCharCnt">무시할 공백 및 개행의 최소 개수</label><input type="number" min="0" id="ignoreWhiteCharCnt" value="1" onchange="ignoreWhiteSpaceChagned()"/>
+	<br>
+	우선순위 옵션 <span class="toolTip">
+			<input type="radio" id="whiteCharPriorityOpt" name="priOpt" value="whitePri" checked="checked"/>
+			<label for="whiteCharPriorityOpt">공백 및 개행 무시 우선</label>
+				<span class="tooltiptext">공백 문자 -> 정규식 -> 비교 알고리즘</span>
+			</span>
+			<span class="toolTip">
+			<input type="radio" id="regularExpPriorityOpt" name="priOpt" value="regularPri" />
+			<label for="regularExpPriorityOpt">정규식 무시 우선</label>
+				<span class="tooltiptext">정규식 -> 공백 문자 -> 비교 알고리즘</span>
+			</span>
 	<form action="#" onsubmit="return false">
 		<table width="100%">
 			<tr>

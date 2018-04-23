@@ -536,3 +536,52 @@ function launch() {
 	document.getElementById('outputdivLeft').innerHTML = ds[0];
 	document.getElementById('outputdivRight').innerHTML = ds[1];
 }
+
+function chagnePriorityDisabled() {
+	var regularChkBox = document.getElementById("regularExpChkBox");
+	var ignoreWhiteSpaceCnt = document.getElementById("ignoreWhiteCharCnt").value;
+	
+	var priorityOpt = document.getElementById("whiteCharPriorityOpt");
+	var priorityOpt2 = document.getElementById("regularExpPriorityOpt");
+
+	if(regularChkBox.checked == true && parseInt(ignoreWhiteSpaceCnt, 10) > 0) {
+		priorityOpt.disabled = false;
+		priorityOpt2.disabled = false;
+	} else {
+		priorityOpt.disabled = true;
+		priorityOpt2.disabled = true;
+	}
+}
+
+function regularChkboxChanged(){
+	var checkbox = document.getElementById("regularExpChkBox");
+	var regularOptSpan = document.getElementById("regularOptSpan");
+	
+	if(checkbox.checked == true) {
+		regularOptSpan.style.display = "block";
+	} else {
+		regularOptSpan.style.display = "none";
+	}
+	chagnePriorityDisabled();
+}
+
+function isNumeric(n) {
+	  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function isInt(n) {
+	   return n % 1 === 0;
+}
+
+function ignoreWhiteSpaceChagned() {
+	var ignoreWhiteSpace = document.getElementById("ignoreWhiteCharCnt");
+	if(!isNumeric(ignoreWhiteSpace.value)) {
+		ignoreWhiteSpace.value = 0;
+	} else if(ignoreWhiteSpace.value < 0) {
+		ignrowWhiteSpace.value = 0;
+	} else if(!(isInt(ignoreWhiteSpace.value))) {
+		ignorwWhiteSpace.value = 0;
+	}
+	
+	chagnePriorityDisabled();
+}
