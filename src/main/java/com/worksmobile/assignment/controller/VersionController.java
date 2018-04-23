@@ -2,7 +2,6 @@ package com.worksmobile.assignment.controller;
 
 import java.io.IOException;
 import java.util.HashMap;
-
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.worksmobile.assignment.bo.Compress;
@@ -164,14 +164,19 @@ public class VersionController {
 	 * @return modelAndView 객체로 viewName과, content를 프론트에 전송합니다.
 	 * @throws Exception
 	 */
-	@RequestMapping(value = "/boards/diff", method = RequestMethod.POST)
-	public ModelAndView diff(int board_id1,
-		int version1,
-		int board_id2,
-		int version2) throws Exception {
+	@RequestMapping(value = "/boards/diff", method = RequestMethod.GET)
+	public ModelAndView diff(@RequestParam int board_id1,
+		@RequestParam int version1,
+		@RequestParam int board_id2,
+		@RequestParam int version2) throws Exception {
+		
+		if (board_id1 == 0 || board_id2 == 0 ||
+			version1 == 0 || version2 == 0) {
+			throw new RuntimeException("잘못된 게시물 id입니다.");
+		}
 
-		NodePtr left = new NodePtr(board_id1, version1);
-		NodePtr right = new NodePtr(board_id2, version2);
+		NodePtr left = new NodePtr(board_id2, version2);
+		NodePtr right = new NodePtr(board_id1, version1);
 
 		String leftContent = Compress.deCompress(boardHistoryMapper.selectHistory(left).getHistory_content());
 		String rightContent = Compress.deCompress(boardHistoryMapper.selectHistory(right).getHistory_content());

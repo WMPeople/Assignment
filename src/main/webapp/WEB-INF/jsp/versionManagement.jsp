@@ -24,13 +24,13 @@
 	
     <h3>버전 관리 페이지 <button class="btn btn-primary" style="float:right;" onclick="location.href='${path}/assignment'">홈으로</button></h3> 
     
-    <!--     DIFF 임 -->
-	<form method="post" name="diffForm">
-		<input name="board_id1" type="text" id="board_id1"value="0" style="display:none;">
-		<input name="version1" type="text" id="version1" value="0" style="display:none;">
-        <input name="board_id2" type="text" id="board_id2" value="2" style="display:none;">
-        <input name="version2" type="text" id="version2" value="1" style="display:none;">
-        <button class="btn btn-primary" type="button"  onclick="btnDiff();">비교</button>
+    <!--     DIFF  -->
+	<form name="diffForm">
+		<input name="board_id1" type="text" id="board_id1" style="display:none;">
+		<input name="version1" type="text" id="version1" style="display:none;">
+        <input name="board_id2" type="text" id="board_id2" style="display:none;">
+        <input name="version2" type="text" id="version2" style="display:none;">
+        <button class="btn btn-primary" type="button"  onclick="btnDiff();" >비교</button>
 	</form>
 
     <table class="table" id="table">
