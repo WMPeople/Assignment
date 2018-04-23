@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Diff Match and Patch
  *
  * Copyright 2006 Google Inc.
@@ -53,17 +53,8 @@ function diff_match_patch() {
   // The number of bits in an int.
   this.Match_MaxBits = 32;
   
-  // if 0 - > case sensitive , 1 - > case insensitive
-  this.Diff_Sensitive = 1;
-  
-  // TODO 네이밍
-  this.Diff_Temp = 1;
-  
-  this.Diff_tempStr1 = '<br>';
-	  
-  this.Diff_tempStr2 = '</br>';
-	  
-  this.Diff_tempStr3 = 'qwer';
+  // if true - > case sensitive , false - > case insensitive
+  this.Diff_Sensitive = false;
 }
 
 
@@ -138,20 +129,13 @@ diff_match_patch.prototype.diff_main = function(text1, text2,opt_checklines,
   var commonPrefixArg1;
   var commonPrefixArg2;
   if(typeof this.Diff_Sensitive != 'undefined' &&
-		  this.Diff_Sensitive === 1) {
+		  this.Diff_Sensitive === false) {
 	  commonPrefixArg1 = text1.toUpperCase();
 	  commonPrefixArg2 = text2.toUpperCase();
   } else {
 	  commonPrefixArg1 = text1;
 	  commonPrefixArg2 = text2;
   }
-//  if(typeof this.Diff_Temp != 'undefined' &&
-//		  this.Diff_Temp === 1) {
-//	  commonPrefixArg1 = text1.split(this.Diff_tempStr1).join(this.Diff_tempStr3); // Diff_tempStr1를 Diff_tempStr3으로 변경한다
-//	  commonPrefixArg2 = text2.split(this.Diff_tempStr2).join(this.Diff_tempStr3); // Diff_tempStr1를 Diff_tempStr3으로 변경한다
-//	  commonPrefixArg1 = commonPrefixArg1.split(this.Diff_tempStr2).join(this.Diff_tempStr3); // Diff_tempStr1를 Diff_tempStr3으로 변경한다
-//	  commonPrefixArg2 = commonPrefixArg2.split(this.Diff_tempStr1).join(this.Diff_tempStr3); // Diff_tempStr1를 Diff_tempStr3으로 변경한다
-//  }
   
   // Trim off common prefix (speedup).
   var commonlength = this.diff_commonPrefix(commonPrefixArg1, commonPrefixArg2);
@@ -215,7 +199,7 @@ diff_match_patch.prototype.diff_compute_ = function(text1, text2, checklines,
   if (text1 == longtext) {
 	  temp = 2;
   }
-  if (this.Diff_Sensitive == 1) {
+  if (this.Diff_Sensitive == true) {
 	  var tempLongtext = longtext ;
 	  var tempShorttext = shorttext;
 	  tempLongtext = tempLongtext.toUpperCase();
@@ -228,11 +212,11 @@ diff_match_patch.prototype.diff_compute_ = function(text1, text2, checklines,
   if (i != -1) {
     // Shorter text is inside the longer text (speedup).
 	  
-	if (this.Diff_Sensitive == 1 && temp == 1) {
+	if (this.Diff_Sensitive == true && temp == 1) {
 		 diffs = [[DIFF_INSERT, longtext.substring(0, i)],
              	[DIFF_EQUAL, shorttext],
              	[DIFF_INSERT, longtext.substring(i + shorttext.length)]];
-	} else if (this.Diff_Sensitive == 1 && temp == 2) {
+	} else if (this.Diff_Sensitive == true && temp == 2) {
 		diffs = [[DIFF_INSERT, longtext.substring(0, i)],
          		[DIFF_EQUAL, text1.substring(i , i + shorttext.length)],
          		[DIFF_INSERT, longtext.substring(i + shorttext.length)]];
@@ -391,9 +375,9 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
   var text2Upper = text2.toUpperCase();
   for (var d = 0; d < max_d; d++) {
     // Bail out if deadline is reached.
-//    if ((new Date()).getTime() > deadline) {
-//      break;
-//    }
+    if ((new Date()).getTime() > deadline) {
+      break;
+    }
 
     // Walk the front path one step.
     for (var k1 = -d + k1start; k1 <= d - k1end; k1 += 2) {
@@ -406,7 +390,7 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
       }
       var y1 = x1 - k1;
       
-      if (this.Diff_Sensitive == 1) {
+      if (this.Diff_Sensitive == true) {
     	  while (x1 < text1_length && y1 < text2_length &&
         		  text1Upper.charAt(x1) == text2Upper.charAt(y1)) {
             x1++;
@@ -452,7 +436,7 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
       }
       var y2 = x2 - k2;
       
-      if (this.Diff_Sensitive == 1) {
+      if (this.Diff_Sensitive == true) {
     	  
           while (x2 < text1_length && y2 < text2_length &&
         		text1Upper.charAt(text1_length - x2 - 1) ==
@@ -1307,60 +1291,66 @@ diff_match_patch.prototype.diff_xIndex = function(diffs, loc) {
 };
 
 
+diff_match_patch.prototype.toPrettyHtml = function(data) {
+
+	var pattern_amp = /&/g;
+	var pattern_lt = /</g;
+	var pattern_gt = />/g;
+	var pattern_para = /\n/g;
+	var pattern_space = /\ /g;
+	
+	var text = data.replace(pattern_amp, '&amp;').replace(pattern_lt, '&lt;')
+        .replace(pattern_gt, '&gt;').replace(pattern_para, '&para;<br>')
+        .replace(pattern_space, '&nbsp;');
+
+	return text;
+}
+
 /**
  * Convert a diff array into a pretty HTML report.
  * @param {!Array.<!diff_match_patch.Diff>} diffs Array of diff tuples.
  * @return {!Array.<!string>} HTML representation.
  */
-diff_match_patch.prototype.diff_prettyHtml = function(diffs,diffs2) {
+diff_match_patch.prototype.diff_prettyHtml = function(diffs, diffs2, text2) {
  
   var html1 = [];
   var html2 = [];
   var returnHtml = [];
-  var pattern_amp = /&/g;
-  var pattern_lt = /</g;
-  var pattern_gt = />/g;
-  var pattern_para = /\n/g;
-  var pattern_space = /\ /g;
 
+  var rightCurIdx = 0;
   for (var x = 0; x < diffs.length; x++) {
     var op = diffs[x][0];    // Operation (insert, delete, equal)
     var data = diffs[x][1];  // Text of change.
-    var data2 = '';
-    for(var y = 0; y < diffs2.length; y++){
-    	if((op == 0) && (diffs2[y][0] == 0)){
-    		data2 = diffs2[y][1];
-    		diffs2[y][0] = 1;
-    		console.log(data2);
-    		break;
-    	}		
-    }
-    var text = data.replace(pattern_amp, '&amp;').replace(pattern_lt, '&lt;')
-        .replace(pattern_gt, '&gt;').replace(pattern_para, '&para;<br>')
-        .replace(pattern_space, '&nbsp;');
-   
-    var text2 = data2.replace(pattern_amp, '&amp;').replace(pattern_lt, '&lt;')
-		.replace(pattern_gt, '&gt;').replace(pattern_para, '&para;<br>')
-		.replace(pattern_space, '&nbsp;');
-  
+    var text = this.toPrettyHtml(data);
+    
     switch (op) {
       case DIFF_INSERT:
         html2[x] = '<ins style="background:#e6ffe6;">' + text + '</ins>';
+        rightCurIdx += data.length;
         break;
       case DIFF_DELETE:
         html1[x] = '<del style="background:#ffe6e6;">' + text + '</del>';
         break;
       case DIFF_INSERT * 2:
     	html2[x] = '<span>' + text + '</ins>';
+        rightCurIdx += data.length;
     	break;
       case DIFF_DELETE * 2:
     	html1[x] = '<span>' + text + '</ins>';
     	break;
       case DIFF_EQUAL:
-       
-		html1[x] = '<span>' + text + '</span>';
-		html2[x] = '<span>' + text2 + '</span>';
-		break;
+        if(!this.Diff_Sensitive){
+        	html1[x] = '<span>' + text + '</span>';
+        	html2[x] = '<span>' + this.toPrettyHtml(text2.substr(rightCurIdx, data.length)) + '</span>';
+        	rightCurIdx += data.length;
+        	break;
+        }
+        else{
+        	 html1[x] = '<span>' + text + '</span>';
+             html2[x] = '<span>' + text + '</span>';
+             rightCurIdx += data.length;
+        	break;
+        }
     }
    }
   returnHtml.push(html1.join(''));

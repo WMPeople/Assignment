@@ -22,7 +22,7 @@ function launch(){
 
     var d2 = dmp.diff_main(text2, text1);
 //    dmp.diff_cleanupSemantic(d2);
-    var ds = dmp.diff_prettyHtml(d1,d2);
+    var ds = dmp.diff_prettyHtml(d1, d2, text2);
     
     document.getElementById('outputdivLeft').innerHTML = ds[0]
     document.getElementById('outputdivRight').innerHTML = ds[1]
