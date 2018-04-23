@@ -55,6 +55,15 @@ function diff_match_patch() {
   
   // if 0 - > case sensitive , 1 - > case insensitive
   this.Diff_Sensitive = 1;
+  
+  // TODO 네이밍
+  this.Diff_Temp = 1;
+  
+  this.Diff_tempStr1 = '<br>';
+	  
+  this.Diff_tempStr2 = '</br>';
+	  
+  this.Diff_tempStr3 = 'qwer';
 }
 
 
@@ -136,6 +145,13 @@ diff_match_patch.prototype.diff_main = function(text1, text2,opt_checklines,
 	  commonPrefixArg1 = text1;
 	  commonPrefixArg2 = text2;
   }
+//  if(typeof this.Diff_Temp != 'undefined' &&
+//		  this.Diff_Temp === 1) {
+//	  commonPrefixArg1 = text1.split(this.Diff_tempStr1).join(this.Diff_tempStr3); // Diff_tempStr1를 Diff_tempStr3으로 변경한다
+//	  commonPrefixArg2 = text2.split(this.Diff_tempStr2).join(this.Diff_tempStr3); // Diff_tempStr1를 Diff_tempStr3으로 변경한다
+//	  commonPrefixArg1 = commonPrefixArg1.split(this.Diff_tempStr2).join(this.Diff_tempStr3); // Diff_tempStr1를 Diff_tempStr3으로 변경한다
+//	  commonPrefixArg2 = commonPrefixArg2.split(this.Diff_tempStr1).join(this.Diff_tempStr3); // Diff_tempStr1를 Diff_tempStr3으로 변경한다
+//  }
   
   // Trim off common prefix (speedup).
   var commonlength = this.diff_commonPrefix(commonPrefixArg1, commonPrefixArg2);
@@ -192,12 +208,41 @@ diff_match_patch.prototype.diff_compute_ = function(text1, text2, checklines,
 
   var longtext = text1.length > text2.length ? text1 : text2;
   var shorttext = text1.length > text2.length ? text2 : text1;
-  var i = longtext.indexOf(shorttext);
+  var temp;
+  if (text1 == shorttext) {
+	  temp = 1;
+  }
+  if (text1 == longtext) {
+	  temp = 2;
+  }
+  if (this.Diff_Sensitive == 1) {
+	  var tempLongtext = longtext ;
+	  var tempShorttext = shorttext;
+	  tempLongtext = tempLongtext.toUpperCase();
+	  tempShorttext = tempShorttext.toUpperCase()
+	  var i = tempLongtext.indexOf(tempShorttext);
+  } else {
+	  var i = longtext.indexOf(shorttext);
+  }
+
   if (i != -1) {
     // Shorter text is inside the longer text (speedup).
-    diffs = [[DIFF_INSERT, longtext.substring(0, i)],
-             [DIFF_EQUAL, shorttext],
-             [DIFF_INSERT, longtext.substring(i + shorttext.length)]];
+	  
+	if (this.Diff_Sensitive == 1 && temp == 1) {
+		 diffs = [[DIFF_INSERT, longtext.substring(0, i)],
+             	[DIFF_EQUAL, shorttext],
+             	[DIFF_INSERT, longtext.substring(i + shorttext.length)]];
+	} else if (this.Diff_Sensitive == 1 && temp == 2) {
+		diffs = [[DIFF_INSERT, longtext.substring(0, i)],
+         		[DIFF_EQUAL, text1.substring(i , i + shorttext.length)],
+         		[DIFF_INSERT, longtext.substring(i + shorttext.length)]];
+         		
+	} else {
+		 diffs = [[DIFF_INSERT, longtext.substring(0, i)],
+			 	[DIFF_EQUAL, shorttext],
+			 	[DIFF_INSERT, longtext.substring(i + shorttext.length)]];
+	}
+   
     // Swap insertions for deletions if diff is reversed.
     if (text1.length > text2.length) {
       diffs[0][0] = diffs[2][0] = DIFF_DELETE;
@@ -341,11 +386,14 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
   var k1end = 0;
   var k2start = 0;
   var k2end = 0;
+  
+  var text1Upper = text1.toUpperCase();
+  var text2Upper = text2.toUpperCase();
   for (var d = 0; d < max_d; d++) {
     // Bail out if deadline is reached.
-    if ((new Date()).getTime() > deadline) {
-      break;
-    }
+//    if ((new Date()).getTime() > deadline) {
+//      break;
+//    }
 
     // Walk the front path one step.
     for (var k1 = -d + k1start; k1 <= d - k1end; k1 += 2) {
@@ -357,11 +405,22 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
         x1 = v1[k1_offset - 1] + 1;
       }
       var y1 = x1 - k1;
-      while (x1 < text1_length && y1 < text2_length &&
-             text1.charAt(x1) == text2.charAt(y1)) {
-        x1++;
-        y1++;
+      
+      if (this.Diff_Sensitive == 1) {
+    	  while (x1 < text1_length && y1 < text2_length &&
+        		  text1Upper.charAt(x1) == text2Upper.charAt(y1)) {
+            x1++;
+            y1++;
+          }
+    	  
+      } else {
+    	  while (x1 < text1_length && y1 < text2_length &&
+        		  text1.charAt(x1) == text2.charAt(y1)) {
+            x1++;
+            y1++;
+          }
       }
+      
       v1[k1_offset] = x1;
       if (x1 > text1_length) {
         // Ran off the right of the graph.
@@ -392,12 +451,26 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2, deadline) {
         x2 = v2[k2_offset - 1] + 1;
       }
       var y2 = x2 - k2;
-      while (x2 < text1_length && y2 < text2_length &&
-             text1.charAt(text1_length - x2 - 1) ==
-             text2.charAt(text2_length - y2 - 1)) {
-        x2++;
-        y2++;
+      
+      if (this.Diff_Sensitive == 1) {
+    	  
+          while (x2 < text1_length && y2 < text2_length &&
+        		text1Upper.charAt(text1_length - x2 - 1) ==
+        		text2Upper.charAt(text2_length - y2 - 1)) {
+            x2++;
+            y2++;
+          }
+    	  
+      } else {
+    	  
+          while (x2 < text1_length && y2 < text2_length &&
+        		text1.charAt(text1_length - x2 - 1) ==
+        		text2.charAt(text2_length - y2 - 1)) {
+            x2++;
+            y2++;
+          }
       }
+      
       v2[k2_offset] = x2;
       if (x2 > text1_length) {
         // Ran off the left of the graph.
@@ -1255,7 +1328,7 @@ diff_match_patch.prototype.diff_prettyHtml = function(diffs,diffs2) {
     var data = diffs[x][1];  // Text of change.
     var data2 = '';
     for(var y = 0; y < diffs2.length; y++){
-    	if(op == 0 && diffs2[y][0] ==0){
+    	if((op == 0) && (diffs2[y][0] == 0)){
     		data2 = diffs2[y][1];
     		diffs2[y][0] = 1;
     		console.log(data2);
@@ -1284,16 +1357,10 @@ diff_match_patch.prototype.diff_prettyHtml = function(diffs,diffs2) {
     	html1[x] = '<span>' + text + '</ins>';
     	break;
       case DIFF_EQUAL:
-        if(this.Diff_Sensitive == 1){
-        	html1[x] = '<span>' + text + '</span>';
-        	html2[x] = '<span>' + text2 + '</span>';
-        	break;
-        }
-        else{
-        	 html1[x] = '<span>' + text + '</span>';
-             html2[x] = '<span>' + text + '</span>';
-        	break;
-        }
+       
+		html1[x] = '<span>' + text + '</span>';
+		html2[x] = '<span>' + text2 + '</span>';
+		break;
     }
    }
   returnHtml.push(html1.join(''));

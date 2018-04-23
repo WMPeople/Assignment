@@ -16,7 +16,7 @@ public class PageService {
 		Page page = new Page();
 
 		if (pages != null) {
-			page.setCurrentPageNo(Integer.parseInt("pages"));
+			page.setCurrentPageNo(Integer.parseInt(pages));
 		}
 		return page;
 	}
