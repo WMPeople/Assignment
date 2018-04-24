@@ -7,7 +7,7 @@
 	
    <!-- offset위치부터 noOfRecords 수 만큼 select 한다. -->
    <select id="articleList" resultType="com.worksmobile.assignment.model.Board" parameterType="hashmap">
-		SELECT * 
+		SELECT board_id,version,subject,content,created_time,file_id,root_board_id,cookie_id 
 		FROM board
 		WHERE cookie_id = "LEAF_NODE_COOKIE_ID"
 		LIMIT #{offset}, #{noOfRecords};  
@@ -26,7 +26,7 @@
     </select>
     
     <select id="autoList" resultType="com.worksmobile.assignment.model.Board" parameterType="hashmap">
-		SELECT * 
+		SELECT board_id,version,subject,content,created_time,file_id,root_board_id,cookie_id 
 		FROM board 
 		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id != "LEAF_NODE_COOKIE_ID"
 		LIMIT #{offset}, #{noOfRecords};
