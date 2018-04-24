@@ -1,7 +1,6 @@
 $(function(){
 	// content에 70만자 까지만 들어가도록 하는 메쏘드
 	function textCheck(){
-		console.log('asdasd');
 		//textarea 70만자 제한
 		var textCountLimit = 700000;
 		$('textarea[name=content]').keyup(function() {
@@ -88,10 +87,14 @@ $(function(){
 	        alert("제목과 내용을 입력하세요.");
 	        return;
 	    }
-	    var availableFile = fileCheck(this.form.fileUp);
-	    if (!availableFile) {
-	        return;
-	    }
+		
+		if (this.form.fileUp != null) {
+			 var availableFile = fileCheck(this.form.fileUp);
+			    if (!availableFile) {
+			        return;
+			    }
+		} 
+	   
 	   	var file_name = '<%=request.getParameter("file_name")%>';
 	   	if(file_name != ''){
 	   		file_name = '<%=request.getParameter("file_name")%>';
