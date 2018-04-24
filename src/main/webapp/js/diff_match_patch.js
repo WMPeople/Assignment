@@ -1325,11 +1325,11 @@ diff_match_patch.prototype.diff_prettyHtml = function(diffs, diffs2, text2) {
     
     switch (op) {
       case DIFF_INSERT:
-        html2[x] = '<ins style="background:#e6ffe6;">' + text + '</ins>';
+        html2[x] = '<ins style="color: #ffffff; background:#00b300;">' + text + '</ins>';
         rightCurIdx += data.length;
         break;
       case DIFF_DELETE:
-        html1[x] = '<del style="background:#ffe6e6;">' + text + '</del>';
+        html1[x] = '<del style="color: #ffffff; background:#ff0000;">' + text + '</del>';
         break;
       case DIFF_INSERT * 2:
     	html2[x] = '<span>' + text + '</ins>';
