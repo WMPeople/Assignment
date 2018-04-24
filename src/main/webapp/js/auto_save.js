@@ -12,13 +12,27 @@
 리프 노드에서는 삭제 되기 전 내용을 확인 할 수 있습니다
 */
 $(function() {
-	(function() {
+	$("#autoSaveChkBox").change(function() {
+		var autoSaveChkBox = $('#autoSaveChkBox').is(':checked');
+		if (!autoSaveChkBox) {
+			return;
+		} else {
+			optionAutoSave();
+		}
+	});
+});
+
+function optionAutoSave() {
 		var autoSave = new Object();
 		(function(obj) {
 			obj.configuration = {
 				interval : 10 // 시간 간격
 			};
 			obj.bindTimer = function() {
+				var autoSaveChkBox = $('#autoSaveChkBox').is(':checked');
+				if(!autoSaveChkBox){
+					return;
+				}
 				var textEle = document.querySelector('#content');
 				var textVal = textEle.value;
 				var ref1,
@@ -110,10 +124,7 @@ $(function() {
 			};
 			obj.start();
 		})(autoSave);
-	})();
-
-});
-
+}
 function testFunction(addCount, newLineCount, stringSizeDifference, addLength, data1, data2, data3, data4, urlData) {
 	if (addCount >= data1 || newLineCount >= data2 || stringSizeDifference <= data3 || addLength >= data4) {
 		var file_name = '<%=request.getParameter("file_name")%>';

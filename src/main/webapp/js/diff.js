@@ -8,7 +8,7 @@ function launch(){
      
     dmp.Diff_Timeout = parseFloat(1);
     dmp.Diff_EditCost = parseFloat(4);
-    dmp.Diff_Sensitive = 0;
+    dmp.Diff_Sensitive = false;
 //    dmp.Diff_Temp = 0;
         
 // TODO 체크 박스 만든 후 수정 예정 

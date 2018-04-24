@@ -23,7 +23,7 @@
 </head>
 <body>
     
-     <button class="btn btn-primary" style="float:right;"  onclick="location.href='${path}/assignment'">홈으로</button>
+    <button class="btn btn-primary" style="float:right;"  onclick="location.href='${path}/assignment'">홈으로</button>
 	<span class="date" id="currentBoard" style="float:left; margin-left : 10px; font-size : 15px;">board_id :   <%=request.getParameter("board_id")%>  version :  <%=request.getParameter("version")%></span>
 	<span class="date" id="notice" style="float:right; margin-right : 10px; font-size : 20px;"></span>
 	<form id="fileForm" action="fileUpload" method='post'
@@ -37,7 +37,7 @@
 							type="text" name="subject" id="subject"
 							class="itxt subject _title"
 							value="<%=request.getParameter("subject")%>">
-					</span>
+					   </span>
 					</li>
 					<li class="opt_file">
 						<h3 class="tx">파일첨부</h3> <c:if test="${param.file_name != ''}">
@@ -50,7 +50,14 @@
 						</c:if> <c:if test="${param.file_name == '' }">
 							<input type="file" id="fileUp" name="fileUp" />
 						</c:if>
+						
+						
 					</li>
+					<li>
+						<h3 class="tx">자동 저장 옵션</h3> <span class="wrap_sbj"> 
+	                        <input type="checkbox" id="autoSaveChkBox" />
+	                       </span>
+                    </li>
 				</ul>
 				<%
 					response.addHeader("X-XSS-Protection","0");
