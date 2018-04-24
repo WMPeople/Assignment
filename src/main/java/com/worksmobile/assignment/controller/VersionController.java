@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.worksmobile.assignment.bo.Compress;
@@ -26,7 +27,7 @@ import com.worksmobile.assignment.model.NodePtr;
  * @author khh, rws
  *
  */
-@org.springframework.web.bind.annotation.RestController
+@RestController
 public class VersionController {
 
 	@Autowired
@@ -37,7 +38,7 @@ public class VersionController {
 
 	@Autowired
 	private VersionManagementService versionManagementService;
-
+	
 	/***
 	 * 버전 삭제시 호출 되는 메쏘드 입니다.
 	 * @param board_id 버전 삭제를 원하는 이력의 board_id
