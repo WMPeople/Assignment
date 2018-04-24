@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.servlet.ServletContext;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,9 @@ import com.worksmobile.assignment.util.JsonUtils;
 public class CreateTree {
 	@Autowired
 	private BoardHistoryService boardHistoryService;
+	
+	@Autowired
+	private ServletContext servletContext;
 
 	public ObjectNode main(int rootBoardId) {
 		ObjectMapper mapper = new ObjectMapper();
@@ -75,11 +80,18 @@ public class CreateTree {
 		ObjectNode node = mapper.createObjectNode();
 		
 		ObjectNode text = mapper.createObjectNode();
-		text.put("id", nodePtr.toString());
-		text.put("subject", history.getHistory_subject());
+		text.put("name", nodePtr.toString());
+		text.put("title", history.getHistory_subject());
+		String desc = String.format("createdTime : %s \tfileId : %d", history.getCreated_time(), history.getFile_id());
+		text.put("desc", desc);
 		
 		node.set("text", text);
-		node.put("link", "http://notcompleted");	// TODO : generate link
+		ObjectNode link = mapper.createObjectNode();
+		// TODO : 리프 노드는 게시글 링크로 하면 성능 향상이 기대됨
+		String nodelinkStr = String.format("%s/history/%d/%d", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion());
+		link.put("href", nodelinkStr);
+		node.set("link", link);
+		node.put("image", "//:0");
 		node.put("stackChildren", true);
 		
 		ArrayNode childrenArrayNode = mapper.createArrayNode();
