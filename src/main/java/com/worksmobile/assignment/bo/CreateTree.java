@@ -25,19 +25,21 @@ public class CreateTree {
 	@Autowired
 	private ServletContext servletContext;
 
-	public ObjectNode main(int rootBoardId) {
+	// @return container, type, nodeStructure : <Node>
+	public ObjectNode createTree(int rootBoardId) {
 		ObjectMapper mapper = new ObjectMapper();
-		BoardHistory invisibleHistory = new BoardHistory();
-		invisibleHistory.setBoard_id(rootBoardId);
-		invisibleHistory.setVersion(NodePtr.INVISIBLE_ROOT_VERSION);
-		invisibleHistory.setRoot_board_id(NodePtr.INVISIALBE_ROOT_BOARD_ID);
-		invisibleHistory.setHistory_subject("invisible root");
 		
 		Map<Entry<Integer, Integer>, BoardHistory> map = boardHistoryService.getHistoryMap(rootBoardId);
 		if(map.size() == 0) {
-			throw new RuntimeException("history가 없습니다. rootBoardId : " + rootBoardId);
+			throw new RuntimeException("이력이 존재하지 않는 게시글 id입니다. rootBoardId : " + rootBoardId);
 		}
-		map.put(invisibleHistory.toBoardIdAndVersionEntry(), invisibleHistory);
+
+		BoardHistory invisibleRootHistory = new BoardHistory();
+		invisibleRootHistory.setBoard_id(rootBoardId);
+		invisibleRootHistory.setVersion(NodePtr.INVISIBLE_ROOT_VERSION);
+		invisibleRootHistory.setRoot_board_id(NodePtr.INVISIALBE_ROOT_BOARD_ID);
+		invisibleRootHistory.setHistory_subject("invisible root");
+		map.put(invisibleRootHistory.toBoardIdAndVersionEntry(), invisibleRootHistory);
 		
 		ObjectNode rootNode = mapper.createObjectNode();
 		
@@ -49,7 +51,7 @@ public class CreateTree {
 		connectors.put("type", "step");
 		rootNode.set("connectors", connectors);	
 		
-		ObjectNode nodeStructure = createNode(map, mapper, invisibleHistory);
+		ObjectNode nodeStructure = recursivelyCreateNode(map, mapper, invisibleRootHistory);
 		rootNode.set("nodeStructure", nodeStructure);
 		return rootNode;
 	}
@@ -67,9 +69,9 @@ public class CreateTree {
 	}
 	
 	/*
-	 * Node : text, link, stackChildren:true, children(array)
+	 * Node : text, link, stackChildren:true, children(array<Node>)
 	 */
-	public ObjectNode createNode(Map<Entry<Integer, Integer>, BoardHistory> map, ObjectMapper mapper, NodePtr nodePtr) {
+	private ObjectNode recursivelyCreateNode(Map<Entry<Integer, Integer>, BoardHistory> map, ObjectMapper mapper, NodePtr nodePtr) {
 		BoardHistory history = map.get(nodePtr.toBoardIdAndVersionEntry());
 		if(history == null) {
 			String errorStr = "nodePtr : " + JsonUtils.jsonStringIfExceptionToString(nodePtr);
@@ -77,29 +79,33 @@ public class CreateTree {
 			errorStr += JsonUtils.jsonStringIfExceptionToString(map);
 			throw new RuntimeException(errorStr);
 		}
+		
+		ArrayNode childrenArrayNode = mapper.createArrayNode();
+		List<BoardHistory> children = getChildren(map, nodePtr);
+		for(BoardHistory child : children) {
+			ObjectNode childNode = recursivelyCreateNode(map, mapper, child);
+			childrenArrayNode.add(childNode);
+		}
+		
 		ObjectNode node = mapper.createObjectNode();
 		
 		ObjectNode text = mapper.createObjectNode();
-		text.put("name", nodePtr.toString());
+		String name = nodePtr.toString();
+		if(children.size() == 0) {
+			name += "(leaf)";
+		}
+		text.put("name", name);
 		text.put("title", history.getHistory_subject());
-		String desc = String.format("createdTime : %s \tfileId : %d", history.getCreated_time(), history.getFile_id());
+		String desc = String.format("%s (%d)", history.getCreated_time(), history.getFile_id());
 		text.put("desc", desc);
-		
 		node.set("text", text);
+
 		ObjectNode link = mapper.createObjectNode();
 		// TODO : 리프 노드는 게시글 링크로 하면 성능 향상이 기대됨
 		String nodelinkStr = String.format("%s/history/%d/%d", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion());
 		link.put("href", nodelinkStr);
 		node.set("link", link);
-		node.put("image", "//:0");
 		node.put("stackChildren", true);
-		
-		ArrayNode childrenArrayNode = mapper.createArrayNode();
-		List<BoardHistory> children = getChildren(map, nodePtr);
-		for(BoardHistory child : children) {
-			ObjectNode childNode = createNode(map, mapper, child);
-			childrenArrayNode.add(childNode);
-		}
 		
 		if(children.size() != 0) {
 			node.set("children", childrenArrayNode);

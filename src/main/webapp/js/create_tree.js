@@ -14,5 +14,4 @@ function displayTree() {
 	  };
 	  xhttp.open("GET", "api/" + rootBoardIdVal, true);
 	  xhttp.send();
-    //new Treant( chart_config );
 }

@@ -14,7 +14,7 @@ body { background: #fff; }
 .Treant > p { font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; font-weight: bold; font-size: 12px; }
 .node-name { font-weight: bold;}
 
-.nodeExample1 {
+.node{
     padding: 2px;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;

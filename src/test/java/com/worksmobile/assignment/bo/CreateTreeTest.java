@@ -53,7 +53,7 @@ public class CreateTreeTest {
 	public void testGen() throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
 
-		ObjectNode node = createTree.main(17128);
+		ObjectNode node = createTree.createTree(17128);
 		
 		String out = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(node);
 		assertEquals("", out);
