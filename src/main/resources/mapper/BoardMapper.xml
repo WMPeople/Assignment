@@ -10,6 +10,7 @@
 		SELECT board_id,version,subject,content,created_time,file_id,root_board_id,cookie_id 
 		FROM board
 		WHERE cookie_id = "LEAF_NODE_COOKIE_ID"
+		ORDER BY created_time DESC 
 		LIMIT #{offset}, #{noOfRecords};  
 	</select>
 	
@@ -29,6 +30,7 @@
 		SELECT board_id,version,subject,content,created_time,file_id,root_board_id,cookie_id 
 		FROM board 
 		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id != "LEAF_NODE_COOKIE_ID"
+		ORDER BY created_time DESC
 		LIMIT #{offset}, #{noOfRecords};
 	</select>
 	

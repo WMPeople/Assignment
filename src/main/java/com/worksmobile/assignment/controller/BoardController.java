@@ -2,6 +2,7 @@
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -85,7 +86,52 @@ public class BoardController {
 			file_id, subject);
 		return new ModelAndView("boardUpdate");
 	}
+	
+	
+	/***
+	 * 테스트
+	 */
+	@RequestMapping(value = "/boards/updateTest", method = RequestMethod.POST)
+	public ModelAndView updateFormTest(int board_id, int version, String cookie_id, String created_time, String content,
+		int file_id, String subject, HttpServletRequest req) throws Exception {
 
+		boardService.makeTempBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time, content,
+			file_id, subject);
+		return new ModelAndView("boardUpdateTest");
+	}
+
+	/***
+	 * 테스트
+	 */
+	@RequestMapping(value = "/boardsTest/{board_id}/{version}/{cookie_id}", method = RequestMethod.GET)
+	public ModelAndView showTest(@PathVariable(value = "board_id") int board_id,
+		@PathVariable(value = "version") int version,
+		@PathVariable(value = "cookie_id") String cookie_id) {
+
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("board_id", board_id);
+		params.put("version", version);
+		params.put("cookie_id", cookie_id);
+
+		Board board = boardMapper.viewDetail(params);
+		if (board == null) {
+			String json = JsonUtils.jsonStringIfExceptionToString(board);
+			throw new RuntimeException("show 메소드에서 viewDetail 메소드 실행 에러" + json);
+		}
+		String dirty = board.getContent();
+		String clean = XssPreventer.escape(dirty);
+		board.setContent(clean);
+
+		File file = fileMapper.getFile(board.getFile_id());
+
+		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.addObject("board", board);
+		modelAndView.addObject("isHistory", 0);
+		modelAndView.addObject("file", file);
+		modelAndView.setViewName("boardDetail");
+		return modelAndView;
+	}
+	
 	/***
 	 * 첫 화면으로, 사용자가 요청한 페이지에 해당하는 게시물을 보여줍니다.
 	 * @param req pages 파라미터에 사용자가 요청한 페이지 번호가 있습니다.

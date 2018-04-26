@@ -12,27 +12,13 @@
 리프 노드에서는 삭제 되기 전 내용을 확인 할 수 있습니다
 */
 $(function() {
-	$("#autoSaveChkBox").change(function() {
-		var autoSaveChkBox = $('#autoSaveChkBox').is(':checked');
-		if (!autoSaveChkBox) {
-			return;
-		} else {
-			optionAutoSave();
-		}
-	});
-});
-
-function optionAutoSave() {
+	(function() {
 		var autoSave = new Object();
 		(function(obj) {
 			obj.configuration = {
 				interval : 10 // 시간 간격
 			};
 			obj.bindTimer = function() {
-				var autoSaveChkBox = $('#autoSaveChkBox').is(':checked');
-				if(!autoSaveChkBox){
-					return;
-				}
 				var textEle = document.querySelector('#content');
 				var textVal = textEle.value;
 				var ref1,
@@ -50,9 +36,9 @@ function optionAutoSave() {
 					window.localStorage.setItem('textval-03', ref2);
 
 					var tempContent = textVal;
-//					console.log('ref1 : ' + decodeURIComponent(escape(window.atob(ref1)))); // 전 'content'
-//					console.log('ref2 : ' + decodeURIComponent(escape(window.atob(ref2)))); // 전전 'content'
-//					console.log('encodedTextVal : ' + decodeURIComponent(escape(window.atob(encodedTextVal)))); // 현재 'content'
+					console.log('ref1 : ' + decodeURIComponent(escape(window.atob(ref1)))); // 전 'content'
+					console.log('ref2 : ' + decodeURIComponent(escape(window.atob(ref2)))); // 전전 'content'
+					console.log('encodedTextVal : ' + decodeURIComponent(escape(window.atob(encodedTextVal)))); // 현재 'content'
 
 					var dmp = new diff_match_patch();
 					function launch() {
@@ -60,7 +46,7 @@ function optionAutoSave() {
 						console.log(originalContent);
 						dmp.Diff_Timeout = parseFloat(2);
 						dmp.Diff_EditCost = parseFloat(4);
-						dmp.Diff_Sensitive = false;
+						dmp.Diff_Sensitive = 0;
 						var diff = dmp.diff_main(originalContent, tempContent);
 						/**
 						 * diff 구조는 길이가 2인 배열을 인덱스로 갖는 배열이다. [Array(2),Array(2),Array(2),Array(2)...]
@@ -107,7 +93,17 @@ function optionAutoSave() {
 						// newLineCount 개행이 추가된 부분을 카운트 한다.
 						// stringSizeDifference (원본 내용 - 현재 내용) / 원본내용   으로  원본내용이 적을 수록 수치가 올라간다. 문자열 크기에 반비례하도록  적용
 						// addLength 원본 내용보다 추가된 문자열 길이
+						
+						
+						
+						//테스트
 						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -0.5, 300, 1);
+						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -1, 200, 2);
+						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -1.5, 400, 3);
+						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 10, 10, -0.88, 1000, 4);
+//						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 10, 7, -0.88, 200, 5);
+						//						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 9, 5, -0.5, 100,6);
+
 					}
 					launch();
 				} else if (!window.localStorage) {
@@ -124,7 +120,10 @@ function optionAutoSave() {
 			};
 			obj.start();
 		})(autoSave);
-}
+	})();
+
+});
+
 function testFunction(addCount, newLineCount, stringSizeDifference, addLength, data1, data2, data3, data4, urlData) {
 	if (addCount >= data1 || newLineCount >= data2 || stringSizeDifference <= data3 || addLength >= data4) {
 		var file_name = '<%=request.getParameter("file_name")%>';
@@ -132,9 +131,25 @@ function testFunction(addCount, newLineCount, stringSizeDifference, addLength, d
 			file_name = '<%=request.getParameter("file_name")%>';
 		}
 		var formData = new FormData($("#fileForm")[0]);
+		//테스트
 		if (urlData == 1 ) {
 			formData.set("board_id",  $('#board_id').val());
 			formData.set("version",  $('#version').val());
+		}
+		
+		if (urlData == 2 ) {
+			formData.set("board_id",  $('#board_id2').val());
+			formData.set("version",  $('#version2').val());
+		}
+		
+		if (urlData == 3 ) {
+			formData.set("board_id",  $('#board_id3').val());
+			formData.set("version",  $('#version3').val());
+		}
+		
+		if (urlData == 4 ) {
+			formData.set("board_id",  $('#board_id4').val());
+			formData.set("version",  $('#version4').val());
 		}
 		
 		var urlStr;
@@ -154,11 +169,39 @@ function testFunction(addCount, newLineCount, stringSizeDifference, addLength, d
 			async : false,
 			success : function(result) {
 				if (result.result == "success") {
+					//테스트
 					if (urlData == 1){
 						$('#board_id').val(result.updatedBoard.board_id);
 						$('#version').val(result.updatedBoard.version);
 						document.getElementById('content').defaultValue = document.getElementById('content').value;
 						document.getElementById('currentBoard').innerText = 'board_id : ' + $('#board_id').val() + ' version : ' + $('#version').val();
+						document.getElementById('notice').innerText = new Date().toGMTString() + " 버전업 완료.";
+						
+					}
+					
+					if (urlData == 2){
+						$('#board_id2').val(result.updatedBoard.board_id);
+						$('#version2').val(result.updatedBoard.version);
+						document.getElementById('content').defaultValue = document.getElementById('content').value;
+						document.getElementById('currentBoard').innerText = 'board_id : ' + $('#board_id2').val() + ' version : ' + $('#version2').val();
+						document.getElementById('notice').innerText = new Date().toGMTString() + " 버전업 완료.";
+						
+					}
+					
+					if (urlData == 3){
+						$('#board_id3').val(result.updatedBoard.board_id);
+						$('#version3').val(result.updatedBoard.version);
+						document.getElementById('content').defaultValue = document.getElementById('content').value;
+						document.getElementById('currentBoard').innerText = 'board_id : ' + $('#board_id3').val() + ' version : ' + $('#version3').val();
+						document.getElementById('notice').innerText = new Date().toGMTString() + " 버전업 완료.";
+						
+					}
+					
+					if (urlData == 4){
+						$('#board_id4').val(result.updatedBoard.board_id);
+						$('#version4').val(result.updatedBoard.version);
+						document.getElementById('content').defaultValue = document.getElementById('content').value;
+						document.getElementById('currentBoard').innerText = 'board_id : ' + $('#board_id4').val() + ' version : ' + $('#version4').val();
 						document.getElementById('notice').innerText = new Date().toGMTString() + " 버전업 완료.";
 						
 					}
@@ -175,9 +218,26 @@ function testFunction(addCount, newLineCount, stringSizeDifference, addLength, d
 		var formData = new FormData($("#fileForm")[0]);
 
 		formData = new FormData($("#fileForm")[0]);
+		//테스트
 		if (urlData == 1 ) {
 			formData.set("board_id",  $('#board_id').val());
 			formData.set("version",  $('#version').val());
+		}
+		
+		if (urlData == 2 ) {
+			formData.set("board_id",  $('#board_id2').val());
+			formData.set("version",  $('#version2').val());
+		}
+		
+		if (urlData == 3 ) {
+			formData.set("board_id",  $('#board_id3').val());
+			formData.set("version",  $('#version3').val());
+		}
+		
+		if (urlData == 4 ) {
+			formData.set("board_id",  $('#board_id4').val());
+			formData.set("version",  $('#version4').val());
+		}
 		$.ajax({
 			type : "POST",
 			contentType : "application/json; charset=UTF-8",
@@ -197,6 +257,6 @@ function testFunction(addCount, newLineCount, stringSizeDifference, addLength, d
 			}
 		});
 	}
-	}
+
 
 }
