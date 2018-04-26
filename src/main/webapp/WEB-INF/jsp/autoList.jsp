@@ -31,13 +31,13 @@
           
         </tr>
         
-        <c:forEach var="board" items="${board}">
+        <c:forEach var="boardTemp" items="${boardTemp}">
         <tr>
-            <td>${board.board_id}</td>
-            <td>${board.version}</td>
-            <td>${board.cookie_id}</td>
-       		<td><a href="${path}/assignment/boards/${board.board_id}/${board.version}/${board.cookie_id}">${board.subject}</a></td>
-            <td>${board.created_time}</td>
+            <td>${boardTemp.board_id}</td>
+            <td>${boardTemp.version}</td>
+            <td>${boardTemp.cookie_id}</td>
+       		<td><a href="${path}/assignment/autos/${boardTemp.board_id}/${boardTemp.version}/${boardTemp.cookie_id}">${boardTemp.subject}</a></td>
+            <td>${boardTemp.created_time}</td>
 			<td> 
 			</td> 
         </tr>
@@ -48,7 +48,7 @@
 		<c:when test="${paging.numberOfRecords ne NULL and paging.numberOfRecords ne '' and paging.numberOfRecords ne 0}">
 			<div class="text-center marg-top">
 				<ul class="pagination">
-				<li><a href="javascript:goPage(1, ${paging.maxPost}" style = "margin-right : 10px;">처음</a></li>
+				<li><a href="javascript:goPage(1, ${paging.maxPost})" style = "margin-right : 10px;">처음</a></li>
 					<c:if test="${paging.currentPageNo gt 5}">  											  <!-- 현재 페이지가 5보다 크다면(즉, 6페이지 이상이라면) -->
 						<li><a href="javascript:goPage(${paging.prevPageNo}, ${paging.maxPost})">이전</a></li> <!-- 이전페이지 표시 -->
 					</c:if>

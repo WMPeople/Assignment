@@ -63,7 +63,11 @@
                                         UNION SELECT DISTINCT file_id FROM board_history WHERE file_id != 0 AND file_id IN( 
                                         <foreach collection="fileIdList" item="item" index="index" separator=",">
                                         #{item}
-                                        </foreach>) 
+                                        </foreach>)
+                                         UNION SELECT DISTINCT file_id FROM board_temp WHERE file_id != 0 AND file_id IN( 
+                                        <foreach collection="fileIdList" item="item" index="index" separator=",">
+                                        #{item}
+                                        </foreach>)  
                                        ));
 	</delete>
 </mapper>

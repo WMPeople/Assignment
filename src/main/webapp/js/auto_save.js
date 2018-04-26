@@ -50,9 +50,6 @@ function optionAutoSave() {
 					window.localStorage.setItem('textval-03', ref2);
 
 					var tempContent = textVal;
-					console.log('ref1 : ' + decodeURIComponent(escape(window.atob(ref1)))); // 전 'content'
-					console.log('ref2 : ' + decodeURIComponent(escape(window.atob(ref2)))); // 전전 'content'
-					console.log('encodedTextVal : ' + decodeURIComponent(escape(window.atob(encodedTextVal)))); // 현재 'content'
 
 					var dmp = new diff_match_patch();
 					function launch() {
@@ -184,7 +181,7 @@ function testFunction(addCount, newLineCount, stringSizeDifference, addLength, d
 			data : formData,
 			processData : false,
 			contentType : false,
-			url : "/assignment/boards/autosavewithoutfile",
+			url : "/assignment/autos/autosavewithoutfile",
 			success : function(result) {
 				if (result.result == 'success') {
 					document.getElementById('notice').innerText = new Date().toGMTString() + " 자동 저장 완료.";

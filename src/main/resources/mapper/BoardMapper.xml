@@ -7,66 +7,37 @@
 	
    <!-- offset위치부터 noOfRecords 수 만큼 select 한다. -->
    <select id="articleList" resultType="com.worksmobile.assignment.model.Board" parameterType="hashmap">
-		SELECT board_id,version,subject,content,created_time,file_id,root_board_id,cookie_id 
+		SELECT board_id,version,subject,content,created_time,file_id,root_board_id 
 		FROM board
-		WHERE cookie_id = "LEAF_NODE_COOKIE_ID"
 		LIMIT #{offset}, #{noOfRecords};  
 	</select>
 	
 	<select id="articleGetCount" resultType="int">
 		SELECT count(*) 
 		FROM board
-		WHERE cookie_id = "LEAF_NODE_COOKIE_ID";  
 	</select>
 	    
     <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.assignment.model.Board" >
-    	SELECT board_id,version,subject,content,created_time,file_id,root_board_id,cookie_id
+    	SELECT board_id,version,subject,content,created_time,file_id,root_board_id
     	FROM board
-    	WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+    	WHERE board_id = #{board_id} AND version = #{version};
     </select>
-    
-    <select id="autoList" resultType="com.worksmobile.assignment.model.Board" parameterType="hashmap">
-		SELECT board_id,version,subject,content,created_time,file_id,root_board_id,cookie_id 
-		FROM board 
-		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id != "LEAF_NODE_COOKIE_ID"
-		LIMIT #{offset}, #{noOfRecords};
-	</select>
-	
-	<select id="autoGetCount" resultType="int" parameterType="hashmap">
-		SELECT count(*) 
-		FROM board
-		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id != "LEAF_NODE_COOKIE_ID";  
-	</select>
     
 	<!--  board_history와 동시에 넣어져야함. -->
     <insert id="boardCreate" parameterType="com.worksmobile.assignment.model.Board">
         INSERT INTO board
-        (board_id,version,subject,content,created_time,file_id,root_board_id,cookie_id)
-        VALUES (#{board_id}, #{version},#{subject},#{content},
-        <choose>
-        	<when test="cookie_id == 'LEAF_NODE_COOKIE_ID'">
-                                                                #{created_time}
-			</when>
-			<otherwise>
-                                                                CURRENT_TIMESTAMP
-			</otherwise>
-        </choose>
-                                                                                ,#{file_id},#{root_board_id},#{cookie_id});
+        (board_id,version,subject,content,created_time,file_id,root_board_id)
+        VALUES (#{board_id}, #{version},#{subject},#{content},#{created_time},#{file_id},#{root_board_id});
 
         <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
      		SELECT created_time FROM board
-     		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+     		WHERE board_id = #{board_id} AND version = #{version};
      	</selectKey>
     </insert>
     
-    <delete id="deleteBoardAndAutoSave" parameterType="hashmap">
+    <delete id="deleteBoard" parameterType="hashmap">
         DELETE FROM board 
         WHERE board_id = #{board_id} AND version = #{version} ;
-    </delete>
-    
-    <delete id="deleteBoardWithCookieId" parameterType="hashmap">
-        DELETE FROM board 
-        WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
     </delete>
     
     <!--  히스토리 먼저 처리하고 boardUpdate 실행됨 -->
@@ -78,10 +49,10 @@
         created_time = CURRENT_TIMESTAMP,
         file_id = #{file_id},
         root_board_id = #{root_board_id}
-        WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+        WHERE board_id = #{board_id} AND version = #{version};
         <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
      		SELECT created_time FROM board
-     		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+     		WHERE board_id = #{board_id} AND version = #{version};
      	</selectKey>
     </update>
     
@@ -92,10 +63,10 @@
         content = #{content},
         created_time = CURRENT_TIMESTAMP,
         root_board_id = #{root_board_id}
-        WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+        WHERE board_id = #{board_id} AND version = #{version};
         <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
      		SELECT created_time FROM board
-     		WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
+     		WHERE board_id = #{board_id} AND version = #{version};
      	</selectKey>
     </update>
     
@@ -107,20 +78,11 @@
         WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
-    <select id="getMaxCookieId" resultType="int">
-    	SELECT IFNULL(MAX(cookie_id), 0) AS MaxCookieId
-    	FROM board;
-    </select>
     
     <select id="getBoardList" resultType="com.worksmobile.assignment.model.Board" >
-    	SELECT board_id, version, subject, content, created_time, file_id, root_board_id, cookie_id
+    	SELECT board_id, version, subject, content, created_time, file_id, root_board_id
     	FROM board
     	WHERE board_id = #{board_id} AND version = #{version};
     </select>
 
-    <select id="getFileCount" parameterType ="int" resultType="int">
-		SELECT count(*)
-		FROM board
-		WHERE file_id = #{file_id};  
-	</select>
 </mapper>

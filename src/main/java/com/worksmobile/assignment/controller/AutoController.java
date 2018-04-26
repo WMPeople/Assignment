@@ -15,16 +15,18 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.nhncorp.lucy.security.xss.XssPreventer;
+import com.worksmobile.assignment.bo.BoardTempService;
 import com.worksmobile.assignment.bo.CookieService;
 import com.worksmobile.assignment.bo.FileService;
 import com.worksmobile.assignment.bo.PageService;
-import com.worksmobile.assignment.bo.VersionManagementService;
-import com.worksmobile.assignment.mapper.BoardMapper;
+import com.worksmobile.assignment.mapper.BoardTempMapper;
 import com.worksmobile.assignment.mapper.FileMapper;
-import com.worksmobile.assignment.model.Board;
+import com.worksmobile.assignment.model.BoardTemp;
 import com.worksmobile.assignment.model.File;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.model.Page;
+import com.worksmobile.assignment.util.JsonUtils;
 
 /***
  * 자동 저장 관련한 컨트롤러입니다.
@@ -36,13 +38,13 @@ import com.worksmobile.assignment.model.Page;
 public class AutoController {
 
 	@Autowired
-	private BoardMapper boardMapper;
+	private BoardTempMapper boardTempMapper;
 
 	@Autowired
 	private FileMapper fileMapper;
 
 	@Autowired
-	private VersionManagementService versionManagementService;
+	private BoardTempService boardTempService;
 
 	@Autowired
 	private FileService fileService;
@@ -60,8 +62,8 @@ public class AutoController {
 	 * @param attachment
 	 * @return
 	 */
-	@RequestMapping(value = "/boards/autosavewithfile", method = RequestMethod.POST)
-	public Map<String, Object> tempArticleWithFile(Board board,
+	@RequestMapping(value = "/autos/autosavewithfile", method = RequestMethod.POST)
+	public Map<String, Object> tempArticleWithFile(BoardTemp boardTemp,
 		HttpServletRequest req,
 		MultipartHttpServletRequest attachment) {
 
@@ -69,29 +71,64 @@ public class AutoController {
 
 		File file = fileService.multiFileToFile(attachment);
 		if (file == null) {
-			board.setFile_id(0);
+			boardTemp.setFile_id(0);
 		} else {
 			fileMapper.createFile(file);
-			board.setFile_id(file.getFile_id());
+			boardTemp.setFile_id(file.getFile_id());
 		}
 
-		board.setCookie_id((cookieService.getCookie(req).getValue()));
-		versionManagementService.createTempArticleOverwrite(board, "withfile");
+		boardTemp.setCookie_id((cookieService.getCookie(req).getValue()));
+		boardTempService.createTempArticleOverwrite(boardTemp, "withfile");
 		resultMap.put("result", "success");
 
 		return resultMap;
 	}
 
-	@RequestMapping(value = "/boards/autosavewithoutfile", method = RequestMethod.POST)
-	public Map<String, Object> tempArticleWithoutFile(Board board,
+	@RequestMapping(value = "/autos/autosavewithoutfile", method = RequestMethod.POST)
+	public Map<String, Object> tempArticleWithoutFile(BoardTemp boardTemp,
 		HttpServletRequest req, MultipartHttpServletRequest attachment) {
 
 		Map<String, Object> resultMap = new HashMap<>();
-		board.setCookie_id((cookieService.getCookie(req).getValue()));
-		versionManagementService.createTempArticleOverwrite(board, "withoutfile");
+		boardTemp.setCookie_id((cookieService.getCookie(req).getValue()));
+		boardTempService.createTempArticleOverwrite(boardTemp, "withoutfile");
 		resultMap.put("result", "success");
 
 		return resultMap;
+	}
+	
+	/***
+	 * 자동 저장 상세보기 입니다.
+	 * @param board_id 상세 조회 할 임시 게시물의 board_id
+	 * @param version 상세 조회 할 임시 게시물의 version
+	 * @return 상세보기 화면과 게시물 내용이 맵 형태로 리턴됩니다.
+	 */
+	@RequestMapping(value = "/autos/{board_id}/{version}/{cookie_id}", method = RequestMethod.GET)
+	public ModelAndView show(@PathVariable(value = "board_id") int board_id,
+		@PathVariable(value = "version") int version,
+		@PathVariable(value = "cookie_id") int cookie_id) {
+
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("board_id", board_id);
+		params.put("version", version);
+		params.put("cookie_id", cookie_id);
+
+		BoardTemp boardTemp = boardTempMapper.viewDetail(params);
+		if (boardTemp == null) {
+			String json = JsonUtils.jsonStringIfExceptionToString(boardTemp);
+			throw new RuntimeException("show 메소드에서 viewDetail 메소드 실행 에러" + json);
+		}
+		String dirty = boardTemp.getContent();
+		String clean = XssPreventer.escape(dirty);
+		boardTemp.setContent(clean);
+
+		File file = fileMapper.getFile(boardTemp.getFile_id());
+
+		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.addObject("board", boardTemp);
+		modelAndView.addObject("isHistory", 0);
+		modelAndView.addObject("file", file);
+		modelAndView.setViewName("boardDetail");
+		return modelAndView;
 	}
 
 	/***
@@ -105,7 +142,7 @@ public class AutoController {
 		throws Exception {
 
 		Page page = pageService.getPage(req.getParameter("pages"));
-		ArrayList<Board> board = new ArrayList<Board>();
+		ArrayList<BoardTemp> boardTempList = new ArrayList<BoardTemp>();
 
 		HashMap<String, Integer> params = new HashMap<String, Integer>();
 		int offset = (page.getCurrentPageNo() - 1) * page.getMaxPost();
@@ -114,14 +151,14 @@ public class AutoController {
 		params.put("board_id", board_id);
 		params.put("version", version);
 
-		board = (ArrayList<Board>)boardMapper.autoList(params);
+		boardTempList = (ArrayList<BoardTemp>)boardTempMapper.autoList(params);
 
 		NodePtr nodePtr = new NodePtr(board_id, version);
-		page.setNumberOfRecords(boardMapper.autoGetCount(nodePtr.toMap()));
+		page.setNumberOfRecords(boardTempMapper.autoGetCount(nodePtr.toMap()));
 		page = pageService.makePaging(page);
 
 		ModelAndView modelAndView = new ModelAndView();
-		modelAndView.addObject("board", board);
+		modelAndView.addObject("boardTemp", boardTempList);
 		modelAndView.addObject("paging", page);
 		modelAndView.setViewName("autoList");
 

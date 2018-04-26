@@ -44,7 +44,6 @@
 			<form action="/assignment/boards/update" method="post" style="display: inline;">
 				<input name="board_id" type="text" id="board_id" value="${board.board_id}" style="display:none;">
 				<input name="version" type="text" id="version" value="${board.version}" style="display:none;">
-	            <input name="cookie_id" type="text" id="cookie_id" value="${board.cookie_id}" style="display:none;">
 	            <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">
 	            <input name="created_time" type="text" id="created_time" value="${board.created_time}" style="display:none;">
 	            <textarea name="content" id="content"  style="display:none;"><c:out value="${board.content}" escapeXml="true" /></textarea>
@@ -53,9 +52,7 @@
 	            <input name="file_data" type="file" id="file_data" value="${file.file_data}" style="display:none;">
 	            <input name="file_size" type="text" id="file_size" value="${file.file_size}" style="display:none;">
 	            <button class="_edit_atc" type="submit">수정</button>	
-	            <c:if test="${board.cookie_id eq 'LEAF_NODE_COOKIE_ID'}">
 	            <button class="_delete_atc" type="button" onclick="btnDelete(${board.board_id},${board.version});">삭제</button>
-       		    </c:if>
        		</form>
 		</div>
 	</div>

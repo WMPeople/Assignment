@@ -23,9 +23,7 @@ public interface BoardMapper {
 	 * @param parmas HashMap(board_id, version)
 	 * @return
 	 */
-	public int deleteBoardAndAutoSave(HashMap<String, Object> parmas);
-
-	public int deleteBoardWithCookieId(HashMap<String, Object> params);
+	public int deleteBoard(HashMap<String, Object> parmas);
 
 	public int boardUpdateWithoutFile(Board board);
 

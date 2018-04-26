@@ -10,8 +10,10 @@ import org.springframework.stereotype.Service;
 
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.mapper.BoardMapper;
+import com.worksmobile.assignment.mapper.BoardTempMapper;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
+import com.worksmobile.assignment.model.BoardTemp;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
@@ -24,13 +26,16 @@ import com.worksmobile.assignment.util.JsonUtils;
 @Service
 public class BoardService {
 	@Autowired
-	BoardMapper boardMapper;
+	private BoardMapper boardMapper;
 
 	@Autowired
-	BoardHistoryMapper boardHistoryMapper;
+	private BoardHistoryMapper boardHistoryMapper;
 
 	@Autowired
-	FileService fileService;
+	private BoardTempMapper boardTempMapper;
+
+	@Autowired
+	private FileService fileService;
 
 	/***
 	 * 리프 게시글과 관련된 자동 저장 게시글을 함께 삭제합니다.
@@ -39,6 +44,7 @@ public class BoardService {
 	 */
 	public int deleteBoardAndAutoSave(NodePtr deleteNodePtr) {
 		List<Board> boardList = boardMapper.getBoardList(deleteNodePtr);
+		List<BoardTemp> boardTempList = boardTempMapper.getBoardTempList(deleteNodePtr);
 		if (boardList.size() == 0) {
 			return 0;
 		}
@@ -46,19 +52,24 @@ public class BoardService {
 		for (Board ele : boardList) {
 			fileIdSet.add(ele.getFile_id());
 		}
-		int deletedCnt = boardMapper.deleteBoardAndAutoSave(deleteNodePtr.toMap());
+
+		for (BoardTemp ele : boardTempList) {
+			fileIdSet.add(ele.getFile_id());
+		}
+		int deletedCnt = boardTempMapper.deleteBoardTemp(deleteNodePtr.toMap());
+		deletedCnt += boardMapper.deleteBoard(deleteNodePtr.toMap());
 
 		fileService.deleteNoMoreUsingFile(fileIdSet);
 
 		return deletedCnt;
 	}
-	
+
 	/***
 	 * 만약, 존재하지 않는 게시글이라면 삭제 되지 않습니다.
 	 * @param deleteParams 삭제할 board의 board_id, version, cookie_id를 사용합니다.
 	 * @return 삭제 되었는지 여부
 	 */
-	public boolean deleteBoardWithCookieId(HashMap<String, Object> deleteParams) {
+	public boolean deleteBoard(HashMap<String, Object> deleteParams) {
 		Board dbBoard = boardMapper.viewDetail(deleteParams);
 		if (dbBoard == null) {
 			return false;
@@ -66,7 +77,7 @@ public class BoardService {
 		Set<Integer> fileIdSet = new HashSet<>();
 		fileIdSet.add(dbBoard.getFile_id());
 
-		int deletedCnt = boardMapper.deleteBoardWithCookieId(deleteParams);
+		int deletedCnt = boardMapper.deleteBoard(deleteParams);
 		if (deletedCnt != 1) {
 			String json = JsonUtils.jsonStringIfExceptionToString(deleteParams);
 			throw new RuntimeException("Board 테이블의 게시글 삭제 중 오류가 발생했습니다. (특정 쿠키 값을 가진 Board삭제) \n" +
@@ -97,7 +108,8 @@ public class BoardService {
 		for (int i = 0; i < boardList.size(); i++) {
 			fileIdSet.add(boardList.get(i).getFile_id());
 		}
-		boardMapper.deleteBoardAndAutoSave(nodePtr.toMap());
+		boardMapper.deleteBoard(nodePtr.toMap());
+		boardTempMapper.deleteBoardTemp(nodePtr.toMap());
 
 		fileService.deleteNoMoreUsingFile(fileIdSet);
 	}
@@ -108,7 +120,8 @@ public class BoardService {
 		for (int i = 0; i < boardList.size(); i++) {
 			fileIdSet.add(boardList.get(i).getFile_id());
 		}
-		boardMapper.deleteBoardAndAutoSave(leafPtr.toMap());
+		boardMapper.deleteBoard(leafPtr.toMap());
+		boardTempMapper.deleteBoardTemp(leafPtr.toMap());
 		return fileIdSet;
 	}
 
@@ -127,57 +140,6 @@ public class BoardService {
 			return true;
 		} else {
 			return false;
-		}
-	}
-
-	public void createTempBoard(Board tempArticle) {
-		int createdCnt = boardMapper.boardCreate(tempArticle);
-		if (createdCnt != 1) {
-			String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
-			throw new RuntimeException("createTempArticle에서 게시글 생성 실패 : " + json);
-		}
-	}
-
-	/***
-	 * LeafNode 게시글을 복제하여 자신의 쿠키 ID 값을 넣어 자동 저장 게시글을 생성합니다.
-	 * @param board_id
-	 * @param version
-	 * @param cookie_id
-	 * @param created_time
-	 * @param content
-	 * @param file_id
-	 * @param subject
-	 */
-	public void makeTempBoard(int board_id, int version, String cookie_id, String created_time, String content,
-		int file_id, String subject) {
-		Board updateBoard = new Board(subject, content, created_time, file_id, cookie_id);
-		updateBoard.setBoard_id(board_id);
-		updateBoard.setVersion(version);
-
-		HashMap<String, Object> params = new HashMap<String, Object>();
-		params.put("board_id", board_id);
-		params.put("version", version);
-		params.put("cookie_id", cookie_id);
-		Board board = boardMapper.viewDetail(params);
-		if (board == null) {
-			boardMapper.boardCreate(updateBoard);
-		}
-
-	}
-
-	/***
-	 * 자동저장 -> 버전업 되었을 때 버전업 된 LeafNode를 복사하여 새로운 자동저장 용 tempBoard를 만들어줍니다.
-	 * @param tempArticle
-	 */
-	public void copyBoardAndCreateTempBoard(Board tempArticle) {
-		String cookie_id = tempArticle.getCookie_id();
-		Board board = tempArticle;
-		board.setCookie_id(Board.LEAF_NODE_COOKIE_ID);
-		Board updatedBoard = boardMapper.viewDetail(board.toMap());
-		updatedBoard.setCookie_id(cookie_id);
-		int insertedRowCnt = boardMapper.boardCreate(updatedBoard);
-		if (insertedRowCnt != 1) {
-			throw new RuntimeException("createTempArticleOverwrite메소드에서 boardCreate error");
 		}
 	}
 

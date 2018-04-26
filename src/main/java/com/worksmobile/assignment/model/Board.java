@@ -12,9 +12,6 @@ public class Board extends NodePtr{
 	@Setter @Getter private String content;
 	@Setter @Getter private String created_time;
 	@Setter @Getter private int file_id;
-	@Setter @Getter private String cookie_id = LEAF_NODE_COOKIE_ID;
-	
-	public final static String LEAF_NODE_COOKIE_ID = "LEAF_NODE_COOKIE_ID";
 
 	public Board() {}
 
@@ -44,8 +41,7 @@ public class Board extends NodePtr{
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("board_id", board_id);
 		map.put("version", version);
-		map.put("cookie_id", cookie_id);
 		return map;
 	}
-	
+
 }
