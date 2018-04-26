@@ -43,14 +43,15 @@ public class CreateTreeTest {
 		text1.put("link", "link");
 		nodeStructure.set("text", text1);
 		
-		@SuppressWarnings("unused") ArrayNode children1 = mapper.createArrayNode();
+		@SuppressWarnings("unused")
+		ArrayNode children1 = mapper.createArrayNode();
 		mapper.createArrayNode();
 		
 		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode));
 	}
 	
 	@Test
-	public void testGen() throws JsonProcessingException {
+	public void testGenerate() throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		ObjectNode node = createTree.createTree(17128);

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
@@ -101,11 +102,14 @@ public class CreateTree {
 		node.set("text", text);
 
 		ObjectNode link = mapper.createObjectNode();
-		// TODO : 리프 노드는 게시글 링크로 하면 성능 향상이 기대됨
-		String nodelinkStr = String.format("%s/history/%d/%d", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion());
-		link.put("href", nodelinkStr);
+		String nodeLinkStr;
+		if(children.size() == 0) {
+			nodeLinkStr = String.format("%s/boards/%d/%d/%s", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion(), Board.LEAF_NODE_COOKIE_ID);
+		} else {
+			nodeLinkStr = String.format("%s/history/%d/%d", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion());
+		}
+		link.put("href", nodeLinkStr);
 		node.set("link", link);
-		node.put("stackChildren", true);
 		
 		if(children.size() != 0) {
 			node.set("children", childrenArrayNode);

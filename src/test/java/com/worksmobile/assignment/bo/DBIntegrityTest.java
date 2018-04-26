@@ -27,6 +27,11 @@ import com.worksmobile.assignment.model.File;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
+/**
+ * DB 의 무결성을 검사하는 테스트입니다.
+ * @author khh
+ *
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class DBIntegrityTest {

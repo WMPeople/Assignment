@@ -29,6 +29,11 @@ import com.worksmobile.assignment.model.File;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
+/**
+ * 게시글 이력 테이블 매퍼의 테스트입니다.
+ * @author khh
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = AssignmentApplication.class)
 @WebAppConfiguration

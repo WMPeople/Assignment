@@ -35,8 +35,8 @@ function DiffMatchCustom(Diff_Timeout, Diff_EditCost, Diff_IgnoreCase, text1, te
 }
 
 /**
- * diff 알고리즘 결과를 수정합니다.
  * 정규식에 해당되는 문자를 같은 문자열로 취급하게 합니다.
+ * diff 결과를 수정합니다.
  * @param {!Array.<!diff_match_patch.Diff>} diffs Array of diff tuples
  * @param {Number} curIdx diffs배열에서 동작하고 있는 idx
  * @param {Number} diffStatus diff[][0]의 값
@@ -68,7 +68,6 @@ DiffMatchCustom.prototype.markToEqualDiff = function(diffs, curIdx, diffStatus, 
 				break;
 			}
 		} else {
-			diffStr = "";
 			break;
 		}
 	}
@@ -76,14 +75,14 @@ DiffMatchCustom.prototype.markToEqualDiff = function(diffs, curIdx, diffStatus, 
 }
 
 /**
- * 공백 문자를 무시합니다.
+ * 공백 문자를 무시합니다. diff 결과를 수정합니다.
  * @param{!Array.<!diff_match_patch.Diff>} diffs diff알고리즘 결과
- * @param {Number} leastRepeatCnt 개행, 공백, 탭 옵션용입니다. 이 개수 이상부터 같다고 판단합니다.
+ * @param {Number} leastRepeatCnt 개행, 공백, 탭 옵션용입니다. 이 갯수 이상부터 같다고 판단합니다.
  * @return{!Array.<!diff_match_patch.Diff>} 공백이 무시된 결과
  */
 DiffMatchCustom.prototype.ignoreWhiteCharater = function(diffs, leastRepeatCnt) {
 	var text2DiffLength = 0;
-	var r = leastRepeatCnt;
+	const r = leastRepeatCnt;
 	var whiteCharRegularExp = '(\t{' + r + ',}|\n{' + r + ',}|\r{' + r + ',}|\ {' + r + ',})';
 	
 	for(var i = 0; i < diffs.length; i++) {
@@ -111,10 +110,8 @@ DiffMatchCustom.prototype.ignoreWhiteCharater = function(diffs, leastRepeatCnt) 
 // TODO : 공백 복구시에는 replaceChar가 ''으로 되어야 하고, replaceLength = 0 이어야 합니다. 
 // TODO : 정규식 복구와 공백 복구가 하나의 함수에서 처리가 가능할 것으로 보입니다.
 /**
- * 
  * 공백 문자를 무시합니다.
  * @param {Number} leastRepeatCnt 개행, 공백, 탭 옵션용입니다. 이 개수 이상부터 같다고 판단합니다.
- * @return{!Array.<!diff_match_patch.Diff>} 공백이 무시된 결과
  */
 DiffMatchCustom.prototype.cleanupWhiteCharater = function(leastRepeatCnt) {
 	var replacedChar = '';
@@ -134,6 +131,24 @@ DiffMatchCustom.prototype.cleanupRegularExp = function(regularExp, regularExpOpt
 	
 	this.text1Match = rtn[0];
 	this.text2Match = rtn[1];
+}
+
+/**
+ * 중복되지 않는 랜덤한 텍스트를 반환합니다
+ * @param {String} text1 중복되지 않을 텍스트의 대상
+ * @param {String} text2 중복되지 않을 텍스트의 대상
+ * @return {Character} 중복되지 않는 랜덤한 문자
+ */
+DiffMatchCustom.prototype.getRandomReplaceChar = function(text1, text2) {
+	const MAX_UTF_16_CODE = 65535;
+	while(true) {
+		var char = String.fromCharCode(Math.floor(Math.random() * MAX_UTF_16_CODE)));
+		if(	text1.indexOf(char) == -1 &&
+			text2.indexOf(char) == -1) {
+			return char;
+		}
+	}
+	throw "charCode할당 실패";
 }
 
 /**
@@ -181,13 +196,19 @@ DiffMatchCustom.prototype.restoreWhiteSpace = function(diffs) {
 
 DiffMatchCustom.prototype.restoreRegularExp = function(diffs) {
 	var replacedChar = '\0';	
-	return this.restoreFilter(diffs, this.text1Match, this.text2Match, replacedChar);
+	return this.restoreRegExpFilter(diffs, this.text1Match, this.text2Match, replacedChar);
 }
 
 /**
- * idx가 배열 크기를 벗어나지 않으면서, 블럭의 시작 위치 <= 변경점 < 블럭 끝나는 위치 인 경우
+ * 변경할 것이 현재 위치에 있는가?
+ * idx가 배열 크기를 벗어나지 않으면서, diff 블럭의 시작 위치 <= 변경점 < 블럭 끝나는 위치 인 경우
+ * @param {Number} idx 검사할 배열의 인덱스 (배열 범위 초과를 검사 및 현재 배열 값 확인)
+ * @param {!Array.<RegularExpMatchResult>} matchArr 정규식 결과가 담긴 배열 입니다.
+ * @param {Number} startPos diff 블럭의 시작 위치
+ * @param {String} diffStr diff 블럭의 변경 내용 (블럭 끝나는 위치를 알기 위함)
+ * @return {Boolean}
  */
-DiffMatchCustom.prototype.isInside = function(idx, matchArr, startPos, diffStr) {
+DiffMatchCustom.prototype.isHaveChangePos = function(idx, matchArr, startPos, diffStr) {
 	if(idx < matchArr.length &&
 		(startPos <= matchArr[idx].index &&
 		matchArr[idx].index < startPos + diffStr.length)) {
@@ -198,15 +219,16 @@ DiffMatchCustom.prototype.isInside = function(idx, matchArr, startPos, diffStr) 
 }
 
 /**
- * 정규식 치환된 diffs가 들어오고, this.text1Match, this.text2Match가 사용됩니다.
- * 정규식에 해당되는 것을 다시 복원하는 작업을 합니다.
+ * 정규식으로 치환된 diffs가 들어옵니다.
+ * 정규식 치환한 것을 다시 복원하는 작업을 합니다.
  * @param {!Array.<!diff_match_patch.Diff>} diffs Array of diff tuples
+ * @param {!Array.<RegularExpMatchResult>} text1Match 치환되기 전의 문자열이 저장되어 있는 배열입니다.
+ * @param {!Array.<RegularExpMatchResult>} text2Match 치환되기 전의 문자열이 저장되어 있는 배열입니다.
+ * @param {String} replacedChar 치환된 문자입니다. (길이만 사용합니다. 문자 비교는 하지 않습니다.)
  * @return {!Array.<!diff_match_patch.Diff>} 복원된 diff입니다.
  */
-DiffMatchCustom.prototype.restoreFilter = function(diffs, text1Match, text2Match, replacedChar) {
+DiffMatchCustom.prototype.restoreRegExpFilter = function(diffs, text1Match, text2Match, replacedChar) {
 	var curTextLengths = [0, 0];	// 현재 문서의 위치
-	var textDiffLengths = [0, 0];	// 정규식으로 인하여 달라진 문서의 길이의 총합
-	var preMatchIdx = 0; // preMatchList의 idx
 	var text1MatchIdx = 0;
 	var text2MatchIdx = 0;
 	
@@ -221,9 +243,14 @@ DiffMatchCustom.prototype.restoreFilter = function(diffs, text1Match, text2Match
 		var diffStatus = diffs[i][0];
 		var diffStr = diffs[i][1];
 		
+		if(	text1MatchIdx >= text1Match.length &&
+			text2MatchIdx >= text2Match.length) {
+			break;
+		}
+		
 		if(diffStatus == window.DIFF_EQUAL){ 
-			if(	!(this.isInside(text1MatchIdx, text1Match, curTextLengths[0], diffStr) ||
-				this.isInside(text2MatchIdx, text2Match, curTextLengths[1], diffStr) )) {
+			if(	!(this.isHaveChangePos(text1MatchIdx, text1Match, curTextLengths[0], diffStr) ||
+				this.isHaveChangePos(text2MatchIdx, text2Match, curTextLengths[1], diffStr) )) {
 				curTextLengths[0] += diffStr.length;
 				curTextLengths[1] += diffStr.length;
 				continue;
@@ -234,7 +261,7 @@ DiffMatchCustom.prototype.restoreFilter = function(diffs, text1Match, text2Match
 				// 왼쪽 , 오른쪽 블럭이 같은 것을 치환하는 것이라는 가정입니다.
 				// 먼저 왼쪽 것이 대상입니다.
 				if(text1MatchIdx >= text1Match.length) {
-					throw "왼쪽게 idx out of length 라니!";
+					throw "left Match Idx out of length";
 				}
 				var replacePos = text1Match[text1MatchIdx].index - curTextLengths[0];
 				if(replacePos !== 0) {
@@ -247,7 +274,7 @@ DiffMatchCustom.prototype.restoreFilter = function(diffs, text1Match, text2Match
 				
 				// 오른쪽 거를 치환합시다.
 				if(text2MatchIdx >= text2Match.length) {
-					throw "오른쪽을 할 차례인데 더이상 배열에 없네요.";
+					throw "오른쪽을 치환 할 차례인데 더이상 배열에 없네요.";
 				}
 				
 				diffs.splice(i++, 0, [ window.DIFF_INSERT * 2, text2Match[text2MatchIdx][0] ]);
@@ -261,11 +288,13 @@ DiffMatchCustom.prototype.restoreFilter = function(diffs, text1Match, text2Match
 				
 				curTextLengths[0] += lastReplaceBeginPos;
 				curTextLengths[1] += text2Match[text2MatchIdx - 1].index - curTextLengths[1] + replacedChar.length;
+
+				i--; // 이전 블록을 꺼낸다.
 			}
 		}
 		else if(diffStatus == window.DIFF_INSERT ||
 				diffStatus == window.DIFF_INSERT * 2) {	// right 에 속하면
-			if(!this.isInside(text2MatchIdx, text2Match, curTextLengths[1], diffStr)){
+			if(!this.isHaveChangePos(text2MatchIdx, text2Match, curTextLengths[1], diffStr)){
 				curTextLengths[1] += diffStr.length;
 				continue;
 			} else {
@@ -287,10 +316,12 @@ DiffMatchCustom.prototype.restoreFilter = function(diffs, text1Match, text2Match
 				}
 				
 				curTextLengths[1] += lastReplaceBeginPos;
+
+				i--; // 이전 블록을 꺼낸다.
 			}
 		} else if(diffStatus == window.DIFF_DELETE ||
 					diffStatus == window.DIFF_DELETE * 2) {	// left 에 속하면
-			if(!this.isInside(text1MatchIdx, text1Match, curTextLengths[0], diffStr)) {
+			if(!this.isHaveChangePos(text1MatchIdx, text1Match, curTextLengths[0], diffStr)) {
 				curTextLengths[0] += diffStr.length;
 				continue;
 			} else {
@@ -312,47 +343,52 @@ DiffMatchCustom.prototype.restoreFilter = function(diffs, text1Match, text2Match
 				}
 
 				curTextLengths[0] += lastReplaceBeginPos;
+
+				i--; // 이전 블록을 꺼낸다.
 			}
-		}
-		i--; // 이전 블록을 꺼낸다.
-		if(	text1MatchIdx >= text1Match.length &&
-			text2MatchIdx >= text2Match.length) {
-			break;
 		}
 	}
 	return diffs;
 }
 
 /**
- * do matchIdx++
- * and curTextLength += return val;
- * diffs는 변경됨을 유의할것.
+ * 이 함수 뒤에 matchIdx 를 1증가 시켜야 합니다.
+ * curTextLength += return val;
+ * diffs는 변경됩니다.
+ * @param {!Array.<!diff_match_patch.Diff>} diffs 치환된 diff 결과들의 배열입니다.
+ * @param {Number} diffsIdx diffs의 idx 입니다.
+ * @param {!Array.<RegularExpMatchResult>} matchArr 치환하기 전의 값들이 들어 있는 배열입니다.
+ * @param {Number} matchIdx matchArr의 idx 입니다.
+ * @param {String} replacedChar 치환된 문자열입니다. (길이만 사용됩니다.)
+ * @param {Number} curTextLength 현재 치환 진행중인 위치를 나타냅니다.
+ * @param {Number} insertDiffStatus 비교 변환 결과 값이 들어 옵니다. (같다, 삭제, 삽입)
+ * @return {!Array.{Number, Number}} 증가된 diffsIdx와 현재 블럭에서 치환이 진행된 위치를 반환합니다. 
  */
-DiffMatchCustom.prototype.restore = function(diffs, i, matchArr, matchIdx, replacedChar, curTextLength, insertDiffStatus) {
-	var diffStatus = diffs[i][0];
-	var diffStr = diffs[i][1];
+DiffMatchCustom.prototype.restore = function(diffs, diffsIdx, matchArr, matchIdx, replacedChar, curTextLength, insertDiffStatus) {
+	var diffStatus = diffs[diffsIdx][0];
+	var diffStr = diffs[diffsIdx][1];
 	
-	diffs.splice(i, 1);
+	diffs.splice(diffsIdx, 1);
 	var matchBlock = matchArr[matchIdx];
 	var replacePos = matchBlock.index - curTextLength;
 	if(replacePos !== 0) {
 		var beforeReplaceStr = diffStr.substr(0, replacePos);
-		diffs.splice(i++, 0, [ diffStatus, beforeReplaceStr ]);
+		diffs.splice(diffsIdx++, 0, [ diffStatus, beforeReplaceStr ]);
 	}
 	
 	if(Math.abs(insertDiffStatus) == 1) {
 		insertDiffStatus *= 2;
 	}
 
-	diffs.splice(i++, 0, [ insertDiffStatus, matchBlock[0] ]);
+	diffs.splice(diffsIdx++, 0, [ insertDiffStatus, matchBlock[0] ]);
 	
 	var lastReplaceBeginPos = replacePos + replacedChar.length;
 	if(lastReplaceBeginPos !== diffStr.length) {
 		var afterReplacedStr = diffStr.substr(lastReplaceBeginPos);
-		diffs.splice(i, 0, [ diffStatus, afterReplacedStr ]);
+		diffs.splice(diffsIdx, 0, [ diffStatus, afterReplacedStr ]);
 	}
 	
-	return [i, lastReplaceBeginPos];
+	return [diffsIdx, lastReplaceBeginPos];
 }
 
 /**
@@ -363,8 +399,6 @@ DiffMatchCustom.prototype.restore = function(diffs, i, matchArr, matchIdx, repla
  */
 DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, text2Match, replacedChar) {
 	var curTextLengths = [0, 0];	// 현재 문서의 위치
-	var textDiffLengths = [0, 0];	// 정규식으로 인하여 달라진 문서의 길이의 총합
-	var preMatchIdx = 0; // preMatchList의 idx
 	var text1MatchIdx = 0;
 	var text2MatchIdx = 0;
 	
@@ -385,16 +419,16 @@ DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, 
 		}
 
 		if(diffStatus == window.DIFF_EQUAL){ 
-			if(	!(this.isInside(text1MatchIdx, text1Match, curTextLengths[0], diffStr) ||
-				this.isInside(text2MatchIdx, text2Match, curTextLengths[1], diffStr)) ) {
+			if(	!(this.isHaveChangePos(text1MatchIdx, text1Match, curTextLengths[0], diffStr) ||
+				this.isHaveChangePos(text2MatchIdx, text2Match, curTextLengths[1], diffStr)) ) {
 				curTextLengths[0] += diffStr.length;
 				curTextLengths[1] += diffStr.length;
 			} else {
 				// 범위 벗어나지 않았고, 왼쪽이 포함이면 일단 왼쪽
 				// 범위 벗어나지 않았고, 오른쪽이 포함이면 일단 오른쪽
 				// 단 둘다 포함이면 가까운 쪽부터 하자.
-				var isLeftInside = this.isInside(text1MatchIdx, text1Match, curTextLengths[0], diffStr);
-				var isRightInside = this.isInside(text2MatchIdx, text2Match, curTextLengths[1], diffStr);
+				var isLeftInside = this.isHaveChangePos(text1MatchIdx, text1Match, curTextLengths[0], diffStr);
+				var isRightInside = this.isHaveChangePos(text2MatchIdx, text2Match, curTextLengths[1], diffStr);
 				var isLeftTurn = false;
 				if(isLeftInside && isRightInside) {
 					isLeftTurn = 	text1Match[text1MatchIdx].index - curTextLengths[0] <
@@ -422,7 +456,7 @@ DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, 
 			}
 		} else if(diffStatus == window.DIFF_INSERT ||
 				diffStatus == window.DIFF_INSERT * 2) {	// right 에 속하면
-			if(!this.isInside(text2MatchIdx, text2Match, curTextLengths[1], diffStr)){
+			if(!this.isHaveChangePos(text2MatchIdx, text2Match, curTextLengths[1], diffStr)){
 				curTextLengths[1] += diffStr.length;
 			} else {
 				var rtn = this.restore(diffs, i, text2Match, text2MatchIdx, replacedChar, curTextLengths[1], diffStatus);
@@ -433,7 +467,7 @@ DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, 
 			}
 		} else if(diffStatus == window.DIFF_DELETE ||
 					diffStatus == window.DIFF_DELETE * 2) {	// left 에 속하면
-			if(!this.isInside(text1MatchIdx, text1Match, curTextLengths[0], diffStr)) {
+			if(!this.isHaveChangePos(text1MatchIdx, text1Match, curTextLengths[0], diffStr)) {
 				curTextLengths[0] += diffStr.length;
 			} else {
 				var rtn = this.restore(diffs, i, text1Match, text1MatchIdx, replacedChar, curTextLengths[0], diffStatus);
@@ -458,6 +492,7 @@ DiffMatchCustom.prototype.restoreWhiteSpaceFilter = function(diffs, text1Match, 
 DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, regularExp, regularExpOpt, priority) {
 	var ms_start = (new Date()).getTime();
 	
+	// 변경 무시 옵션에 따른 무시 사전 필터 시작
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
 			priority == 1) {
@@ -466,9 +501,11 @@ DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, re
 	if(typeof regularExp != 'undefined') {
 		this.cleanupRegularExp(regularExp, regularExpOpt);
 	}
+	// 사전 필터 끝
 	
 	var d1 = this.dmp.diff_main(this.text1, this.text2);
 	
+	// 결과를 clean up 합니다.
 	switch(cleanupOption) {
 	case cleanupOpt.sementicCleanup:
 		this.dmp.diff_cleanupSemantic(d1);
@@ -483,21 +520,24 @@ DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, re
 			break;
 	}
 
-	{
-		if(typeof regularExp != 'undefined') {
-			d1 = this.restoreRegularExp(d1);
-		}
-		if(typeof ignoreWhiteCharCnt != 'undefined' &&
-				ignoreWhiteCharCnt > 0 &&
-				priority == 1) {
-			d1 = this.restoreWhiteSpace(d1);
-		}
-		if(typeof ignoreWhiteCharCnt != 'undefined' &&
-				ignoreWhiteCharCnt > 0 &&
-				priority == 0) {
-			d1 = this.ignoreWhiteCharater(d1, ignoreWhiteCharCnt);
-		}
+	// 변경 무시 옵션에 따른 사전 필터 복원 시작
+	if(typeof regularExp != 'undefined') {
+		d1 = this.restoreRegularExp(d1);
 	}
+	if(typeof ignoreWhiteCharCnt != 'undefined' &&
+			ignoreWhiteCharCnt > 0 &&
+			priority == 1) {
+		d1 = this.restoreWhiteSpace(d1);
+	}
+	// 사전 필터 복원 끝
+
+	// 공백문자 후처리 필터
+	if(typeof ignoreWhiteCharCnt != 'undefined' &&
+			ignoreWhiteCharCnt > 0 &&
+			priority == 0) {
+		d1 = this.ignoreWhiteCharater(d1, ignoreWhiteCharCnt);
+	}
+
 	var ds = this.dmp.diff_prettyHtml(d1, '', this.originText2);
 
 	console.log(d1);

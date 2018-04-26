@@ -24,6 +24,11 @@ import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
+/**
+ * 자동저장을 테스트합니다.
+ * @author khh
+ *
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class VersionManagementServiceAutoSaveTest {
