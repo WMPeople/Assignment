@@ -105,7 +105,7 @@ public class AutoController {
 	@RequestMapping(value = "/autos/{board_id}/{version}/{cookie_id}", method = RequestMethod.GET)
 	public ModelAndView show(@PathVariable(value = "board_id") int board_id,
 		@PathVariable(value = "version") int version,
-		@PathVariable(value = "cookie_id") int cookie_id) {
+		@PathVariable(value = "cookie_id") String cookie_id) {
 
 		HashMap<String, Object> params = new HashMap<String, Object>();
 		params.put("board_id", board_id);

@@ -116,9 +116,9 @@ public class VersionManagementService {
 		article.setNodePtr(createdHistory);
 		article.setCreated_time(createdHistory.getCreated_time());
 		
-		int insertedRowCnt = boardMapper.boardCreate(article);
+		int insertedRowCnt = boardMapper.createBoard(article);
 		if(insertedRowCnt != 1) {
-			throw new RuntimeException("createArticle메소드에서 boardCreate error" + createdHistory);
+			throw new RuntimeException("createArticle메소드에서 createBoard error" + createdHistory);
 		}
 		
 		return createdHistory;
@@ -218,7 +218,7 @@ public class VersionManagementService {
 					boardService.deleteBoardHistory(parentHistory);
 				} else { // 부모가 안보이는 루트가 아닌 노드는 board테이블에 존재해야 함.
 					parent.setContent(Compress.deCompressHistoryContent(parentHistory));
-					int createdCnt = boardMapper.boardCreate(parent);
+					int createdCnt = boardMapper.createBoard(parent);
 					if (createdCnt == 0) {
 						throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
 							" createdCnt : " + createdCnt);

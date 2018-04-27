@@ -3,21 +3,20 @@
  * @author khh
  */
 
-function Replace(text1, text2, regularExpression, withReplaceChar) {
-	this._text1 = text1;
-	this._text2 = text2;
+function Replace(regularExpression, withReplaceChar) {
+	this._text1Match = [];
+	this._text2Match = [];
 	this._regularExp = regularExpression;
 	this._withReplaceChar = withReplaceChar;
 	this._replaceChar;
-	this._withReplaceChar = withReplaceChar;
 }
 
-Replace.prototype.getText1 = function() {
-	return this._text1;
+Replace.prototype.getText1Match = function() {
+	return this._text1Match;
 }
 
-Replace.prototype.getText2 = function() {
-	return this._text2;
+Replace.prototype.getText2Match = function() {
+	return this._text2Match;
 }
 
 Replace.prototype.getReplacedChar = function() {
@@ -48,38 +47,36 @@ Replace.prototype.getRandomReplaceChar = function(text1, text2) {
 /**
  * 주어진 정규식에 해당되는 문자들을 같은 문자로 치환합니다.
  * 치환하여 text1Match, text2Match에 보관합니다.
- * @param {RegExp} 정규식 객체가 들어옵니다.
- * @return {!Array.<MatchResult>} 치환된 객체들입니다.
+ * @param {String} text1 텍스트 내용입니다.
+ * @return {!Array.<String>} 치환된 내용들입니다.
  */
-Replace.prototype.doReplace = function() {
+Replace.prototype.doReplace = function(text1, text2) {
 	if(this._withReplaceChar) {
-		this._replaceChar = this.getRandomReplaceChar(this._text1, this._text2);
+		this._replaceChar = this.getRandomReplaceChar(text1, text2);
 	} else {
 		this._replaceChar = '';
 	}
 	
 	var replaceDiffLength = 0;	// 치환하면서 어긋난 위치 보정값
-	var text1Match = [];
-	var text2Match = [];
 
 	var match, matchRight;
 	var leftRegularExp = this._regularExp;
-	while(( match = leftRegularExp.exec(this._text1)) !== null) {
+	while(( match = leftRegularExp.exec(text1)) !== null) {
 		match.index -= replaceDiffLength;
 		replaceDiffLength += (match[0].length - this._replaceChar.length);
-		text1Match.push(match);
+		this._text1Match.push(match);
 	}
-	this._text1 = this._text1.replace(this._regularExp, this._replaceChar);
+	text1 = text1.replace(this._regularExp, this._replaceChar);
 	
 	var rightRegularExp = this._regularExp;
 	replaceDiffLength = 0;
-	var text11 = this._text2;
-	while(( matchRight = rightRegularExp.exec(this._text2)) !== null) {
+	var text11 = text2;
+	while(( matchRight = rightRegularExp.exec(text2)) !== null) {
 		matchRight.index -= replaceDiffLength;
 		replaceDiffLength += matchRight[0].length - this._replaceChar.length;
-		text2Match.push(matchRight);
+		this._text2Match.push(matchRight);
 	}
-	this._text2 = this._text2.replace(this._regularExp, this._replaceChar);
+	text2 = text2.replace(this._regularExp, this._replaceChar);
 	
 	leftRegularExp = this._regularExp;
 	var text11Match = [];
@@ -89,7 +86,7 @@ Replace.prototype.doReplace = function() {
 		leftRegularExp.lastIndex -= match[0].length;
 	}
 	
-	return [text1Match, text2Match];
+	return [text1, text2];
 }
 
 function Restore(text1Match, text2Match, diffs, replacedChar) {

@@ -60,7 +60,7 @@ public class VersionManagementServiceAutoSaveTest {
 		autoSaveArticle.setNodePtr(defaultCreated);
 		autoSaveArticle.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
 
-		int createdCnt = boardMapper.boardCreate(autoSaveArticle); // TODO : 함수이름이 create인데 생성을 안함 변경 필요.
+		int createdCnt = boardMapper.createBoard(autoSaveArticle); // TODO : 함수이름이 create인데 생성을 안함 변경 필요.
 		assertEquals(1, createdCnt);
 		autoSaveArticle = versionManagementService.createTempArticleOverwrite(autoSaveArticle, null);
 	}
@@ -90,7 +90,7 @@ public class VersionManagementServiceAutoSaveTest {
 		autoSave.setNodePtr(nodePtr);
 		autoSave.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
 		if (boardMapper.viewDetail(autoSave.toMap()) == null) {
-			boardMapper.boardCreate(autoSave); // TODO : 함수이름이 create인데 생성을 안함 변경 필요.
+			boardMapper.createBoard(autoSave); // TODO : 함수이름이 create인데 생성을 안함 변경 필요.
 		}
 		versionManagementService.createTempArticleOverwrite(autoSave, null);
 		return autoSave;

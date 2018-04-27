@@ -16,7 +16,7 @@ import com.worksmobile.assignment.model.NodePtr;
 @Mapper
 public interface BoardMapper {
 
-	public int boardCreate(Board board);
+	public int createBoard(Board board);
 
 	/**
 	 * 관련된 자동 저장 게시글도 같이 삭제됩니다.
