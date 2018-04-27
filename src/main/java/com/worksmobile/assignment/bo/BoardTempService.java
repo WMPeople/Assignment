@@ -68,9 +68,9 @@ public class BoardTempService {
 		newBoardTemp = tempArticle;
 		newBoardTemp.setBoard_id(board.getBoard_id());
 		newBoardTemp.setVersion(board.getVersion());
-		int insertedRowCnt = boardTempMapper.boardTempCreate(newBoardTemp);
+		int insertedRowCnt = boardTempMapper.createBoardTemp(newBoardTemp);
 		if (insertedRowCnt != 1) {
-			throw new RuntimeException("createTempArticleOverwrite메소드에서 boardCreate error");
+			throw new RuntimeException("createTempArticleOverwrite메소드에서 createBoard error");
 		}
 	}
 
@@ -91,7 +91,7 @@ public class BoardTempService {
 		boardTemp.setVersion(version);
 
 		if (boardTempMapper.viewDetail(boardTemp.toMap()) == null) {
-			boardTempMapper.boardTempCreate(boardTemp);
+			boardTempMapper.createBoardTemp(boardTemp);
 		}
 
 	}
@@ -110,12 +110,9 @@ public class BoardTempService {
 		fileIdSet.add(dbBoardTemp.getFile_id());
 
 		int deletedCnt = boardTempMapper.deleteBoardTemp(deleteParams);
-		if (deletedCnt != 1) {
-			String json = JsonUtils.jsonStringIfExceptionToString(deleteParams);
-			throw new RuntimeException("Board 테이블의 게시글 삭제 중 오류가 발생했습니다. (특정 쿠키 값을 가진 Board삭제) \n" +
-				"삭제된 개수 : " + deletedCnt + " deleteParams : " + json);
+		if (deletedCnt != 0) {
+			fileService.deleteNoMoreUsingFile(fileIdSet);
 		}
-		fileService.deleteNoMoreUsingFile(fileIdSet);
 
 		return true;
 

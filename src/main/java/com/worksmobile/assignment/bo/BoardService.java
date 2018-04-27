@@ -56,7 +56,7 @@ public class BoardService {
 		for (BoardTemp ele : boardTempList) {
 			fileIdSet.add(ele.getFile_id());
 		}
-		int deletedCnt = boardTempMapper.deleteBoardTemp(deleteNodePtr.toMap());
+		int deletedCnt = boardTempMapper.deleteBoardTempWithoutCookieId(deleteNodePtr.toMap());
 		deletedCnt += boardMapper.deleteBoard(deleteNodePtr.toMap());
 
 		fileService.deleteNoMoreUsingFile(fileIdSet);
