@@ -20,8 +20,10 @@ import com.nhncorp.lucy.security.xss.XssPreventer;
 import com.worksmobile.assignment.bo.BoardTempService;
 import com.worksmobile.assignment.bo.CookieService;
 import com.worksmobile.assignment.bo.FileService;
+import com.worksmobile.assignment.bo.NaverService;
 import com.worksmobile.assignment.bo.PageService;
 import com.worksmobile.assignment.bo.VersionManagementService;
+import com.worksmobile.assignment.crawling.NaverBrowserCrawlingTest;
 import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.mapper.FileMapper;
 import com.worksmobile.assignment.model.Board;
@@ -61,11 +63,22 @@ public class BoardController {
 
 	@Autowired
 	private BoardTempService boardTempService;
+	
+	@Autowired
+	private NaverService naverService;
+
 
 	@RequestMapping(value = "/diff_test")
 	public ModelAndView diffTest() {
 		return new ModelAndView("diff_test");
 	}
+	
+	@RequestMapping(value = "/test")
+	public String test() throws Exception {
+		return naverService.testBrowser();
+	}
+	
+
 
 	/***
 	 * 게시물 작성입니다. 글쓰기 폼 페이지로 이동합니다.
@@ -96,7 +109,7 @@ public class BoardController {
 	public ModelAndView updateFormTest(int board_id, int version, String cookie_id, String created_time, String content,
 		int file_id, String subject, HttpServletRequest req) throws Exception {
 
-		boardService.makeTempBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time, content,
+		boardTempService.makeTempBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time, content,
 			file_id, subject);
 		return new ModelAndView("boardUpdateTest");
 	}

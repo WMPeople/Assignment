@@ -60,7 +60,63 @@ $(function(){
 		}
 
 		var formData = new FormData($("#fileForm")[0]);
-		console.log(fileUp);
+	    $.ajax({                
+	        type: "post",
+	        contentType: false,
+	        processData: false,
+	        url: "/assignment/boards",
+	        data: formData,
+	        success: function(result){
+	        	if(result.result == "success"){
+	        	
+	        	}
+	        	else{
+	        		alert(result.result);
+	        	}
+	        },
+	    	error : function(xhr, status, error) {
+	    		alert(error);
+	    	}
+	    });
+	    
+	    $.ajax({                
+	        type: "post",
+	        contentType: false,
+	        processData: false,
+	        url: "/assignment/boards",
+	        data: formData,
+	        success: function(result){
+	        	if(result.result == "success"){
+	
+	        	}
+	        	else{
+	        		alert(result.result);
+	        	}
+	        },
+	    	error : function(xhr, status, error) {
+	    		alert(error);
+	    	}
+	    });
+	    
+	    $.ajax({                
+	        type: "post",
+	        contentType: false,
+	        processData: false,
+	        url: "/assignment/boards",
+	        data: formData,
+	        success: function(result){
+	        	if(result.result == "success"){
+	        	
+	        	}
+	        	else{
+	        		alert(result.result);
+	        	}
+	        },
+	    	error : function(xhr, status, error) {
+	    		alert(error);
+	    	}
+	    });
+	    
 	    $.ajax({                
 	        type: "post",
 	        contentType: false,

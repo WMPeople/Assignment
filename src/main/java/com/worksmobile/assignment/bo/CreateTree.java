@@ -104,7 +104,7 @@ public class CreateTree {
 		ObjectNode link = mapper.createObjectNode();
 		String nodeLinkStr;
 		if(children.size() == 0) {
-			nodeLinkStr = String.format("%s/boards/%d/%d/%s", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion(), Board.LEAF_NODE_COOKIE_ID);
+			nodeLinkStr = String.format("%s/boards/%d/%d", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion());
 		} else {
 			nodeLinkStr = String.format("%s/history/%d/%d", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion());
 		}
