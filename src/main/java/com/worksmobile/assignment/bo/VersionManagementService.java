@@ -32,13 +32,13 @@ public class VersionManagementService {
 
 	@Autowired
 	private BoardService boardService;
-	
+
 	@Autowired
 	private BoardHistoryService boardHistoryService;
-	
+
 	@Autowired
 	private BoardTempService boardTempService;
-	
+
 	/***
 	 * 한 게시글과 연관된 모든 게시글 이력을 반환합니다.
 	 * @param leafPtr 가져올 리프 노드 포인터.(board_id, version만 사용)
@@ -52,7 +52,8 @@ public class VersionManagementService {
 			throw new NotLeafNodeException("leaf node 정보" + leafPtrJson);
 		}
 
-		Map<Map.Entry<Integer, Integer>, BoardHistory> boardHisotryMap = boardHistoryService.getHistoryMap(board.getRoot_board_id());
+		Map<Map.Entry<Integer, Integer>, BoardHistory> boardHisotryMap = boardHistoryService
+			.getHistoryMap(board.getRoot_board_id());
 		List<BoardHistory> relatedHistoryList = new ArrayList<>(boardHisotryMap.size());
 
 		NodePtr curPosPtr = leafPtr;
@@ -93,37 +94,38 @@ public class VersionManagementService {
 	 * @param parentNodePtr 게시물의 부모 노드 포인터
 	 * @return 새롭게 생성된 게시글 이력 
 	 */
-	private BoardHistory createArticleAndHistory(Board article, int version, final String status, final NodePtr parentNodePtr) {
-		if(parentNodePtr == null) {
+	private BoardHistory createArticleAndHistory(Board article, int version, final String status,
+		final NodePtr parentNodePtr) {
+		if (parentNodePtr == null) {
 			throw new RuntimeException("createArticleAndHistory메소드 parentNodePtr은 null 이 될 수 없습니다. ");
 		}
-		if(article.getSubject().length() == 0) {
+		if (article.getSubject().length() == 0) {
 			throw new RuntimeException("제목이 비어있을 수 없습니다.");
 		}
-		if(article.getContent() == null || article.getContent().length() == 0) {
+		if (article.getContent() == null || article.getContent().length() == 0) {
 			throw new RuntimeException("내용이 null 이거나 비어 있습니다. content : " + article.getContent());
 		}
 
 		BoardHistory createdHistory;
-		if(version == 0) {	// 루트 노드일 경우
+		if (version == 0) { // 루트 노드일 경우
 			BoardHistory rootHistory = boardHistoryService.createInvisibleRoot();
-			
+
 			createdHistory = boardHistoryService.createVisibleRoot(article, rootHistory, status);
 		} else {// 루트가 아닌 리프 노드일 경우 (중간 노드일 경우는 없음)
 			createdHistory = boardHistoryService.createLeafHistory(article, version, status, parentNodePtr);
 		}
-		
+
 		article.setNodePtr(createdHistory);
 		article.setCreated_time(createdHistory.getCreated_time());
-		
+
 		int insertedRowCnt = boardMapper.createBoard(article);
-		if(insertedRowCnt != 1) {
+		if (insertedRowCnt != 1) {
 			throw new RuntimeException("createArticle메소드에서 createBoard error" + createdHistory);
 		}
-		
+
 		return createdHistory;
 	}
-	
+
 	/***
 	 * 버전 복구 기능입니다. board DB및  boardHistory 둘다 등록 됩니다.
 	 * @param recoverPtr 복구할 버전에 대한 포인터.
@@ -162,7 +164,7 @@ public class VersionManagementService {
 		deleteParams.put("cookie_id", cookieId);
 		boardTempService.deleteBoardTemp(deleteParams);
 
-		if(modifiedBoard.getContent() == null || modifiedBoard.getContent().length() == 0) {
+		if (modifiedBoard.getContent() == null || modifiedBoard.getContent().length() == 0) {
 			throw new RuntimeException("내용이 null 이거나 비어 있습니다. content : " + modifiedBoard.getContent());
 		}
 		return createVersionWithBranch(modifiedBoard, parentPtr, BoardHistory.STATUS_MODIFIED);
@@ -204,9 +206,9 @@ public class VersionManagementService {
 
 		List<BoardHistory> deleteNodeChildren = boardHistoryMapper.selectChildren(deletePtr);
 		boardService.deleteBoardAndAutoSave(deletePtr);
-		boardService.deleteBoardHistory(deletePtr);
+		boardService.deleteBoardHistoryAndAutoSave(deletePtr);
 
-		if(deleteNodeChildren.size() == 0) {	// 리프 노드라면
+		if (deleteNodeChildren.size() == 0) { // 리프 노드라면
 			// 이력 및 게시글을 지웁니다.
 			BoardHistory parentHistory = boardHistoryMapper.selectHistory(parentPtr);
 
@@ -215,7 +217,7 @@ public class VersionManagementService {
 
 			if (brothers.size() == 0) {
 				if (parentHistory.isInvisibleRoot()) {// 부모가 안보이는 루트만 존재있으면 삭제합니다.
-					boardService.deleteBoardHistory(parentHistory);
+					boardService.deleteBoardHistoryAndAutoSave(parentHistory);
 				} else { // 부모가 안보이는 루트가 아닌 노드는 board테이블에 존재해야 함.
 					parent.setContent(Compress.deCompressHistoryContent(parentHistory));
 					int createdCnt = boardMapper.createBoard(parent);
@@ -263,8 +265,8 @@ public class VersionManagementService {
 			BoardHistory deleteHistory = boardHistoryMapper.selectHistory(leafPtr);
 			NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
 
-			boardService.deleteBoardAndAutoSave(leafPtr);
-			boardService.deleteBoardHistory(leafPtr);
+			//			boardService.deleteBoardAndAutoSave(leafPtr);
+			boardService.deleteBoardHistoryAndAutoSave(leafPtr);
 
 			List<BoardHistory> brothers = boardHistoryMapper.selectChildren(parentPtr);
 
@@ -275,6 +277,5 @@ public class VersionManagementService {
 			leafPtr = parentPtr;
 		}
 	}
-	
 
 }
