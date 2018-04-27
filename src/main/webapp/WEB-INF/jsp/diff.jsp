@@ -6,6 +6,7 @@
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
 <script src="${pageContext.request.contextPath}/js/diff_match_patch.js"></script>
+<script src="${pageContext.request.contextPath}/js/replace_and_restore.js"></script>
 <script src="${pageContext.request.contextPath}/js/diff_match_custom.js"></script>
 <link rel="stylesheet"
 	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
