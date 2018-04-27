@@ -36,18 +36,18 @@ import com.worksmobile.assignment.util.JsonUtils;
 public class VersionManagementServiceMultiThreadTest {
 
 	@Autowired
-	VersionManagementService versionManagementService;
+	private VersionManagementService versionManagementService;
 	
 	@Autowired
-	BoardMapper boardMapper;
+	private  BoardMapper boardMapper;
 	
 	@Autowired
-	BoardHistoryMapper boardHistoryMapper;
+	private BoardHistoryMapper boardHistoryMapper;
 
 	@Rule
-	public ErrorCollector collector = new ErrorCollector();
+	private ErrorCollector collector = new ErrorCollector();
 	
-	private final static int THREAD_COUNT = 100;
+	private final static int THREAD_COUNT = 20000;
 	
 	private Board defaultBoard;
 	private BoardHistory defaultCreated;

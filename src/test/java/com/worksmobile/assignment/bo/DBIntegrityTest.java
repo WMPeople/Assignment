@@ -37,16 +37,13 @@ import com.worksmobile.assignment.util.JsonUtils;
 public class DBIntegrityTest {
 
 	@Autowired
-	BoardMapper boardMapper;
+	private BoardMapper boardMapper;
 	
 	@Autowired
-	BoardHistoryMapper boardHistoryMapper;
+	private BoardHistoryMapper boardHistoryMapper;
 	
 	@Autowired
-	FileMapper fileMapper;
-	
-	@Autowired
-	BoardService boardService;
+	private FileMapper fileMapper;
 	
 	@Rule
 	public ErrorCollector collector = new ErrorCollector();

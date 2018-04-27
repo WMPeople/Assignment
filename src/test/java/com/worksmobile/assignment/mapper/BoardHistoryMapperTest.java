@@ -41,13 +41,13 @@ import com.worksmobile.assignment.util.JsonUtils;
 public class BoardHistoryMapperTest {
 
 	@Autowired
-	BoardHistoryMapper boardHistoryMapper;
+	private BoardHistoryMapper boardHistoryMapper;
 
 	@Autowired
-	BoardMapper boardMapper;
+	private BoardMapper boardMapper;
 	
 	@Autowired
-	FileMapper fileMapper;
+	private FileMapper fileMapper;
 
 	private static BoardHistory defaultHistory;
 	private static NodePtr defaultNodePtr;

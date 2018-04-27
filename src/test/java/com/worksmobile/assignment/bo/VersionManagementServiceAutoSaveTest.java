@@ -19,8 +19,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.mapper.BoardMapper;
+import com.worksmobile.assignment.mapper.BoardTempMapper;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
+import com.worksmobile.assignment.model.BoardTemp;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
@@ -34,18 +36,22 @@ import com.worksmobile.assignment.util.JsonUtils;
 public class VersionManagementServiceAutoSaveTest {
 
 	@Autowired
-	VersionManagementService versionManagementService;
+	private VersionManagementService versionManagementService;
 
 	@Autowired
-	BoardMapper boardMapper;
-
+	private BoardMapper boardMapper;
+	
 	@Autowired
-	BoardHistoryMapper boardHistoryMapper;
+	private BoardHistoryMapper boardHistoryMapper;
+	
+	@Autowired
+	private BoardTempService boardTempService;
 
 	private Board defaultBoard;
 	private BoardHistory defaultCreated;
 	private static final String DEFAULT_JUNIT_COOKIE_ID = "JunitCookieId";
-	private Board autoSaveArticle = new Board();
+	private static final String DEFAULT_CREATED_TIME = "2018-04-26 오전 11:10:32";
+	private BoardTemp autoSaveArticle = new BoardTemp();
 
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
@@ -60,9 +66,7 @@ public class VersionManagementServiceAutoSaveTest {
 		autoSaveArticle.setNodePtr(defaultCreated);
 		autoSaveArticle.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
 
-		int createdCnt = boardMapper.boardCreate(autoSaveArticle); // TODO : 함수이름이 create인데 생성을 안함 변경 필요.
-		assertEquals(1, createdCnt);
-		autoSaveArticle = versionManagementService.createTempArticleOverwrite(autoSaveArticle, null);
+		boardTempService.makeTempBoard(defaultBoard.getBoard_id(), defaultBoard.getVersion(), DEFAULT_JUNIT_COOKIE_ID, DEFAULT_CREATED_TIME, autoSaveArticle.getContent(), autoSaveArticle.getFile_id(), autoSaveArticle.getSubject());
 	}
 
 	private NodePtr makeChild(NodePtr parentPtr) throws JsonProcessingException {
@@ -83,16 +87,16 @@ public class VersionManagementServiceAutoSaveTest {
 		return childPtr;
 	}
 
-	private Board makeAutoSave(NodePtr nodePtr) {
-		Board autoSave = new Board();
+	private BoardTemp makeAutoSave(NodePtr nodePtr) {
+		BoardTemp autoSave = new BoardTemp();
 		autoSave.setSubject("autoSaveSub");
 		autoSave.setContent("autoSaveCont");
 		autoSave.setNodePtr(nodePtr);
 		autoSave.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
 		if (boardMapper.viewDetail(autoSave.toMap()) == null) {
-			boardMapper.boardCreate(autoSave); // TODO : 함수이름이 create인데 생성을 안함 변경 필요.
+			boardTempService.makeTempBoard(autoSave.getBoard_id(), autoSave.getVersion(), DEFAULT_JUNIT_COOKIE_ID, DEFAULT_CREATED_TIME, autoSave.getContent(), autoSave.getFile_id(), autoSave.getSubject());
 		}
-		versionManagementService.createTempArticleOverwrite(autoSave, null);
+		boardTempService.createTempArticleOverwrite(autoSave, null);
 		return autoSave;
 	}
 
@@ -118,7 +122,7 @@ public class VersionManagementServiceAutoSaveTest {
 		NodePtr hasChildPtr = childrenList.get(0);
 		NodePtr leafPtr = makeChild(hasChildPtr);
 
-		Board autoSave = makeAutoSave(leafPtr);
+		BoardTemp autoSave = makeAutoSave(leafPtr);
 
 		versionManagementService.deleteArticle(leafPtr);
 
@@ -133,7 +137,7 @@ public class VersionManagementServiceAutoSaveTest {
 		NodePtr middlePtr = makeChild(rootPtr);
 		NodePtr childPtr = makeChild(middlePtr);
 
-		Board autoSave = makeAutoSave(middlePtr);
+		BoardTemp autoSave = makeAutoSave(middlePtr);
 
 		versionManagementService.deleteVersion(middlePtr);
 
