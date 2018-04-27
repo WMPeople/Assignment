@@ -168,9 +168,11 @@ DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, re
 		replaceStack.push(rtn);
 	}
 	if(typeof regularExpArr != 'undefined') {
-		var regularExp = regularExpArr.pop();
-		var rtn = this.cleanupRegularExp(regularExp);
-		replaceStack.push(rtn);
+		for(var i = 0; i < regularExpArr.length; i++) {
+			var regularExp = regularExpArr[i];
+			var rtn = this.cleanupRegularExp(regularExp);
+			replaceStack.push(rtn);
+		}
 	}
 	// 사전 필터 끝
 	
@@ -193,8 +195,10 @@ DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, re
 
 	// 변경 무시 옵션에 따른 사전 필터 복원 시작
 	if(typeof regularExp != 'undefined') {
-		var replace = replaceStack.pop();
-		d1 = this.restoreRegularExp(d1, replace.getText1Match(), replace.getText2Match());
+		for(var i = 0; i < regularExpArr.length; i++) {
+			var replace = replaceStack.pop();
+			d1 = this.restoreRegularExp(d1, replace.getText1Match(), replace.getText2Match());
+		}
 	}
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
@@ -225,9 +229,7 @@ function launch() {
 	var text1 = document.getElementById('text1').value;
 	var text2 = document.getElementById('text2').value;
 	var caseSensitive = $('#caseSensitive').is(':checked');
-	var regularExpChkBox = $('#regularExpChkBox').is(':checked');
-	var regularExp = $('#regularExp').val();
-	var regularExpOpt = $("#regularExpOpt").val();
+	var regularExpListChildren = $('#regularList').children();
 	var ignoreWhiteCharCnt = $("#ignoreWhiteCharCnt").val();
 	var whiteCharPri = $('#whiteCharPriorityOpt').prop("checked");
 	var regExpPri = $('#regularExpPriorityOpt').prop("checked");
@@ -240,10 +242,14 @@ function launch() {
 
 	var diffMatch = new DiffMatchCustom(2, 4, caseSensitive, text1, text2);
 	var ds;
-	if(regularExpChkBox){
+	if(regularExpListChildren.length != 0){
 		var regularExpArr = [];
-		var re = new RegExp(regularExp, regularExpOpt);
-		regularExpArr.push(re);
+		for(var i = 0; i < regularExpListChildren.length; i++) {
+			var regularExp = regularExpListChildren.find('#regularExp')[i].value;
+			var regularExpOpt = regularExpListChildren.find("#regularExpOpt")[i].value;
+			var re = new RegExp(regularExp, regularExpOpt);
+			regularExpArr.push(re);
+		}
 		ds = diffMatch.start(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExpArr, pri);
 	} else {
 		ds = diffMatch.start(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt);
@@ -269,16 +275,14 @@ function chagnePriorityDisabled() {
 	}
 }
 
-function regularChkboxChanged(){
-	var checkbox = document.getElementById("regularExpChkBox");
-	var regularOptSpan = document.getElementById("regularOptSpan");
-	
-	if(checkbox.checked == true) {
-		regularOptSpan.style.display = "block";
-	} else {
-		regularOptSpan.style.display = "none";
-	}
-	chagnePriorityDisabled();
+function add_item() {
+	var span = document.createElement('span');
+	span.innerHTML = document.getElementById('pre_set').innerHTML;
+    document.getElementById('regularList').appendChild(span);
+}
+
+function remove_item(obj) {
+	document.getElementById('regularList').removeChild(obj.parentNode);
 }
 
 function isNumeric(n) {

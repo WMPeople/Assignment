@@ -12,15 +12,23 @@
 <body>
 	<h2>Demo of Diff</h2>
 	<span class="tooltip">
-	<label for="regularExpChkBox">정규식 On/Off </label><input type="checkbox" id="regularExpChkBox" onchange="regularChkboxChanged()"/>
-		<span class="tooltiptext">정규식에 해당되는 것들은 비교에서 같은 것으로 나옵니다.</span>
+	정규식 <input type="button" value="add" onclick="add_item()"/>
+		<span class="tooltiptext">정규식에 해당되는 것들은 비교에서 같은 것으로 나옵니다.(순차적으로 적용됩니다)</span>
 	</span>
-	<span id="regularOptSpan" style="display:none">
-	<label for="regularExp">정규식</label><input type="text" id="regularExp" value="&lt;br&gt;|&lt;/br&gt;"/>
-		<span class="tooltip">
-		<label for="regularExpOpt">옵션</label><input type="text" id="regularExpOpt" value="g"/>
-			<span class="tooltiptext">옵션에는 g, i 가 올수 있습니다.</span>
+	<span id="pre_set" style="display:none">
+		<span id="regularOptSpan">
+		<label for="regularExp">정규식</label><input type="text" id="regularExp" value="&lt;br&gt;|&lt;/br&gt;"/>
+			<span class="tooltip">
+			<label for="regularExpOpt">옵션</label><input type="text" id="regularExpOpt" value="g"/>
+				<span class="tooltiptext">옵션에는 g, i 가 올수 있습니다.</span>
+			</span>
 		</span>
+		<input type="button" value="delete" onclick="remove_item(this)" />
+		<br>
+	</span>
+	<br>
+
+	<span id="regularList">
 	</span>
 	<br>
 	<label for="caseSensitive">대소문자 구분하기</label><input type="checkbox" id="caseSensitive" checked="checked" />
@@ -50,6 +58,7 @@ ABCDEFG
 
 &lt;br&gt;
 
+&lt;/div&gt;
 
 피감기관 돈 외유·후원금으로 퇴직금 지급·보좌직원과 해외출장·출장시 관광
 
@@ -77,7 +86,11 @@ ABCDEFG
 					<h3>Text Version 2:</h3> <textarea id="text2" style="width: 100%" rows="10">
 abcdefg
 
+&lt;div&gt;
+
 &lt;/br&gt;
+
+&lt;div&gt;
 
 피감기관 돈 외유·후원금으로 퇴직금 지급·보좌직원과 해외출장·출장시 관광
 
