@@ -17,7 +17,7 @@ import com.worksmobile.assignment.model.NodePtr;
 @Mapper
 public interface BoardTempMapper {
 	// TODO 내용수정
-	public int boardTempCreate(BoardTemp boardTemp);
+	public int createBoardTemp(BoardTemp boardTemp);
 
 	/**
 	 * 관련된 자동 저장 게시글도 같이 삭제됩니다.
@@ -25,6 +25,8 @@ public interface BoardTempMapper {
 	 * @return
 	 */
 	public int deleteBoardTemp(HashMap<String, Object> parmas);
+	
+	public int deleteBoardTempWithoutCookieId(HashMap<String, Object> parmas);
 	
 	public int deleteBoardTempWithCookieId(HashMap<String, Object> parmas);
 

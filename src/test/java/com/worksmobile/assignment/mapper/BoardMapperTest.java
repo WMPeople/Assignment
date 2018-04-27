@@ -54,7 +54,7 @@ public class BoardMapperTest {
     	{
 			boardMapper.deleteBoardAndAutoSave(defaultBoard.toMap());
     	}
-		boardMapper.boardCreate(defaultBoard);
+		boardMapper.createBoard(defaultBoard);
 			
 		Board insertedVO = null;
 		insertedVO = boardMapper.viewDetail(defaultBoard.toMap());
@@ -72,7 +72,7 @@ public class BoardMapperTest {
     	{
     		boardMapper.deleteBoardAndAutoSave(beforeVO.toMap());
     	}
-    	boardMapper.boardCreate(beforeVO);
+    	boardMapper.createBoard(beforeVO);
     	
 
 		Board afterVO = new Board();

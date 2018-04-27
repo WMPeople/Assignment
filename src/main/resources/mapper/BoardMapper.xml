@@ -24,7 +24,7 @@
     </select>
     
 	<!--  board_history와 동시에 넣어져야함. -->
-    <insert id="boardCreate" parameterType="com.worksmobile.assignment.model.Board">
+    <insert id="createBoard" parameterType="com.worksmobile.assignment.model.Board">
         INSERT INTO board
         (board_id,version,subject,content,created_time,file_id,root_board_id)
         VALUES (#{board_id}, #{version},#{subject},#{content},#{created_time},#{file_id},#{root_board_id});
