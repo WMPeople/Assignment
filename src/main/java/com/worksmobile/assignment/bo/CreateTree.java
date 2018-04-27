@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
@@ -104,7 +103,7 @@ public class CreateTree {
 		ObjectNode link = mapper.createObjectNode();
 		String nodeLinkStr;
 		if(children.size() == 0) {
-			nodeLinkStr = String.format("%s/boards/%d/%d/%s", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion(), Board.LEAF_NODE_COOKIE_ID);
+			nodeLinkStr = String.format("%s/boards/%d/%d", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion());
 		} else {
 			nodeLinkStr = String.format("%s/history/%d/%d", servletContext.getContextPath(), nodePtr.getBoard_id(), nodePtr.getVersion());
 		}

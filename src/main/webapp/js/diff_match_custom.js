@@ -117,37 +117,34 @@ DiffMatchCustom.prototype.cleanupWhiteCharater = function(leastRepeatCnt) {
 	var r = leastRepeatCnt;
 	var whiteCharRegularExp = '(\t{' + r + ',}|\n{' + r + ',}|\r{' + r + ',}|\ {' + r + ',})';
 	var re = new RegExp(whiteCharRegularExp, 'g');
-	var replace = new Replace(this.text1, this.text2, re, false);
+	var replace = new Replace(re, false);
 	
-	var matchRtn = replace.doReplace();
-	this.text1 = replace.getText1();
-	this.text2 = replace.getText2();
+	var matchRtn = replace.doReplace(this.text1, this.text2);
+	this.text1 = matchRtn[0];
+	this.text2 = matchRtn[1];
 	
-	this.whiteSpaceText1Match = matchRtn[0];
-	this.whiteSpaceText2Match = matchRtn[1];
+	return replace;
 }
 
-DiffMatchCustom.prototype.cleanupRegularExp = function(regularExp, regularExpOpt) {
-	var re = new RegExp(regularExp, regularExpOpt);
-	var replace = new Replace(this.text1, this.text2, re, true);
+DiffMatchCustom.prototype.cleanupRegularExp = function(regularExp) {
+	var replace = new Replace(regularExp, true);
 	
-	var matchRtn = replace.doReplace();
-	this.text1 = replace.getText1();
-	this.text2 = replace.getText2();
+	var matchRtn = replace.doReplace(this.text1, this.text2);
+	this.text1 = matchRtn[0];
+	this.text2 = matchRtn[1];
 	
-	this.text1Match = matchRtn[0];
-	this.text2Match = matchRtn[1];
+	return replace;
 }
 
-DiffMatchCustom.prototype.restoreWhiteSpace = function(diffs) {
+DiffMatchCustom.prototype.restoreWhiteSpace = function(diffs, text1Match, text2Match) {
 	var replacedChar = '';
-	var restore = new Restore(this.whiteSpaceText1Match, this.whiteSpaceText2Match, diffs, '');
+	var restore = new Restore(text1Match, text2Match, diffs, '');
 	return restore.doRestore();
 }
 
-DiffMatchCustom.prototype.restoreRegularExp = function(diffs) {
+DiffMatchCustom.prototype.restoreRegularExp = function(diffs, text1Match, text2Match) {
 	var replacedChar = '\0';	
-	var restore = new Restore(this.text1Match, this.text2Match, diffs, replacedChar);
+	var restore = new Restore(text1Match, text2Match, diffs, replacedChar);
 	return restore.doRestore();
 }
 
@@ -159,18 +156,21 @@ DiffMatchCustom.prototype.restoreRegularExp = function(diffs) {
  * @param {Number} priority 공백 및 개행 무시 우선이면 1, 정규식 무시 우선이면 0 입니다.
  * @return {!Array.<String>} 비교한 후의 html 입니다. 0이 왼쪽, 1이 오른쪽입니다.
  */
-DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, regularExp, regularExpOpt, priority) {
+DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, regularExpArr, priority) {
 	var ms_start = (new Date()).getTime();
 	
-	var text1Match, text2Match;
+	var replaceStack = new Array();
 	// 변경 무시 옵션에 따른 무시 사전 필터 시작
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
 			priority == 1) {
-		this.cleanupWhiteCharater(ignoreWhiteCharCnt);
+		var rtn = this.cleanupWhiteCharater(ignoreWhiteCharCnt);
+		replaceStack.push(rtn);
 	}
-	if(typeof regularExp != 'undefined') {
-		this.cleanupRegularExp(regularExp, regularExpOpt);
+	if(typeof regularExpArr != 'undefined') {
+		var regularExp = regularExpArr.pop();
+		var rtn = this.cleanupRegularExp(regularExp);
+		replaceStack.push(rtn);
 	}
 	// 사전 필터 끝
 	
@@ -193,12 +193,14 @@ DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, re
 
 	// 변경 무시 옵션에 따른 사전 필터 복원 시작
 	if(typeof regularExp != 'undefined') {
-		d1 = this.restoreRegularExp(d1);
+		var replace = replaceStack.pop();
+		d1 = this.restoreRegularExp(d1, replace.getText1Match(), replace.getText2Match());
 	}
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
 			priority == 1) {
-		d1 = this.restoreWhiteSpace(d1);
+		var replace = replaceStack.pop();
+		d1 = this.restoreWhiteSpace(d1, replace.getText1Match(), replace.getText2Match());
 	}
 	// 사전 필터 복원 끝
 
@@ -239,7 +241,10 @@ function launch() {
 	var diffMatch = new DiffMatchCustom(2, 4, caseSensitive, text1, text2);
 	var ds;
 	if(regularExpChkBox){
-		ds = diffMatch.start(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExp, regularExpOpt, pri);
+		var regularExpArr = [];
+		var re = new RegExp(regularExp, regularExpOpt);
+		regularExpArr.push(re);
+		ds = diffMatch.start(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExpArr, pri);
 	} else {
 		ds = diffMatch.start(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt);
 	}
