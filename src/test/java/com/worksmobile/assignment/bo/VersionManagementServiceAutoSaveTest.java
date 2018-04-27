@@ -34,19 +34,22 @@ import com.worksmobile.assignment.util.JsonUtils;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class VersionManagementServiceAutoSaveTest {
-
-	@Autowired
-	private VersionManagementService versionManagementService;
-
+	
 	@Autowired
 	private BoardMapper boardMapper;
+	
+	@Autowired
+	private BoardTempMapper boardTempMapper;
 	
 	@Autowired
 	private BoardHistoryMapper boardHistoryMapper;
 	
 	@Autowired
 	private BoardTempService boardTempService;
-
+	
+	@Autowired
+	private VersionManagementService versionManagementService;
+	
 	private Board defaultBoard;
 	private BoardHistory defaultCreated;
 	private static final String DEFAULT_JUNIT_COOKIE_ID = "JunitCookieId";
@@ -93,16 +96,16 @@ public class VersionManagementServiceAutoSaveTest {
 		autoSave.setContent("autoSaveCont");
 		autoSave.setNodePtr(nodePtr);
 		autoSave.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
-		if (boardMapper.viewDetail(autoSave.toMap()) == null) {
-			boardTempService.makeTempBoard(autoSave.getBoard_id(), autoSave.getVersion(), DEFAULT_JUNIT_COOKIE_ID, DEFAULT_CREATED_TIME, autoSave.getContent(), autoSave.getFile_id(), autoSave.getSubject());
-		}
+		boardTempService.makeTempBoard(autoSave.getBoard_id(), autoSave.getVersion(), DEFAULT_JUNIT_COOKIE_ID, DEFAULT_CREATED_TIME, autoSave.getContent(), autoSave.getFile_id(), autoSave.getSubject());
 		boardTempService.createTempArticleOverwrite(autoSave, null);
 		return autoSave;
 	}
 
 	@Test
 	public void testCreateAutoSaveArticle() throws IOException {
-		Board dbTempArticle = boardMapper.viewDetail(autoSaveArticle.toMap());
+		BoardTemp dbTempArticle = boardTempMapper.viewDetail(autoSaveArticle.toMap());
+		// 만든 시간은 비교하지 않습니다. 
+		dbTempArticle.setCreated_time(null);
 		JsonUtils.assertConvertToJsonObject(autoSaveArticle.toMap(), dbTempArticle.toMap());
 		JsonUtils.assertConvertToJsonObject(autoSaveArticle, dbTempArticle);
 	}
@@ -126,7 +129,7 @@ public class VersionManagementServiceAutoSaveTest {
 
 		versionManagementService.deleteArticle(leafPtr);
 
-		Board dbAutoSavedArticle = boardMapper.viewDetail(autoSave.toMap());
+		BoardTemp dbAutoSavedArticle = boardTempMapper.viewDetail(autoSave.toMap());
 		assertNull(dbAutoSavedArticle);
 	}
 
@@ -146,7 +149,7 @@ public class VersionManagementServiceAutoSaveTest {
 
 		assertEquals(rootPtr, childParentPtr);
 
-		Board dbAutoSaveArticle = boardMapper.viewDetail(autoSaveArticle.toMap());
+		BoardTemp dbAutoSaveArticle = boardTempMapper.viewDetail(autoSaveArticle.toMap());
 		assertNotNull(dbAutoSaveArticle);
 		Board dbAtuoSave = boardMapper.viewDetail(autoSave.toMap());
 		assertNull(dbAtuoSave);
