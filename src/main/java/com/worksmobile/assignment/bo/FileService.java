@@ -15,11 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-
-import com.worksmobile.assignment.mapper.BoardHistoryMapper;
-import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.mapper.FileMapper;
-import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.File;
 
 /***
@@ -27,12 +23,6 @@ import com.worksmobile.assignment.model.File;
  */
 @Service
 public class FileService {
-
-	@Autowired
-	private BoardMapper boardMapper;
-
-	@Autowired
-	private BoardHistoryMapper boardHistoryMapper;
 
 	@Autowired
 	FileMapper fileMapper;

@@ -26,6 +26,11 @@ import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
+/**
+ * 게시글 버전관리의 충돌 영역 테스트를 진행합니다
+ * @author khh
+ *
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class VersionManagementServiceMultiThreadTest {

@@ -8,7 +8,7 @@ $(function(){
              data : formData,
              processData : false,
              contentType : false,
-             url : "/assignment/boards/autosavewithfile",
+             url : "/assignment/autos/autosavewithfile",
              success : function(result) {
                  if (result.result == 'success') {
                      console.log("자동 저장 성공");
@@ -30,7 +30,7 @@ $(function(){
             data : formData,
             processData : false,
             contentType : false,
-            url : "/assignment/boards/autosavewithfile",
+            url : "/assignment/autos/autosavewithfile",
             success : function(result) {
                 if (result.result == 'success') {
                     console.log("자동 저장 성공");
@@ -51,7 +51,7 @@ $(function(){
                 data : formData,
                 processData : false,
                 contentType : false,
-                url : "/assignment/boards/autosavewithfile",
+                url : "/assignment/autos/autosavewithfile",
                 success : function(result) {
                     if (result.result == 'success') {
                         console.log("자동 저장 성공");

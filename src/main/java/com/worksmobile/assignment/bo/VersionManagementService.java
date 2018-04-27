@@ -36,6 +36,9 @@ public class VersionManagementService {
 	@Autowired
 	private BoardHistoryService boardHistoryService;
 	
+	@Autowired
+	private BoardTempService boardTempService;
+	
 	/***
 	 * 한 게시글과 연관된 모든 게시글 이력을 반환합니다.
 	 * @param leafPtr 가져올 리프 노드 포인터.(board_id, version만 사용)
@@ -154,11 +157,11 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public NodePtr modifyVersion(Board modifiedBoard, NodePtr parentPtr, String cookieId) {
-		if (!Board.LEAF_NODE_COOKIE_ID.equals(cookieId)) {
-			HashMap<String, Object> deleteParams = modifiedBoard.toMap();
-			deleteParams.put("cookie_id", cookieId);
-			boardService.deleteBoardWithCookieId(deleteParams);
-		}
+
+		HashMap<String, Object> deleteParams = modifiedBoard.toMap();
+		deleteParams.put("cookie_id", cookieId);
+		boardTempService.deleteBoardTemp(deleteParams);
+
 		if(modifiedBoard.getContent() == null || modifiedBoard.getContent().length() == 0) {
 			throw new RuntimeException("내용이 null 이거나 비어 있습니다. content : " + modifiedBoard.getContent());
 		}
@@ -177,7 +180,7 @@ public class VersionManagementService {
 		NodePtr dbParentPtr = boardHistoryMapper.selectHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
 		List<BoardHistory> childrenList = boardHistoryMapper.selectChildren(dbParentPtr);
 		if (childrenList.size() == 0) {
-			boardService.deleteBoardWithCookieId(dbParentPtr.toMap());
+			boardService.deleteBoard(dbParentPtr.toMap());
 			board.setBoard_id(dbParentPtr.getBoard_id());
 		} else {
 			board.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
@@ -273,36 +276,5 @@ public class VersionManagementService {
 		}
 	}
 	
-	// TODO : 함수명이 임시 게시글을 만든다 이지만, 만들고 있지 않습니다.
-	// TODO : 매개 변수명 type의 의미를 파악하기 힘듭니다. 또한 type이 "withfile"일 경우만 분기를 나뉘는데, 그러한 목적이면 String일 필요가 없을것 같습니다.
-	@Transactional
-	public Board createTempArticleOverwrite(Board tempArticle, String type) {
-		tempArticle.setRoot_board_id(tempArticle.getBoard_id()); // getHistoryByRootId에서 검색이 가능하도록
-
-		Board dbTempArticle = boardMapper.viewDetail(tempArticle.toMap());
-		if (dbTempArticle != null) {
-			if (("withfile").equals(type)) {
-				int articleUpdatedCnt = boardMapper.boardUpdate(tempArticle);
-				if (articleUpdatedCnt != 1) {
-					String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
-					throw new RuntimeException(
-						"createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
-							"articleUpdatedCnt : " + articleUpdatedCnt);
-				}
-
-			} else {
-				int articleUpdatedCnt = boardMapper.boardUpdateWithoutFile(tempArticle);
-				if (articleUpdatedCnt != 1) {
-					String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
-					throw new RuntimeException(
-						"createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
-							"articleUpdatedCnt : " + articleUpdatedCnt);
-				}
-			}
-		} else {
-			boardService.copyBoardAndCreateTempBoard(tempArticle);
-		}
-		return tempArticle;
-	}
 
 }

@@ -16,6 +16,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.NodePtr;
 
+/**
+ * 게시글 테이블에 대한 매퍼 테스트입니다.
+ * @author khh
+ *
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @Ignore

@@ -18,6 +18,11 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import com.worksmobile.assignment.AssignmentApplication;
 
 
+/**
+ * DB연결 테스트 클래스입니다.
+ * @author khh
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = AssignmentApplication.class)
 @WebAppConfiguration

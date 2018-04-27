@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.nhncorp.lucy.security.xss.XssPreventer;
-import com.worksmobile.assignment.bo.BoardService;
+import com.worksmobile.assignment.bo.BoardTempService;
 import com.worksmobile.assignment.bo.CookieService;
 import com.worksmobile.assignment.bo.FileService;
 import com.worksmobile.assignment.bo.PageService;
@@ -60,13 +60,13 @@ public class BoardController {
 	private CookieService cookieService;
 
 	@Autowired
-	private BoardService boardService;
+	private BoardTempService boardTempService;
 
 	@RequestMapping(value = "/diff_test")
 	public ModelAndView diffTest() {
 		return new ModelAndView("diff_test");
 	}
-	
+
 	/***
 	 * 게시물 작성입니다. 글쓰기 폼 페이지로 이동합니다.
 	 */
@@ -79,10 +79,11 @@ public class BoardController {
 	 * 게시물 수정 버튼을 눌렀을 때 자동 저장 게시글이 없으면 만들고, 수정 페이지로 이동합니다.
 	 */
 	@RequestMapping(value = "/boards/update", method = RequestMethod.POST)
-	public ModelAndView updateForm(int board_id, int version, String cookie_id, String created_time, String content,
+	public ModelAndView updateForm(int board_id, int version, String created_time, String content,
 		int file_id, String subject, HttpServletRequest req) throws Exception {
 
-		boardService.makeTempBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time, content,
+		boardTempService.makeTempBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time,
+			content,
 			file_id, subject);
 		return new ModelAndView("boardUpdate");
 	}
@@ -169,15 +170,13 @@ public class BoardController {
 	 * @param version 상세 조회 할 게시물의 version
 	 * @return 상세보기 화면과 게시물 내용이 맵 형태로 리턴됩니다.
 	 */
-	@RequestMapping(value = "/boards/{board_id}/{version}/{cookie_id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/boards/{board_id}/{version}", method = RequestMethod.GET)
 	public ModelAndView show(@PathVariable(value = "board_id") int board_id,
-		@PathVariable(value = "version") int version,
-		@PathVariable(value = "cookie_id") String cookie_id) {
+		@PathVariable(value = "version") int version) {
 
 		HashMap<String, Object> params = new HashMap<String, Object>();
 		params.put("board_id", board_id);
 		params.put("version", version);
-		params.put("cookie_id", cookie_id);
 
 		Board board = boardMapper.viewDetail(params);
 		if (board == null) {
@@ -243,7 +242,6 @@ public class BoardController {
 	@RequestMapping(value = "/boards/updatewithoutattachment", method = RequestMethod.POST)
 	public Map<String, Object> updateWithoutAttachment(Board board, MultipartHttpServletRequest attachment,
 		HttpServletRequest req) {
-		System.out.println(board.getCookie_id());
 		Map<String, Object> resultMap = new HashMap<>();
 		File file = fileService.multiFileToFile(attachment);
 
@@ -277,8 +275,6 @@ public class BoardController {
 
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		try {
-
-			board.setCookie_id(Board.LEAF_NODE_COOKIE_ID);
 			Board pastBoard = boardMapper.viewDetail(board.toMap());
 			if (pastBoard == null) {
 				String json = JsonUtils.jsonStringIfExceptionToString(pastBoard);

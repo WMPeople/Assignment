@@ -28,7 +28,7 @@ public class CreateTreeController {
 	@ResponseBody
 	@RequestMapping(value = "/displayTree/api/{root_board_id}", method = RequestMethod.GET)
 	public String treeApi(@PathVariable(value = "root_board_id") int rootBoardId) {
-		ObjectNode node = createTree.main(rootBoardId);
+		ObjectNode node = createTree.createTree(rootBoardId);
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			return mapper.writeValueAsString(node);

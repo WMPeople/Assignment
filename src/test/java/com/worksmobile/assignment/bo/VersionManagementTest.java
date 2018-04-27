@@ -26,6 +26,11 @@ import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
+/**
+ * 이력 관리에 기능들에 대한 테스트입니다.
+ * @author khh
+ *
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class VersionManagementTest {
@@ -47,8 +52,8 @@ public class VersionManagementTest {
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
 		defaultBoard = new Board();
-		defaultBoard.setSubject("versionTestSub");
-		defaultBoard.setContent("versionTestCont");
+		defaultBoard.setSubject("초기글");
+		defaultBoard.setContent("맨 처음에 작성한 글입니다.");
 
 		defaultCreated = versionManagementService.createArticle(defaultBoard);
 	}
@@ -335,7 +340,7 @@ public class VersionManagementTest {
 	
 	@Test
 	public void testGetRelatedHistoryWhenDifferentBoardId() throws JsonProcessingException, NotLeafNodeException {
-		List<NodePtr> leafToRoot = new ArrayList<>();
+List<NodePtr> leafToRoot = new ArrayList<>();
 		NodePtr rootPtr = defaultCreated;
 		leafToRoot.add(rootPtr);
 		
@@ -382,4 +387,5 @@ public class VersionManagementTest {
 			assertEquals(dbBoard.getBoard_id(), ele.getBoard_id());
 		}
 	}
+	
 }
