@@ -45,9 +45,7 @@ public class BoardService {
 	public int deleteBoardAndAutoSave(NodePtr deleteNodePtr) {
 		List<Board> boardList = boardMapper.getBoardList(deleteNodePtr);
 		List<BoardTemp> boardTempList = boardTempMapper.getBoardTempList(deleteNodePtr);
-		if (boardList.size() == 0) {
-			return 0;
-		}
+
 		Set<Integer> fileIdSet = new HashSet<>();
 		for (Board ele : boardList) {
 			fileIdSet.add(ele.getFile_id());
@@ -56,8 +54,15 @@ public class BoardService {
 		for (BoardTemp ele : boardTempList) {
 			fileIdSet.add(ele.getFile_id());
 		}
-		int deletedCnt = boardTempMapper.deleteBoardTempWithoutCookieId(deleteNodePtr.toMap());
-		deletedCnt += boardMapper.deleteBoard(deleteNodePtr.toMap());
+
+		int deletedCnt = 0;
+		if (boardList.size() != 0) {
+			deletedCnt += boardMapper.deleteBoard(deleteNodePtr.toMap());
+		}
+
+		if (boardTempList.size() != 0) {
+			deletedCnt += boardTempMapper.deleteBoardTempWithoutCookieId(deleteNodePtr.toMap());
+		}
 
 		fileService.deleteNoMoreUsingFile(fileIdSet);
 
@@ -65,8 +70,8 @@ public class BoardService {
 	}
 
 	/***
-	 * 만약, 존재하지 않는 게시글이라면 삭제 되지 않습니다.
-	 * @param deleteParams 삭제할 board의 board_id, version, cookie_id를 사용합니다.
+	 * 게시글을 삭제합니다. 만약, 존재하지 않는 게시글이라면 삭제 되지 않습니다.
+	 * @param deleteParams 삭제할 board의 board_id, version를 사용합니다.
 	 * @return 삭제 되었는지 여부
 	 */
 	public boolean deleteBoard(HashMap<String, Object> deleteParams) {
@@ -87,12 +92,24 @@ public class BoardService {
 
 		return true;
 	}
-
-	public void deleteBoardHistory(NodePtr deleteNodePtr) {
+	/**
+	 * 이력과 이력에 있는 임시 저장 게시글을 삭제합니다.
+	 * @param deleteNodePtr
+	 */
+	public void deleteBoardHistoryAndAutoSave(NodePtr deleteNodePtr) {
 		BoardHistory history = boardHistoryMapper.selectHistory(deleteNodePtr);
+		List<BoardTemp> boardTempList = boardTempMapper.getBoardTempList(deleteNodePtr);
 		Set<Integer> fileIdSet = new HashSet<>(1);
 		fileIdSet.add(history.getFile_id());
 
+		for (BoardTemp ele : boardTempList) {
+			fileIdSet.add(ele.getFile_id());
+		}
+
+		if (boardTempList.size() != 0) {
+			boardTempMapper.deleteBoardTempWithoutCookieId(deleteNodePtr.toMap());
+		}
+		
 		int deletedCnt = boardHistoryMapper.deleteHistory(deleteNodePtr);
 		if (deletedCnt != 1) {
 			String json = JsonUtils.jsonStringIfExceptionToString(deleteNodePtr);

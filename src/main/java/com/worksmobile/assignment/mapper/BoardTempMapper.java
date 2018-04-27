@@ -28,8 +28,6 @@ public interface BoardTempMapper {
 	
 	public int deleteBoardTempWithoutCookieId(HashMap<String, Object> parmas);
 	
-	public int deleteBoardTempWithCookieId(HashMap<String, Object> parmas);
-
 	public int boardTempUpdateWithoutFile(BoardTemp boardTemp);
 
 	public int boardTempUpdate(BoardTemp boardTemp);

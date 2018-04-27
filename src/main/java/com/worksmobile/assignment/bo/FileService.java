@@ -84,6 +84,9 @@ public class FileService {
 	 * @param fileIdSet fileId 집합이 들어 있습니다.
 	 */
 	public void deleteNoMoreUsingFile(Set<Integer> fileIdSet) {
+		if (fileIdSet.isEmpty()) {
+			throw new RuntimeException(fileIdSet.size() + "fileIdSet이 비어있습니다.");
+		}
 		List<Integer> fileIdList = new ArrayList<Integer>();
 		fileIdList.addAll(fileIdSet);
 		HashMap<String, List<Integer>> param = new HashMap<>();
