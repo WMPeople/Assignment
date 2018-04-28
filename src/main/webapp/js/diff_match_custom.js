@@ -256,7 +256,7 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 var queueCnt = 0;	// 다른 곳에서 쓰면 다른 값. 다른 곳은 1, 
 DiffMatchCustom.prototype.doTask = function() {
 	if(this.taskQueue.length > 0) {
-		if(window.queueCnt == 0) {
+		if(queueCnt == 0) {
 			var task = this.taskQueue.shift();
 			task(window.diffMatchCustom);
 		}
