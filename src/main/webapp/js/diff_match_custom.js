@@ -19,7 +19,7 @@ const cleanupOpt = Object.freeze({
  * @param {String} text1 비교할 왼쪽 문자입니다.
  * @param {String} text2 비교할 오른쪽 문자입니다.
  */
-function DiffMatchCustom(Diff_Timeout, Diff_EditCost, Diff_IgnoreCase, text1, text2) {
+function DiffMatchCustom(Diff_Timeout, Diff_EditCost, Diff_IgnoreCase, text1, text2, leftOutputSelector, rightOutputSelector) {
 	this.dmp = new diff_match_patch();	
 	this.dmp.Diff_Timeout = parseFloat(Diff_Timeout);
 	this.dmp.Diff_EditCost = parseFloat(Diff_EditCost);
@@ -32,6 +32,12 @@ function DiffMatchCustom(Diff_Timeout, Diff_EditCost, Diff_IgnoreCase, text1, te
 	this.text2 = text2;
 	this.originText2 = text2;
 	this.isPreFilterOn = true;
+	this.ms_start;
+	this._replaceStack = new Array();
+	this.taskQueue = new Array();
+	this.diffRtn;
+	this.leftOutputSelector = leftOutputSelector;
+	this.rightOutputSelector = rightOutputSelector;
 }
 
 /**
@@ -106,29 +112,23 @@ DiffMatchCustom.prototype.ignoreWhiteCharater = function(diffs, leastRepeatCnt) 
 	return diffs;
 }
 
-// TODO : 공백 제거 -> 정규식 제거 -> diff 알고리즘 -> 정규식 복구 -> 공백 복구
-// TODO : 공백 복구시에는 replaceChar가 ''으로 되어야 하고, replaceLength = 0 이어야 합니다. 
-// TODO : 정규식 복구와 공백 복구가 하나의 함수에서 처리가 가능할 것으로 보입니다.
 /**
- * 공백 문자를 무시합니다.
+ * 공백 문자를 무시할 정규식을 반환합니다.
  * @param {Number} leastRepeatCnt 개행, 공백, 탭 옵션용입니다. 이 개수 이상부터 같다고 판단합니다.
  */
-DiffMatchCustom.prototype.cleanupWhiteCharater = function(leastRepeatCnt) {
+DiffMatchCustom.prototype.getWhiteCharacterRegExp = function(leastRepeatCnt) {
 	var r = leastRepeatCnt;
 	var whiteCharRegularExp = '(\t{' + r + ',}|\n{' + r + ',}|\r{' + r + ',}|\ {' + r + ',})';
-	var re = new RegExp(whiteCharRegularExp, 'g');
-	var replace = new Replace(re, false);
-	
-	var matchRtn = replace.doReplace(this.text1, this.text2);
-	this.text1 = matchRtn[0];
-	this.text2 = matchRtn[1];
-	
-	return replace;
+	return new RegExp(whiteCharRegularExp, 'g');
 }
 
-DiffMatchCustom.prototype.cleanupRegularExp = function(regularExp) {
-	var replace = new Replace(regularExp, true);
-	
+/**
+ * @param {RegExp} regExp
+ * @param {Boolean} withReplaceChar
+ * @return {Replace}
+ */
+DiffMatchCustom.prototype.doReplace = function(regExp, withReplaceChar) {
+	var replace = new Replace(regExp, withReplaceChar);
 	var matchRtn = replace.doReplace(this.text1, this.text2);
 	this.text1 = matchRtn[0];
 	this.text2 = matchRtn[1];
@@ -148,6 +148,17 @@ DiffMatchCustom.prototype.restoreRegularExp = function(diffs, text1Match, text2M
 	return restore.doRestore();
 }
 
+DiffMatchCustom.prototype.replaceWhiteCharacter = function(ignoreWhiteCharCnt) {
+	var regExp = this.getWhiteCharacterRegExp(ignoreWhiteCharCnt);
+	var rtn = this.doReplace(regExp, false);
+	this._replaceStack.push(rtn);
+}
+
+DiffMatchCustom.prototype.replaceRegularExp = function(regularExp) {
+	var rtn = this.doReplace(regularExp, true);
+	this._replaceStack.push(rtn);
+}
+
 /***
  * @param text1 비교할 텍스트 1입니다.(보통 왼쪽)
  * @param text2 비교할 텍스트 2입니다.(보통 오른쪽)
@@ -156,55 +167,68 @@ DiffMatchCustom.prototype.restoreRegularExp = function(diffs, text1Match, text2M
  * @param {Number} priority 공백 및 개행 무시 우선이면 1, 정규식 무시 우선이면 0 입니다.
  * @return {!Array.<String>} 비교한 후의 html 입니다. 0이 왼쪽, 1이 오른쪽입니다.
  */
-DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, regularExpArr, priority) {
-	var ms_start = (new Date()).getTime();
+DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCnt, regularExpArr, priority) {
+	this.ms_start = (new Date()).getTime();
 	
-	var replaceStack = new Array();
+	
 	// 변경 무시 옵션에 따른 무시 사전 필터 시작
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
 			priority == 1) {
-		var rtn = this.cleanupWhiteCharater(ignoreWhiteCharCnt);
-		replaceStack.push(rtn);
+		//this.taskQueue.push(this.replaceWhiteCharacter(ignoreWhiteCharCnt));
+		this.taskQueue.push(function whiteChar(diffCustom) {
+			var regExp = diffCustom.getWhiteCharacterRegExp(ignoreWhiteCharCnt);
+			var rtn = diffCustom.doReplace(regExp, false);
+			diffCustom._replaceStack.push(rtn);
+		});
 	}
-	if(typeof regularExpArr != 'undefined') {
+	if(typeof regularExpArr != 'undefined') {		// 여기를 함수로 빼자
 		for(var i = 0; i < regularExpArr.length; i++) {
-			var regularExp = regularExpArr[i];
-			var rtn = this.cleanupRegularExp(regularExp);
-			replaceStack.push(rtn);
+			var pushEle = function (regExp) {
+				return function (diffCustom) {
+					diffCustom.replaceRegularExp(regExp);
+				}
+			}
+			this.taskQueue.push(pushEle(regularExpArr[i]));
 		}
 	}
-	// 사전 필터 끝
+	this.taskQueue.push(function doDiffMain(diffCustom) {
+		diffCustom.diffRtn = diffCustom.dmp.diff_main(diffCustom.text1, diffCustom.text2);
+	});
 	
-	var d1 = this.dmp.diff_main(this.text1, this.text2);
-	
-	// 결과를 clean up 합니다.
-	switch(cleanupOption) {
-	case cleanupOpt.sementicCleanup:
-		this.dmp.diff_cleanupSemantic(d1);
-		break;
-		
-	case cleanupOpt.efficiencyCleanup:
-		this.dmp.diff_cleanupEfficiency(d1);
-		break;
-	
-	case cleanupOpt.noCleanup:
-	default:
+	this.taskQueue.push(function cleanupTask(diffCustom) {
+		// 결과를 clean up 합니다.
+		switch(cleanupOption) {
+		case cleanupOpt.sementicCleanup:
+			diffCustom.dmp.diff_cleanupSemantic(diffCustom.diffRtn);
 			break;
-	}
-
+			
+		case cleanupOpt.efficiencyCleanup:
+			diffCustom.dmp.diff_cleanupEfficiency(diffCustom.diffRtn);
+			break;
+		
+		case cleanupOpt.noCleanup:
+		default:
+				break;
+		}
+	});
+	
 	// 변경 무시 옵션에 따른 사전 필터 복원 시작
-	if(typeof regularExp != 'undefined') {
+	if(typeof regularExp != 'undefined') {	// 함수로 빼야 할듯?
 		for(var i = 0; i < regularExpArr.length; i++) {
-			var replace = replaceStack.pop();
-			d1 = this.restoreRegularExp(d1, replace.getText1Match(), replace.getText2Match());
+			this.taskQueue.push(function recoverRegExp(diffCustom) {
+				var replace = diffCustom._replaceStack.pop();
+				diffCustom.diffRtn = diffCustom.restoreRegularExp(diffCustom.diffRtn, replace.getText1Match(), replace.getText2Match());
+			});
 		}
 	}
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
 			priority == 1) {
-		var replace = replaceStack.pop();
-		d1 = this.restoreWhiteSpace(d1, replace.getText1Match(), replace.getText2Match());
+		this.taskQueue.push(function recoverWhiteSpace(diffCustom) {
+			var replace = diffCustom._replaceStack.pop();
+			diffCustom.diffRtn = diffCustom.restoreWhiteSpace(diffCustom.diffRtn, replace.getText1Match(), replace.getText2Match());
+		});
 	}
 	// 사전 필터 복원 끝
 
@@ -212,19 +236,35 @@ DiffMatchCustom.prototype.start = function(cleanupOption, ignoreWhiteCharCnt, re
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
 			priority == 0) {
-		d1 = this.ignoreWhiteCharater(d1, ignoreWhiteCharCnt);
+		this.taskQueue.push(function ignoreWhiteCharacter(diffCustom) {
+			diffCustom.diffRtn = diffCustom.ignoreWhiteCharater(diffCustom.diffRtn, ignoreWhiteCharCnt);
+		});
 	}
 
-	var ds = this.dmp.diff_prettyHtml(d1, '', this.originText2);
+	this.taskQueue.push(function prettyAndDisplay(diffCustom) {
+		var ds = diffCustom.dmp.diff_prettyHtml(diffCustom.diffRtn, '', diffCustom.originText2);
+		
+		var ms_end = (new Date()).getTime();
+		console.log("전체 소요 시간 : " + (ms_end - diffCustom.ms_start) / 1000);
+		
+		document.getElementById(diffCustom.leftOutputSelector).innerHTML = ds[0];
+		document.getElementById(diffCustom.rightOutputSelector).innerHTML = ds[1];
+	});
 
-	console.log(d1);
-
-	var ms_end = (new Date()).getTime();
-	console.log("전체 소요 시간 : " + (ms_end - ms_start) / 1000);
-	
-	return ds;
+	this.doTask();
+}
+var queueCnt = 0;	// 다른 곳에서 쓰면 다른 값. 다른 곳은 1, 
+DiffMatchCustom.prototype.doTask = function() {
+	if(this.taskQueue.length > 0) {
+		if(window.queueCnt == 0) {
+			var task = this.taskQueue.shift();
+			task(window.diffMatchCustom);
+		}
+		window.setTimeout(this.doTask(), 100);
+	}
 }
 
+var diffMatchCustom;
 function launch() {
 	var text1 = document.getElementById('text1').value;
 	var text2 = document.getElementById('text2').value;
@@ -240,7 +280,7 @@ function launch() {
 		pri = 0;
 	}
 
-	var diffMatch = new DiffMatchCustom(2, 4, caseSensitive, text1, text2);
+	diffMatchCustom = new DiffMatchCustom(2, 4, caseSensitive, text1, text2, 'outputdivLeft', 'outputdivRight');
 	var ds;
 	if(regularExpListChildren.length != 0){
 		var regularExpArr = [];
@@ -250,13 +290,10 @@ function launch() {
 			var re = new RegExp(regularExp, regularExpOpt);
 			regularExpArr.push(re);
 		}
-		ds = diffMatch.start(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExpArr, pri);
+		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExpArr, pri);
 	} else {
-		ds = diffMatch.start(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt);
+		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt);
 	}
-
-	document.getElementById('outputdivLeft').innerHTML = ds[0];
-	document.getElementById('outputdivRight').innerHTML = ds[1];
 }
 
 function chagnePriorityDisabled() {
@@ -293,7 +330,7 @@ function isInt(n) {
 	   return n % 1 === 0;
 }
 
-function ignoreWhiteSpaceChagned() {
+function onIgnoreWhiteSpaceChagned() {
 	var ignoreWhiteSpace = document.getElementById("ignoreWhiteCharCnt");
 	if(!isNumeric(ignoreWhiteSpace.value)) {
 		ignoreWhiteSpace.value = 0;
