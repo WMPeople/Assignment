@@ -38,6 +38,7 @@ function DiffMatchCustom(Diff_Timeout, Diff_EditCost, Diff_IgnoreCase, text1, te
 	this.diffRtn;
 	this.leftOutputSelector = leftOutputSelector;
 	this.rightOutputSelector = rightOutputSelector;
+	this.replace;
 }
 
 /**
@@ -128,12 +129,21 @@ DiffMatchCustom.prototype.getWhiteCharacterRegExp = function(leastRepeatCnt) {
  * @return {Replace}
  */
 DiffMatchCustom.prototype.doReplace = function(regExp, withReplaceChar) {
-	var replace = new Replace(regExp, withReplaceChar);
-	var matchRtn = replace.doReplace(this.text1, this.text2);
+	this.replace = new Replace(regExp, withReplaceChar, this.text1, this.text2);
+	this.replace.doReplaceWithTask();
+
+	return this.replace;
+}
+
+/**
+ * replace가 async하게 작동하므로, 반환을 하지 않기에 replace가 완료되고 호출이 되어야 합니다.
+ */
+DiffMatchCustom.prototype.applyTextAndPush = function(replace) {
+	var matchRtn = replace.getTextArr();
 	this.text1 = matchRtn[0];
 	this.text2 = matchRtn[1];
 	
-	return replace;
+	this._replaceStack.push(replace);
 }
 
 DiffMatchCustom.prototype.restoreWhiteSpace = function(diffs, text1Match, text2Match) {
@@ -146,17 +156,6 @@ DiffMatchCustom.prototype.restoreRegularExp = function(diffs, text1Match, text2M
 	var replacedChar = '\0';	
 	var restore = new Restore(text1Match, text2Match, diffs, replacedChar);
 	return restore.doRestore();
-}
-
-DiffMatchCustom.prototype.replaceWhiteCharacter = function(ignoreWhiteCharCnt) {
-	var regExp = this.getWhiteCharacterRegExp(ignoreWhiteCharCnt);
-	var rtn = this.doReplace(regExp, false);
-	this._replaceStack.push(rtn);
-}
-
-DiffMatchCustom.prototype.replaceRegularExp = function(regularExp) {
-	var rtn = this.doReplace(regularExp, true);
-	this._replaceStack.push(rtn);
 }
 
 /***
@@ -175,36 +174,40 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
 			priority == 1) {
-		//this.taskQueue.push(this.replaceWhiteCharacter(ignoreWhiteCharCnt));
-		this.taskQueue.push(function whiteChar(diffCustom) {
-			var regExp = diffCustom.getWhiteCharacterRegExp(ignoreWhiteCharCnt);
-			var rtn = diffCustom.doReplace(regExp, false);
-			diffCustom._replaceStack.push(rtn);
+		this.taskQueue.push(function whiteChar(thisPtr) {
+			var regExp = thisPtr.getWhiteCharacterRegExp(ignoreWhiteCharCnt);
+			thisPtr.doReplace(regExp, false);
+		});
+		this.taskQueue.push(function applyTextAndPush(thisPtr) {
+			thisPtr.applyTextAndPush(thisPtr.replace);
 		});
 	}
-	if(typeof regularExpArr != 'undefined') {		// 여기를 함수로 빼자
+	if(typeof regularExpArr != 'undefined') {
 		for(var i = 0; i < regularExpArr.length; i++) {
 			var pushEle = function (regExp) {
-				return function (diffCustom) {
-					diffCustom.replaceRegularExp(regExp);
+				return function (thisPtr) {
+					thisPtr.doReplace(regularExp, true);
 				}
 			}
 			this.taskQueue.push(pushEle(regularExpArr[i]));
+			this.taskQueue.push(function applyTextAndPush(thisPtr) {
+				thisPtr.applyTextAndPush(thisPtr.replace);
+			});
 		}
 	}
-	this.taskQueue.push(function doDiffMain(diffCustom) {
-		diffCustom.diffRtn = diffCustom.dmp.diff_main(diffCustom.text1, diffCustom.text2);
+	this.taskQueue.push(function doDiffMain(thisPtr) {
+		thisPtr.diffRtn = thisPtr.dmp.diff_main(thisPtr.text1, thisPtr.text2);
 	});
 	
-	this.taskQueue.push(function cleanupTask(diffCustom) {
+	this.taskQueue.push(function cleanupTask(thisPtr) {
 		// 결과를 clean up 합니다.
 		switch(cleanupOption) {
 		case cleanupOpt.sementicCleanup:
-			diffCustom.dmp.diff_cleanupSemantic(diffCustom.diffRtn);
+			thisPtr.dmp.diff_cleanupSemantic(thisPtr.diffRtn);
 			break;
 			
 		case cleanupOpt.efficiencyCleanup:
-			diffCustom.dmp.diff_cleanupEfficiency(diffCustom.diffRtn);
+			thisPtr.dmp.diff_cleanupEfficiency(thisPtr.diffRtn);
 			break;
 		
 		case cleanupOpt.noCleanup:
@@ -214,20 +217,22 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 	});
 	
 	// 변경 무시 옵션에 따른 사전 필터 복원 시작
-	if(typeof regularExp != 'undefined') {	// 함수로 빼야 할듯?
+	if(typeof regularExp != 'undefined') {
 		for(var i = 0; i < regularExpArr.length; i++) {
-			this.taskQueue.push(function recoverRegExp(diffCustom) {
-				var replace = diffCustom._replaceStack.pop();
-				diffCustom.diffRtn = diffCustom.restoreRegularExp(diffCustom.diffRtn, replace.getText1Match(), replace.getText2Match());
+			this.taskQueue.push(function recoverRegExp(thisPtr) {
+				var replace = thisPtr._replaceStack.pop();
+				var matchArr = replace.getTextMatchArr();
+				thisPtr.diffRtn = thisPtr.restoreRegularExp(thisPtr.diffRtn, matchArr[0], matchArr[1]);
 			});
 		}
 	}
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
 			priority == 1) {
-		this.taskQueue.push(function recoverWhiteSpace(diffCustom) {
-			var replace = diffCustom._replaceStack.pop();
-			diffCustom.diffRtn = diffCustom.restoreWhiteSpace(diffCustom.diffRtn, replace.getText1Match(), replace.getText2Match());
+		this.taskQueue.push(function recoverWhiteSpace(thisPtr) {
+			var replace = thisPtr._replaceStack.pop();
+			var matchArr = replace.getTextMatchArr();
+			thisPtr.diffRtn = thisPtr.restoreWhiteSpace(thisPtr.diffRtn, matchArr[0], matchArr[1]);
 		});
 	}
 	// 사전 필터 복원 끝
@@ -236,31 +241,32 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
 			priority == 0) {
-		this.taskQueue.push(function ignoreWhiteCharacter(diffCustom) {
-			diffCustom.diffRtn = diffCustom.ignoreWhiteCharater(diffCustom.diffRtn, ignoreWhiteCharCnt);
+		this.taskQueue.push(function ignoreWhiteCharacter(thisPtr) {
+			thisPtr.diffRtn = thisPtr.ignoreWhiteCharater(thisPtr.diffRtn, ignoreWhiteCharCnt);
 		});
 	}
 
-	this.taskQueue.push(function prettyAndDisplay(diffCustom) {
-		var ds = diffCustom.dmp.diff_prettyHtml(diffCustom.diffRtn, '', diffCustom.originText2);
+	this.taskQueue.push(function prettyAndDisplay(thisPtr) {
+		var ds = thisPtr.dmp.diff_prettyHtml(thisPtr.diffRtn, '', thisPtr.originText2);
 		
 		var ms_end = (new Date()).getTime();
-		console.log("전체 소요 시간 : " + (ms_end - diffCustom.ms_start) / 1000);
+		console.log("전체 소요 시간 : " + (ms_end - thisPtr.ms_start) / 1000);
 		
-		document.getElementById(diffCustom.leftOutputSelector).innerHTML = ds[0];
-		document.getElementById(diffCustom.rightOutputSelector).innerHTML = ds[1];
+		document.getElementById(thisPtr.leftOutputSelector).innerHTML = ds[0];
+		document.getElementById(thisPtr.rightOutputSelector).innerHTML = ds[1];
 	});
 
-	this.doTask();
+	this.doTask(this);
 }
+
 var queueCnt = 0;	// 다른 곳에서 쓰면 다른 값. 다른 곳은 1, 
-DiffMatchCustom.prototype.doTask = function() {
-	if(this.taskQueue.length > 0) {
+DiffMatchCustom.prototype.doTask = function(thisPtr) {
+	if(thisPtr.taskQueue.length > 0) {
 		if(queueCnt == 0) {
-			var task = this.taskQueue.shift();
-			task(window.diffMatchCustom);
+			var task = thisPtr.taskQueue.shift();
+			task(thisPtr);
 		}
-		window.setTimeout(this.doTask(), 100);
+		window.setTimeout(thisPtr.doTask.bind(null, thisPtr), 100);
 	}
 }
 
