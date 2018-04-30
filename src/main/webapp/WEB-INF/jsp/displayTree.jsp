@@ -17,7 +17,7 @@
     <script src="${pageContext.request.contextPath}/js/Treant.js"></script>
     <script src="${pageContext.request.contextPath}/js/create_tree.js"></script>
     <form action="javascript:displayTree()">
-		<input type="number" min="0" id="root_board_id"/>
+		<label for="root_board_id">루트 게시글 id : </label><input type="number" min="0" id="root_board_id"/>
 		<input type="submit" onClick="displayTree()" value="draw" />
     </form>
 </body>
