@@ -85,7 +85,7 @@ public class VersionManagementServiceAutoSaveTest {
 
 	private Board makeAutoSave(NodePtr nodePtr) {
 		Board autoSave = new Board();
-		autoSave.setSubject("autoSaveSub");
+		autoSave.setSubject("autoSaveSub");`
 		autoSave.setContent("autoSaveCont");
 		autoSave.setNodePtr(nodePtr);
 		autoSave.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);

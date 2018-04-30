@@ -15,6 +15,7 @@
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js"></script>
+<script src="${pageContext.request.contextPath}/js/crawling.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>게시물 상세보기</title>
@@ -57,5 +58,14 @@
 		</div>
 	</div>
 </div>
+<div id="naver">
+</div>
+<div id="kakao">
+</div>
+<div id="browser">
+</div>
+
+
+
 </body>
 </html>

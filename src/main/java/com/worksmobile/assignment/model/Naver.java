@@ -1,10 +1,10 @@
-package com.worksmobile.assignment.crawling;
+package com.worksmobile.assignment.model;
 
 import lombok.Getter;
 import lombok.Setter;
 
 /***
- * 파일 업로드 , 다운로드를 위한 모델입니다.
+ * 
  * @author rws
  *
  */
@@ -37,5 +37,20 @@ public class Naver {
 	@Setter @Getter private String category;	
 	@Setter @Getter private String mapy;	
 	@Setter @Getter private String mapx;	
+	
+	//블로그
+	@Setter @Getter private String title;
+	@Setter @Getter private String link;
+	@Setter @Getter private String description;
+	@Setter @Getter private String bloggername;
+	@Setter @Getter private String bloggerlink;
+	
+	//뉴스
+	@Setter @Getter private String title;
+	@Setter @Getter private String originallink;
+	@Setter @Getter private String link;
+	@Setter @Getter private String description;
+	@Setter @Getter private String pubDate;
+	
 
 }

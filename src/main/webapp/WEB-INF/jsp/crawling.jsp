@@ -41,7 +41,7 @@
 	네이버 정보
 	<c:if test="${type eq 'book'}">
 		<c:forEach var="jsonArray" items="${jsonArray}">
-			<li>
+			<li style="margin-bottom: 30px;">
 
 				<p class="book">
 					<a href="${jsonArray.link}" target="_blank"> <img
@@ -69,7 +69,7 @@
 	</c:if>
 	<c:if test="${type eq 'movie'}">
 		<c:forEach var="jsonArray" items="${jsonArray}">
-			<li>
+			<li style="margin-bottom: 40px;">
 				<p class="result_thumb">
 					<a href="${jsonArray.link}"><img src="${jsonArray.image}"
 						width="67" height="95" alt=""></a>
@@ -81,7 +81,7 @@
 					<dd class="point">평점 : 8.21</dd>
 
 					<dd class="director">감독 : ${jsonArray.director}</dd>
-					<dd class="actor">배우 : ${jsonArray.actor}</dd>
+					<dd class="actor" style="font-size:10px">배우 : ${jsonArray.actor}</dd>
 				</dl>
 			</li>
 		</c:forEach>

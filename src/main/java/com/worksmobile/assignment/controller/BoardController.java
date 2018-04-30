@@ -2,7 +2,6 @@
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,10 +19,8 @@ import com.nhncorp.lucy.security.xss.XssPreventer;
 import com.worksmobile.assignment.bo.BoardTempService;
 import com.worksmobile.assignment.bo.CookieService;
 import com.worksmobile.assignment.bo.FileService;
-import com.worksmobile.assignment.bo.NaverService;
 import com.worksmobile.assignment.bo.PageService;
 import com.worksmobile.assignment.bo.VersionManagementService;
-import com.worksmobile.assignment.crawling.NaverBrowserCrawlingTest;
 import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.mapper.FileMapper;
 import com.worksmobile.assignment.model.Board;
@@ -63,22 +60,11 @@ public class BoardController {
 
 	@Autowired
 	private BoardTempService boardTempService;
-	
-	@Autowired
-	private NaverService naverService;
-
 
 	@RequestMapping(value = "/diff_test")
 	public ModelAndView diffTest() {
 		return new ModelAndView("diff_test");
 	}
-	
-	@RequestMapping(value = "/test")
-	public String test() throws Exception {
-		return naverService.testBrowser();
-	}
-	
-
 
 	/***
 	 * 게시물 작성입니다. 글쓰기 폼 페이지로 이동합니다.
@@ -100,8 +86,7 @@ public class BoardController {
 			file_id, subject);
 		return new ModelAndView("boardUpdate");
 	}
-	
-	
+
 	/***
 	 * 테스트
 	 */
@@ -109,7 +94,8 @@ public class BoardController {
 	public ModelAndView updateFormTest(int board_id, int version, String cookie_id, String created_time, String content,
 		int file_id, String subject, HttpServletRequest req) throws Exception {
 
-		boardTempService.makeTempBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time, content,
+		boardTempService.makeTempBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time,
+			content,
 			file_id, subject);
 		return new ModelAndView("boardUpdateTest");
 	}
@@ -145,7 +131,7 @@ public class BoardController {
 		modelAndView.setViewName("boardDetail");
 		return modelAndView;
 	}
-	
+
 	/***
 	 * 첫 화면으로, 사용자가 요청한 페이지에 해당하는 게시물을 보여줍니다.
 	 * @param req pages 파라미터에 사용자가 요청한 페이지 번호가 있습니다.
