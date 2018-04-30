@@ -23,45 +23,6 @@ public class NaverAPIService {
 
 	public HashMap<String, Object> main(String temp1, String temp2, String temp3) {
 
-		//		String first = temp1;
-		//		String second = temp2;
-		//		String apiName = null;
-		//		String category = null;
-		//		if ("찾아가기 ".equals(first)) {
-		//			apiName = "map";
-		//			category = "geocode";
-		//		}
-		//
-		//		if ("책 ".equals(first)) {
-		//			apiName = "search";
-		//			category = "book";
-		//		}	
-		//
-		//		if ("영화 ".equals(first)) {
-		//			apiName = "search";
-		//			category = "movie";
-		//		}
-		//
-		//		if ("맛집 ".equals(first)) {
-		//			apiName = "search";
-		//			category = "local";
-		//		}
-		//		
-		//		if ("백과사전 ".equals(first)) {
-		//			apiName = "search";
-		//			category = "encyc";
-		//		}
-		//
-		//		if ("쇼핑 ".equals(first)) {
-		//			apiName = "search";
-		//			category = "shop";
-		//		}
-		//		
-		//		if ("뉴스 ".equals(first)) {
-		//			apiName = "search";
-		//			category = "shop";
-		//		}
-
 		try {
 			String text = URLEncoder.encode(temp3, "UTF-8");
 			/**
@@ -100,7 +61,7 @@ public class NaverAPIService {
 			}
 			Object obj = parser.parse(response.toString());
 			JSONObject jsonObj = (JSONObject)obj;
-			//			System.out.println(jsonObj);
+			System.out.println(jsonObj);
 			JSONArray items = (JSONArray)jsonObj.get("items");
 			for (int i = 0; i < items.size(); i++) {
 				System.out.println(items.get(i));

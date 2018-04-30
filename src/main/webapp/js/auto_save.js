@@ -21,7 +21,6 @@ $(function() {
 		}
 	});
 });
-
 function optionAutoSave() {
 		var autoSave = new Object();
 		(function(obj) {

@@ -69,7 +69,7 @@
  		 			pageContext.setAttribute("br", "<br/>"); 
                     --%>
 				<textarea name="content" id="content"
-					style="min-height: 500px; min-width: 700px;">${param.content}</textarea>
+					style="margin: 8px;min-height: 500px; min-width: 700px; padding: 0px;">${param.content}</textarea>
 				<div class="btn_area _btn_area">
 					<input type="text" name="board_id" id="board_id"
 						style="display: none;"

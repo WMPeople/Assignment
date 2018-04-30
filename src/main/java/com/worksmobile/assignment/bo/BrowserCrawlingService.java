@@ -17,7 +17,6 @@ public class BrowserCrawlingService {
 			// a 태그의 내용을 가져옵니다.
 			//            Elements elements = document.select("ul#type01 > li > dl > dt > a");
 			Elements elements = document.select("div.book_list.section > ul.type01 > li.sh_book_top");
-			
 			for (int i = 0; i < elements.size(); i++) {
 				System.out.println("------------------------------------------");
 				System.out.println("url : " + elements.get(i).select("dt > a").attr("href"));

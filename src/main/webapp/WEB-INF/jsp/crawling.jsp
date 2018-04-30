@@ -4,11 +4,11 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <!DOCTYPE html>
 <html lang="ko">
-
+<head>
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js"></script>
-<head>
+
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <!-- BootStrap CDN -->
 <link rel="stylesheet" href="css/jquery-ui-1.11.0.css">
@@ -72,14 +72,14 @@
 			<li style="margin-bottom: 40px;">
 				<p class="result_thumb">
 					<a href="${jsonArray.link}"><img src="${jsonArray.image}"
+					    onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
 						width="67" height="95" alt=""></a>
 				</p>
 				<dl>
 					<dt>
 						<a href="${jsonArray.link}">${jsonArray.title}</a>
 					</dt>
-					<dd class="point">평점 : 8.21</dd>
-
+					<dd class="point">평점 : ${jsonArray.userRating}</dd>
 					<dd class="director">감독 : ${jsonArray.director}</dd>
 					<dd class="actor" style="font-size:10px">배우 : ${jsonArray.actor}</dd>
 				</dl>
