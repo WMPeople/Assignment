@@ -2,6 +2,7 @@ package com.worksmobile.assignment.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -27,16 +28,10 @@ public class CreateTreeController {
 	
 	@ResponseBody
 	@RequestMapping(value = "/displayTree/api/{root_board_id}", method = RequestMethod.GET)
-	public String treeApi(@PathVariable(value = "root_board_id") int rootBoardId) {
+	public String treeApi(@PathVariable(value = "root_board_id") int rootBoardId) throws RuntimeException, JsonProcessingException{
 		ObjectNode node = createTree.createTree(rootBoardId);
 		ObjectMapper mapper = new ObjectMapper();
-		try {
-			return mapper.writeValueAsString(node);
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return "";
+		return mapper.writeValueAsString(node);
 	}
 	
 }
