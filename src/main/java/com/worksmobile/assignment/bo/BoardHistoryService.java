@@ -22,7 +22,7 @@ import com.worksmobile.assignment.util.JsonUtils;
 public class BoardHistoryService {
 
 	@Autowired
-	BoardHistoryMapper boardHistoryMapper;
+	private BoardHistoryMapper boardHistoryMapper;
 
 	public BoardHistory createInvisibleRoot() {
 		NodePtr nodePtr = new NodePtr(NodePtr.ISSUE_NEW_BOARD_ID, 0, NodePtr.ROOT_BOARD_ID);
@@ -77,7 +77,7 @@ public class BoardHistoryService {
 		return boardHistory;
 	}
 
-	Map<Map.Entry<Integer, Integer>, BoardHistory> getHistoryMap(int root_board_id) {
+	public Map<Map.Entry<Integer, Integer>, BoardHistory> getHistoryMap(int root_board_id) {
 		List<BoardHistory> historyList = boardHistoryMapper.selectHistoryByRootBoardId(root_board_id);
 		Map<Map.Entry<Integer, Integer>, BoardHistory> historyMap = new HashMap<>();
 		for (BoardHistory ele : historyList) {
