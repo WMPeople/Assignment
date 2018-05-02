@@ -340,7 +340,7 @@ public class VersionManagementTest {
 	
 	@Test
 	public void testGetRelatedHistoryWhenDifferentBoardId() throws JsonProcessingException, NotLeafNodeException {
-List<NodePtr> leafToRoot = new ArrayList<>();
+		List<NodePtr> leafToRoot = new ArrayList<>();
 		NodePtr rootPtr = defaultCreated;
 		leafToRoot.add(rootPtr);
 		
