@@ -20,7 +20,10 @@ $(function() {
 			};
 			obj.bindTimer = function() {
 				var textEle = document.querySelector('#content');
-				var textVal = textEle.value;
+				var textVal1 = textEle.value;
+				var textVal2 = textEle.value;
+				var textVal3 = textEle.value;
+				var textVal4 = textEle.value;
 				var ref1,
 					ref2 // 전 데이터, 전전 데이터
 
@@ -101,10 +104,10 @@ $(function() {
 						
 						
 						//테스트
-						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -0.5, 300, 1);
-						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -1, 200, 2);
-						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -2, 400, 3);
-						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 10, 10, -3, 1000, 4);
+						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 15, -0.4, 300, 1);
+						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 15, -0.7, 300, 2);
+						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 15, -0.8, 400, 3);
+						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 10,15, -1, 1000, 4);
 //						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 10, 7, -0.88, 200, 5);
 						//						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 9, 5, -0.5, 100,6);
 

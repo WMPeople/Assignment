@@ -88,6 +88,19 @@
                         type="text" name="version4" id="version4" style="display: none;"
                         value="1"> 
                         <!--                      테스트  -->
+                        
+                        <textarea name="content2" id="content2"
+                    style="display:none;"></textarea>
+                    <textarea name="content3" id="content3"
+                    style="display:none;"></textarea>
+                    <textarea name="content4" id="content4"
+                    style="display:none;"></textarea>
+                        
+                        
+                        
+                        
+                        
+                        
                         <script>
                         var board_id_test = Number($('#board_id').val());
                        
@@ -104,6 +117,12 @@
                         
                         
                          $('#board_id4').val(board_id_test4);
+                         
+                         
+                         
+                         
+                         
+                         
                         
                         </script>
                         

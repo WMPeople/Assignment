@@ -7,10 +7,6 @@
 <html>
 <link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/jquery-ui-1.11.0.css">
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 <link rel="stylesheet" type="text/css"
 	href="${pageContext.request.contextPath}/css/home.css">
 <link rel="stylesheet" type="text/css"
