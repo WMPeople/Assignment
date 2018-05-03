@@ -42,7 +42,7 @@
                 <textarea name="content3" id="content3" style="min-height: 500px; min-width: 700px;" readonly>${board.content}</textarea>
         </div>
         <div class="btn_box _btn_area _no_print">
-            <form action="/assignment/boards/update" method="post" style="display: inline;">
+            <form action="/assignment/boards/updateTest" method="post" style="display: inline;">
                 <input name="board_id" type="text" id="board_id" value="${board.board_id}" style="display:none;">
                 <input name="version" type="text" id="version" value="${board.version}" style="display:none;">
                 <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">

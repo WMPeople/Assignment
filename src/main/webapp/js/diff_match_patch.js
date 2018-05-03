@@ -143,6 +143,14 @@ diff_match_patch.prototype.diff_main = function(text1, text2,opt_checklines,
   text1 = text1.substring(commonlength);
   text2 = text2.substring(commonlength);
   
+  if(typeof this.Diff_Sensitive != 'undefined' &&
+		  this.Diff_Sensitive === false) {
+	  commonPrefixArg1 = text1.toUpperCase();
+	  commonPrefixArg2 = text2.toUpperCase();
+  } else {
+	  commonPrefixArg1 = text1;
+	  commonPrefixArg2 = text2;
+  }
   
   // Trim off common suffix (speedup).
   commonlength = this.diff_commonSuffix(commonPrefixArg1, commonPrefixArg2);

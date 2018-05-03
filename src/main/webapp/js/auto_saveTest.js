@@ -82,12 +82,16 @@ $(function() {
 								}
 							}
 						}
+						
+						
+						
+						
 						console.log(diff);
-						console.log(' 1 개수 : ' + addCount + ' , 8까지');
-						console.log('개행 수 : ' + newLineCount + ' , 10까지');
-						console.log('o-t/o : ' + stringSizeDifference + ' , -0.88까지');
-						console.log('사소한 변경 개수 : ' + minorCount + ' ');
-						console.log('추가된 문자열 길이 : ' + addLength + ' , 300이상');
+						console.log(' 1 개수 : ' + addCount );
+						console.log('개행 수 : ' + newLineCount);
+						console.log('o-t/o : ' + stringSizeDifference);
+						console.log('사소한 변경 개수 : ' + minorCount);
+						console.log('추가된 문자열 길이 : ' + addLength);
 						//버전업 조건
 						// addCount 새롭게 추가된 부분을 카운트 한다.
 						// newLineCount 개행이 추가된 부분을 카운트 한다.
@@ -99,8 +103,8 @@ $(function() {
 						//테스트
 						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -0.5, 300, 1);
 						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -1, 200, 2);
-						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -1.5, 400, 3);
-						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 10, 10, -0.88, 1000, 4);
+						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 6, 5, -2, 400, 3);
+						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 10, 10, -3, 1000, 4);
 //						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 10, 7, -0.88, 200, 5);
 						//						testFunction(addCount, newLineCount, stringSizeDifference, addLength, 9, 5, -0.5, 100,6);
 
@@ -244,7 +248,7 @@ function testFunction(addCount, newLineCount, stringSizeDifference, addLength, d
 			data : formData,
 			processData : false,
 			contentType : false,
-			url : "/assignment/boards/autosavewithoutfile",
+			url : "/assignment/autos/autosavewithoutfile",
 			success : function(result) {
 				if (result.result == 'success') {
 					document.getElementById('notice').innerText = new Date().toGMTString() + " 자동 저장 완료.";
