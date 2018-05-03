@@ -26,12 +26,12 @@ public class CreateTree {
 	private ServletContext servletContext;
 
 	// @return container, type, nodeStructure : <Node>
-	public ObjectNode createTree(int rootBoardId) {
+	public ObjectNode createTree(int rootBoardId) throws NoSuchRootId{
 		ObjectMapper mapper = new ObjectMapper();
 		
 		Map<Entry<Integer, Integer>, BoardHistory> map = boardHistoryService.getHistoryMap(rootBoardId);
 		if(map.size() == 0) {
-			throw new RuntimeException("이력이 존재하지 않는 게시글 id입니다. rootBoardId : " + rootBoardId);
+			throw new NoSuchRootId("rootBoardId : " + rootBoardId);
 		}
 
 		BoardHistory invisibleRootHistory = new BoardHistory();
