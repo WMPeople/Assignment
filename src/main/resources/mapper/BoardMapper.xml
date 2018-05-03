@@ -9,6 +9,7 @@
    <select id="articleList" resultType="com.worksmobile.assignment.model.Board" parameterType="hashmap">
 		SELECT board_id,version,subject,content,created_time,file_id,root_board_id 
 		FROM board
+		ORDER BY created_time DESC 
 		LIMIT #{offset}, #{noOfRecords};  
 	</select>
 	
