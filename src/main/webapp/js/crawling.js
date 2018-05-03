@@ -58,33 +58,6 @@ $(function() {
 		var url = "/assignment/api/browser/crawling/geocode/"
 				+ encodeURI(crawling_text);
 		 dialogFunction("naver", crawling_category, url);
-
-//		$.ajax({
-//			type : "GET",
-//			contentType : "application/json; charset=UTF-8",
-//			processData : false,
-//			contentType : false,
-//			url : url,
-//			async : false,
-//			success : function(result) {
-//				if (result != '') {
-//					$("#" + "naver").dialog({
-//						autoOpen : false,
-//						open : function() {
-//							$(this).load(result);
-//						},
-//						width : 400,
-//						height : 600,
-//						resizable : false,
-//						draggable : true
-//					});
-//					$("#" + "naver").dialog("open");
-//				}
-//			},
-//			error : function(xhr, status, error) {
-//				alert(' ');
-//			}
-//		});
 	}
 	
 	//네이버 크롤링
@@ -110,7 +83,7 @@ $(function() {
 });
 
 function dialogFunction(name, crawling_category, url) {
-	$("#" + name).dialog({
+	$("#dialog").dialog({
 				open : function() {
 					$(this).load(url);
 					$(this).parents(".ui-dialog").find(".ui-dialog-titlebar")

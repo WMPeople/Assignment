@@ -36,13 +36,13 @@ import com.worksmobile.assignment.util.JsonUtils;
 public class VersionManagementTest {
 
 	@Autowired
-	VersionManagementService versionManagementService;
+	private VersionManagementService versionManagementService;
 	
 	@Autowired
-	BoardMapper boardMapper;
+	private BoardMapper boardMapper;
 	
 	@Autowired
-	BoardHistoryMapper boardHistoryMapper;
+	private BoardHistoryMapper boardHistoryMapper;
 
 	private Board defaultBoard;
 	private BoardHistory defaultCreated;
@@ -340,7 +340,7 @@ public class VersionManagementTest {
 	
 	@Test
 	public void testGetRelatedHistoryWhenDifferentBoardId() throws JsonProcessingException, NotLeafNodeException {
-List<NodePtr> leafToRoot = new ArrayList<>();
+		List<NodePtr> leafToRoot = new ArrayList<>();
 		NodePtr rootPtr = defaultCreated;
 		leafToRoot.add(rootPtr);
 		

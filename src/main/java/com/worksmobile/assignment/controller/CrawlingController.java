@@ -6,10 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.worksmobile.assignment.bo.CrawlingService;
 
+@RestController
 public class CrawlingController {
 
 	@Autowired
@@ -26,11 +28,11 @@ public class CrawlingController {
 	public ModelAndView naverCrawling(@PathVariable String category, @PathVariable String text) throws Exception {
 		HashMap<String, Object> param = null;
 		if ("geocode".equals(category)) {
-			param = crawlingService.getNaverGeocodeCrawlingResult(text);
+			param = crawlingService.getNaverCrawlingResult(category, text);
 		} else if ("dictionary".equals(category)) {
-			param = crawlingService.getNaverDictionaryCrawlingResult(text);
+			param = crawlingService.getNaverCrawlingResult(category, text);
 		} else if ("place".equals(category)) {
-			param = crawlingService.getNaverPlaceCrawlingResult(text);
+			param = crawlingService.getNaverCrawlingResult(category, text);
 		}
 
 		if ("[]".equals(param.get("items").toString()) || param.get("items") == null) {

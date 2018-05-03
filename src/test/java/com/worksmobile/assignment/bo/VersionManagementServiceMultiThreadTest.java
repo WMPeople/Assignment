@@ -36,18 +36,18 @@ import com.worksmobile.assignment.util.JsonUtils;
 public class VersionManagementServiceMultiThreadTest {
 
 	@Autowired
-	VersionManagementService versionManagementService;
+	private VersionManagementService versionManagementService;
 	
 	@Autowired
-	BoardMapper boardMapper;
+	private  BoardMapper boardMapper;
 	
 	@Autowired
-	BoardHistoryMapper boardHistoryMapper;
+	private BoardHistoryMapper boardHistoryMapper;
 
 	@Rule
-	public ErrorCollector collector = new ErrorCollector();
+	private ErrorCollector collector = new ErrorCollector();
 	
-	private final static int THREAD_COUNT = 100;
+	private final static int THREAD_COUNT = 20000;
 	
 	private Board defaultBoard;
 	private BoardHistory defaultCreated;
@@ -146,7 +146,7 @@ public class VersionManagementServiceMultiThreadTest {
 	}
 	
 	@Test
-	public void testModifyAndDeleteVersion() throws JsonProcessingException {
+	public void testModifyAndDelete() throws JsonProcessingException {
 		int generationCnt = THREAD_COUNT;
 		List<NodePtr> generation = new ArrayList<>(generationCnt);
 		generation.add(defaultCreated);
@@ -159,7 +159,8 @@ public class VersionManagementServiceMultiThreadTest {
 		
 
 		int i = 0;
-		for(; i < THREAD_COUNT / 2; i++) {
+		
+		for(; i < THREAD_COUNT / 3; i++) {
 			Thread modifyThread = new Thread(()-> {
 				try {
 					List<BoardHistory> list = boardHistoryMapper.selectHistoryByRootBoardId(defaultCreated.getRoot_board_id());
@@ -182,8 +183,8 @@ public class VersionManagementServiceMultiThreadTest {
 		articleListParams.put("noOfRecords", Integer.MAX_VALUE);
 		int root_board_id = defaultCreated.getRoot_board_id();
 
-		for(; i < THREAD_COUNT; i++) {
-			Thread deleteThread = new Thread(()-> {
+		for(; i < THREAD_COUNT / 3 * 2; i++) {
+			Thread deleteVersionThread = new Thread(()-> {
 				try {
 					List<Board> sameRoot = boardMapper.articleList(articleListParams);
 					sameRoot.removeIf(item -> { return item.getRoot_board_id() != root_board_id; } );
@@ -197,7 +198,26 @@ public class VersionManagementServiceMultiThreadTest {
 					collector.addError(e);
 				}
 			});
-			threadList.add(deleteThread);
+			threadList.add(deleteVersionThread);
+		}
+		
+		for(; i < THREAD_COUNT; i++) {
+			Thread deleteArticleThread = new Thread(()-> {
+				try {
+					List<Board> sameRoot = boardMapper.articleList(articleListParams);
+					sameRoot.removeIf(item -> {return item.getRoot_board_id() != root_board_id; } );
+					int maxIdx = sameRoot.size() - 1;
+					int randIdx = (int) (Math.random() * maxIdx);
+					
+					NodePtr deletePtr = sameRoot.get(randIdx);
+					
+					versionManagementService.deleteArticle(deletePtr);
+					
+				} catch(Exception e) {
+					collector.addError(e);
+				}
+			});
+			threadList.add(deleteArticleThread);
 		}
 	}
 }

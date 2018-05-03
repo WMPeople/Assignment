@@ -26,125 +26,77 @@ public class CrawlingService {
 		return sdf.format(new Date());
 
 	}
-
+	
 	/***
-	 * 위치 정보를 html 파싱을 통해 가져옵니다.
-	 * @param notEncodeText
+	 * 네이버 브라우져 크롤링 결과를 hashmap을 이용하여 컨트롤러에 리턴합니다.
+	 * @param category geocode, dictionary, place가 옵니다.
+	 * @param notEncodeText utf-8로 인코딩 되기 전 text입니다.
 	 * @return
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public HashMap<String, Object> getNaverGeocodeCrawlingResult(String notEncodeText) throws Exception {
+	public HashMap<String, Object> getNaverCrawlingResult(String category, String notEncodeText) throws Exception {
 
 		String text = URLEncoder.encode(notEncodeText, "UTF-8");
-		String apiURL = "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=" + text; // json 결과
-		Document document = Jsoup.connect(apiURL).userAgent(
+		String url = null;
+		if ("geocode".equals(category)) {
+			url = "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=" + text; 
+		} else if ("dictionary".equals(category)) {
+			url = "http://endic.naver.com/search.nhn?sLn=kr&isOnlyViewEE=N&query=" + text;
+		} else if ("place".equals(category)) {
+			url = "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=맛집 "+ text;
+		} 
+		Document document = Jsoup.connect(url).userAgent(
 			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36")
 			.get();
 		if (null != document) {
-			Elements elements = document.select("#lcs_greenmap > div.local_map > div.detail > ul > li");
 			JSONArray items = new JSONArray();
 			JSONParser parser = new JSONParser();
 			Object obj;
-			for (int i = 0; i < elements.size(); i++) {
-				String json = "{ \"title\":\"" + elements.get(i).select("li > dl > dt > a").attr("title")
-					+ "\",\"address\":\"" + elements.get(i).select("dl > dd:nth-child(3) > span").attr("title") + "\""
-					+ ",\"link\":\"" + elements.get(i).select("dl > dd.txt_inline > a:nth-child(1)").attr("href") + "\""
-					+ ",\"hyper\":\"" + elements.get(i).select("dl > dt > a").attr("href") + "\"" + "}";
-				obj = parser.parse(json);
-				System.out.println(json);
-				items.add(obj);
-			}
-			HashMap<String, Object> param = new HashMap<>();
-			param.put("items", items);
-			param.put("type", "geocode");
-			return param;
-		} else {
-			return null;
-		}
-
-	}
-
-	/***
-	 * 영어사전 정보를 html 파싱을 통해 가져옵니다.
-	 * @param notEncodeText
-	 * @return
-	 * @throws Exception
-	 */
-	@SuppressWarnings("unchecked")
-	public HashMap<String, Object> getNaverDictionaryCrawlingResult(String notEncodeText) throws Exception {
-
-		String text = URLEncoder.encode(notEncodeText, "UTF-8");
-		String apiURL = "http://endic.naver.com/search.nhn?sLn=kr&isOnlyViewEE=N&query=" + text; // json 결과
-		Document document = Jsoup.connect(apiURL).userAgent(
-			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36")
-			.get();
-		if (null != document) {
-			Elements firstElements = document.select("#content > div:nth-child(4) > dl > dt");
-			Elements secondElements = document.select("#content > div:nth-child(4) > dl > dd");
-			JSONArray items = new JSONArray();
-
-			JSONParser parser = new JSONParser();
-			Object obj;
-			System.out.println(firstElements.size());
+			
+			Elements firstElements = null;
+			Elements secondElements = null;
+			
+			if ("geocode".equals(category)) {
+				firstElements = document.select("#lcs_greenmap > div.local_map > div.detail > ul > li");
+			} else if ("dictionary".equals(category)) {
+				firstElements = document.select("#content > div:nth-child(4) > dl > dt");
+				secondElements = document.select("#content > div:nth-child(4) > dl > dd");
+			} else if ("place".equals(category)) {
+				firstElements = document.select("#place_main_ct > div > div > div.sc_box.place_list > div.list_area > ul > li");
+			} 
+			
 			for (int i = 0; i < firstElements.size(); i++) {
-				String json = "{ \"title\":\"" + firstElements.get(i).select("span.fnt_e30 > a").text()
-					+ "\",\"expression\":\""
-					+ secondElements.get(i).select("div > p:nth-child(1) > span:nth-child(1)").text() + "\""
-					+ ",\"link\":\"" + firstElements.get(i).select("span.fnt_e30 > a").attr("href") + "\""
-					+ ",\"meaning\":\"" + secondElements.get(i).select("div > p:nth-child(1) > span.fnt_k05").text()
-					+ "\"" + "}";
+				String json =null;
+				
+				if ("geocode".equals(category)) {
+					json = "{ \"title\":\"" + firstElements.get(i).select("li > dl > dt > a").attr("title")
+						+ "\",\"address\":\"" + firstElements.get(i).select("dl > dd:nth-child(3) > span").attr("title") + "\""
+						+ ",\"link\":\"" + firstElements.get(i).select("dl > dd.txt_inline > a:nth-child(1)").attr("href") + "\""
+						+ ",\"hyper\":\"" + firstElements.get(i).select("dl > dt > a").attr("href") + "\"" + "}";
+				} else if ("dictionary".equals(category)) {
+					json = "{ \"title\":\"" + firstElements.get(i).select("span.fnt_e30 > a").text()
+						+ "\",\"expression\":\""
+						+ secondElements.get(i).select("div > p:nth-child(1) > span:nth-child(1)").text() + "\""
+						+ ",\"link\":\"" + firstElements.get(i).select("span.fnt_e30 > a").attr("href") + "\""
+						+ ",\"meaning\":\"" + secondElements.get(i).select("div > p:nth-child(1) > span.fnt_k05").text()
+						+ "\"" + "}";
+				} else if ("place".equals(category)) {
+					json = "{ \"title\":\""
+						+ firstElements.get(i).select("div > div > div.tit > span > a > span").text() + "\",\"link\":\""
+						+ firstElements.get(i).select("div > div > div.tit > span > a").attr("href") + "\""
+						+ ",\"image\":\"" + firstElements.get(i).select("div > img").attr("src") + "\""
+						+ ",\"description\":\"" + firstElements.get(i).select("div > div > div:nth-child(2)").text() + "\""
+						+ "}";
+				} 
+				
 				obj = parser.parse(json);
 				System.out.println(json);
 				items.add(obj);
 			}
 			HashMap<String, Object> param = new HashMap<>();
 			param.put("items", items);
-			param.put("type", "dictionary");
-			return param;
-		} else {
-			return null;
-		}
-
-	}
-
-	/***
-	 * 맛집정보를 html 파싱을 통해 가져옵니다.
-	 * @param notEncodeText
-	 * @return
-	 * @throws Exception
-	 */
-	@SuppressWarnings("unchecked")
-	public HashMap<String, Object> getNaverPlaceCrawlingResult(String notEncodeText) throws Exception {
-
-		String text = URLEncoder.encode(notEncodeText, "UTF-8");
-		String apiURL = "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=맛집 "
-			+ text; // json 결과
-		Document document = Jsoup.connect(apiURL).userAgent(
-			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36")
-			.get();
-		if (null != document) {
-			Elements firstElements = document
-				.select("#place_main_ct > div > div > div.sc_box.place_list > div.list_area > ul > li");
-			JSONArray items = new JSONArray();
-
-			JSONParser parser = new JSONParser();
-			Object obj;
-			System.out.println(firstElements.size());
-			for (int i = 0; i < firstElements.size(); i++) {
-				String json = "{ \"title\":\""
-					+ firstElements.get(i).select("div > div > div.tit > span > a > span").text() + "\",\"link\":\""
-					+ firstElements.get(i).select("div > div > div.tit > span > a").attr("href") + "\""
-					+ ",\"image\":\"" + firstElements.get(i).select("div > img").attr("src") + "\""
-					+ ",\"description\":\"" + firstElements.get(i).select("div > div > div:nth-child(2)").text() + "\""
-					+ "}";
-				obj = parser.parse(json);
-				System.out.println(json);
-				items.add(obj);
-			}
-			HashMap<String, Object> param = new HashMap<>();
-			param.put("items", items);
-			param.put("type", "place");
+			param.put("type", category);
 			return param;
 		} else {
 			return null;
