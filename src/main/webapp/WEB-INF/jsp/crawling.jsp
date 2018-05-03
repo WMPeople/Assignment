@@ -8,7 +8,7 @@
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js"></script>
-
+<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=TFUBwdm3MrMuN3_1TYil&submodules=geocoder"></script>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <!-- BootStrap CDN -->
 <link rel="stylesheet" href="css/jquery-ui-1.11.0.css">
@@ -38,7 +38,6 @@
 }
 </style>
 <body>
-	네이버 정보
 	<c:if test="${type eq 'book'}">
 		<c:forEach var="jsonArray" items="${jsonArray}">
 			<li style="margin-bottom: 30px;">
@@ -73,7 +72,7 @@
 				<p class="result_thumb">
 					<a href="${jsonArray.link}"><img src="${jsonArray.image}"
 					    onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
-						width="67" height="95" alt=""></a>
+						width="67" height="auto" alt="" ></a>
 				</p>
 				<dl>
 					<dt>
@@ -86,6 +85,113 @@
 			</li>
 		</c:forEach>
 	</c:if>
+	<c:if test="${type eq 'news'}">
+        <c:forEach var="jsonArray" items="${jsonArray}">
+        <table style="margin-bottom:10px;  border: 1px solid #AAAAAA;
+  padding: 3px 2px; text-align: middle;">
+    <tbody>
+        <tr>
+            <td style="white-space: nowrap; ">날짜: </td>
+            <td style="border-left: 10px;">${jsonArray.pubDate}</td>
+        </tr>
+        <tr>
+            <td>제목:</td>
+            <td style="border-left: 10px; "><a href="${jsonArray.link}">${jsonArray.title}</a></td>
+        </tr>
+        <tr>
+            <td>설명:</td>
+            <td style="border-left: 10px;">${jsonArray.description}</td>
+        </tr>
+    </tbody>
+    </table>
+           
+        </c:forEach>
+    </c:if>
+    <c:if test="${type eq 'shop'}">
+        <c:forEach var="jsonArray" items="${jsonArray}">
+    <table>
+    <tbody>
+        <tr>
+            <td style="white-space: nowrap; "><p class="result_thumb">
+                    <a href="${jsonArray.link}"><img src="${jsonArray.image}"
+                        onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
+                        width="100" height="auto" alt="" ></a>
+                </p></td>
+        </tr>
+        <tr>
+            <td colspan="4"><a href="${jsonArray.link}">${jsonArray.title}</a></td>
+        </tr>
+        <tr>
+            <td>${jsonArray.mallName}</td>
+        </tr>
+        <tr>
+            <td>${jsonArray.lprice}원 - ${jsonArray.hprice}원</td>
+        </tr>
+    </tbody>
+    </table>
+           
+        </c:forEach>
+    </c:if>
+    
+     <c:if test="${type eq 'geocode'}">
+        <c:forEach var="jsonArray" items="${jsonArray}">
+    <table>
+    <tbody>
+       
+        <tr>
+            <td colspan="4"><a href="${jsonArray.hyper}">${jsonArray.title}</a></td>
+        </tr>
+        <tr>
+            <td>주소 : </td>
+            <td>${jsonArray.address}</td>
+        </tr>
+    </tbody>
+    
+    </table>
+            <button onclick="location.href='${jsonArray.link}'" style="margin-bottom:10px;">거리뷰</button>
+        </c:forEach>
+    </c:if>
+    
+     <c:if test="${type eq 'dictionary'}">
+        <c:forEach var="jsonArray" items="${jsonArray}">
+    <table>
+    <tbody>
+       
+        <tr>
+            <td colspan="4"><a href="${jsonArray.link}">${jsonArray.title}</a></td>
+        </tr>
+        <tr>
+            <td>${jsonArray.expression}</td>
+            <td>${jsonArray.meaning}</td>
+        </tr>
+   
+    </tbody>
+    </table>
+        </c:forEach>
+    </c:if>
+    
+     <c:if test="${type eq 'place'}">
+        <c:forEach var="jsonArray" items="${jsonArray}">
+    <table>
+    <tbody>
+       
+        <tr>
+             <td style="white-space: nowrap; "><p class="result_thumb">
+                    <a href="${jsonArray.link}"><img src="${jsonArray.image}"
+                        onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
+                        width="100" height="auto" alt="" ></a>
+                </p></td>
+        </tr>
+        <tr>
+            <td><a href="${jsonArray.link}">${jsonArray.title}</a></td>
+            <td>${jsonArray.description}</td>
+            
+        </tr>
+   
+    </tbody>
+    </table>
+        </c:forEach>
+    </c:if>
 </body>
 </html>
 
