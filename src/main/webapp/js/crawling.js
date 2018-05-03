@@ -110,7 +110,7 @@ $(function() {
 });
 
 function dialogFunction(name, crawling_category, url) {
-	$("#" + name).dialog({
+	$("#dialog").dialog({
 				open : function() {
 					$(this).load(url);
 					$(this).parents(".ui-dialog").find(".ui-dialog-titlebar")
