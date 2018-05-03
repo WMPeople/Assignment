@@ -58,6 +58,7 @@ $(function() {
 		var url = "/assignment/api/browser/crawling/geocode/"
 				+ encodeURI(crawling_text);
 		 dialogFunction("naver", crawling_category, url);
+	}
 	
 	//네이버 크롤링
 	if (textList[0] == '단어' || textList[0] == '영어단어') {
