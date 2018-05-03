@@ -186,7 +186,7 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 		for(var i = 0; i < regularExpArr.length; i++) {
 			var pushEle = function (regExp) {
 				return function (thisPtr) {
-					thisPtr.doReplace(regularExp, true);
+					thisPtr.doReplace(regExp, true);
 				}
 			}
 			this.taskQueue.push(pushEle(regularExpArr[i]));
@@ -217,7 +217,7 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 	});
 	
 	// 변경 무시 옵션에 따른 사전 필터 복원 시작
-	if(typeof regularExp != 'undefined') {
+	if(typeof regularExpArr != 'undefined') {
 		for(var i = 0; i < regularExpArr.length; i++) {
 			this.taskQueue.push(function recoverRegExp(thisPtr) {
 				var replace = thisPtr._replaceStack.pop();
