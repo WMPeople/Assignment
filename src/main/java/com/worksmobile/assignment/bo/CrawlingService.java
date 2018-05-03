@@ -30,21 +30,21 @@ public class CrawlingService {
 	/***
 	 * 네이버 브라우져 크롤링 결과를 hashmap을 이용하여 컨트롤러에 리턴합니다.
 	 * @param category geocode, dictionary, place가 옵니다.
-	 * @param notEncodeText utf-8로 인코딩 되기 전 text입니다.
+	 * @param text utf-8로 인코딩 되기 전 text입니다.
 	 * @return
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public HashMap<String, Object> getNaverCrawlingResult(String category, String notEncodeText) throws Exception {
+	public HashMap<String, Object> getNaverCrawlingResult(String category, String text) throws Exception {
 
-		String text = URLEncoder.encode(notEncodeText, "UTF-8");
+		String encodedText = URLEncoder.encode(text, "UTF-8");
 		String url = null;
 		if ("geocode".equals(category)) {
-			url = "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=" + text; 
+			url = "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=" + encodedText; 
 		} else if ("dictionary".equals(category)) {
-			url = "http://endic.naver.com/search.nhn?sLn=kr&isOnlyViewEE=N&query=" + text;
+			url = "http://endic.naver.com/search.nhn?sLn=kr&isOnlyViewEE=N&query=" + encodedText;
 		} else if ("place".equals(category)) {
-			url = "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=맛집 "+ text;
+			url = "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=맛집 "+ encodedText;
 		} 
 		Document document = Jsoup.connect(url).userAgent(
 			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36")

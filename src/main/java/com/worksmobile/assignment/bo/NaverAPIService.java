@@ -18,15 +18,19 @@ public class NaverAPIService {
 	public static final String clientId = "TFUBwdm3MrMuN3_1TYil";
 
 	public static final String clientSecret = "1C2ihcUVm1";
-
-	public HashMap<String, Object> getSearchResult(String apiName, String category, String notEncodeText) {
+	/***
+	 * 네이버 검색 api를 이용하여 데이터를 가져온다.
+	 * @param apiName ex) search
+	 * @param category ex) book
+	 * @param text ex) 어린왕자
+	 * @return
+	 */
+	public HashMap<String, Object> getSearchResult(String apiName, String category, String text) {
 
 		try {
-			String text = URLEncoder.encode(notEncodeText, "UTF-8");
+			String encodedText = URLEncoder.encode(text, "UTF-8");
 
-			String apiURL = "https://openapi.naver.com/v1/" + apiName + "/" + category + "?query=" + text; // json 결과
-			System.out.println(apiURL);
-			//String apiURL = "https://openapi.naver.com/v1/search/blog.xml?query="+ text; // xml 결과
+			String apiURL = "https://openapi.naver.com/v1/" + apiName + "/" + category + "?query=" + encodedText; // json 결과
 			URL url = new URL(apiURL);
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
 			con.setRequestMethod("GET");
@@ -51,30 +55,17 @@ public class NaverAPIService {
 			JSONObject jsonObj = (JSONObject)obj;
 			System.out.println(jsonObj);
 			JSONArray items;
-			if ("map".equals(apiName)) {
-				br.close();
-				HashMap<String, Object> param = new HashMap<>();
-				obj = parser.parse(jsonObj.get("result").toString());
-				jsonObj = (JSONObject)obj;
-				items = (JSONArray)jsonObj.get("items");
-				System.out.println(items);
-				param.put("items",items);
-				param.put("type", category);
-				return param;
 
-			} else {
-				items = (JSONArray)jsonObj.get("items");
-				for (int i = 0; i < items.size(); i++) {
-					System.out.println(items.get(i));
-				}
-
-				br.close();
-				HashMap<String, Object> param = new HashMap<>();
-				param.put("items", items);
-				param.put("type", category);
-				return param;
-
+			items = (JSONArray)jsonObj.get("items");
+			for (int i = 0; i < items.size(); i++) {
+				System.out.println(items.get(i));
 			}
+
+			br.close();
+			HashMap<String, Object> param = new HashMap<>();
+			param.put("items", items);
+			param.put("type", category);
+			return param;
 
 			//			System.out.println(response.toString());
 		} catch (Exception e) {
