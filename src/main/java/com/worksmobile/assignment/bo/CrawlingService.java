@@ -75,12 +75,25 @@ public class CrawlingService {
 						+ ",\"link\":\"" + firstElements.get(i).select("dl > dd.txt_inline > a:nth-child(1)").attr("href") + "\""
 						+ ",\"hyper\":\"" + firstElements.get(i).select("dl > dt > a").attr("href") + "\"" + "}";
 				} else if ("dictionary".equals(category)) {
-					json = "{ \"title\":\"" + firstElements.get(i).select("span.fnt_e30 > a").text()
-						+ "\",\"expression\":\""
-						+ secondElements.get(i).select("div > p:nth-child(1) > span:nth-child(1)").text() + "\""
-						+ ",\"link\":\"" + firstElements.get(i).select("span.fnt_e30 > a").attr("href") + "\""
-						+ ",\"meaning\":\"" + secondElements.get(i).select("div > p:nth-child(1) > span.fnt_k05").text()
-						+ "\"" + "}";
+					String expression = secondElements.get(i).select("div > p:nth-child(1) > span:nth-child(1)").text();
+					String meaning = secondElements.get(i).select("div > p:nth-child(1) > span.fnt_k05").text();
+					if (expression.equals(meaning)) {
+						json = "{ \"title\":\"" + firstElements.get(i).select("span.fnt_e30 > a").text()
+							+ "\",\"expression\":\""
+							+ expression + "\""
+							+ ",\"link\":\"" +"http://endic.naver.com"+ firstElements.get(i).select("span.fnt_e30 > a").attr("href") + "\""
+							+ ",\"meaning\":\"" + ""
+							+ "\"" + "}";
+					} else {
+						json = "{ \"title\":\"" + firstElements.get(i).select("span.fnt_e30 > a").text()
+							+ "\",\"expression\":\""
+							+ secondElements.get(i).select("div > p:nth-child(1) > span:nth-child(1)").text() + "\""
+							+ ",\"link\":\"" +"http://endic.naver.com"+ firstElements.get(i).select("span.fnt_e30 > a").attr("href") + "\""
+							+ ",\"meaning\":\"" + secondElements.get(i).select("div > p:nth-child(1) > span.fnt_k05").text()
+							+ "\"" + "}";
+					}
+					
+					
 				} else if ("place".equals(category)) {
 					json = "{ \"title\":\""
 						+ firstElements.get(i).select("div > div > div.tit > span > a > span").text() + "\",\"link\":\""
