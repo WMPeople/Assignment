@@ -5,13 +5,12 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js"></script>
 <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=TFUBwdm3MrMuN3_1TYil&submodules=geocoder"></script>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<!-- BootStrap CDN -->
-<link rel="stylesheet" href="css/jquery-ui-1.11.0.css">
 <title>크롤링</title>
 </head>
 <style>
