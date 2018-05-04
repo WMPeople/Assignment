@@ -8,14 +8,11 @@
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js"></script>
+<script src="${pageContext.request.contextPath}/js/clamp.js"></script>
 <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=TFUBwdm3MrMuN3_1TYil&submodules=geocoder"></script>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <!-- BootStrap CDN -->
 <link rel="stylesheet" href="css/jquery-ui-1.11.0.css">
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 <title>크롤링</title>
 </head>
 <style>
@@ -29,6 +26,86 @@
 	vertical-align: middle;
 }
 
+.container {
+	width: 100%;
+	overflow: auto;
+	display: block;
+}
+
+.img {
+	float: left;
+	width: 20%;
+	height: auto;
+	margin: 2px -10px;
+}
+
+.context {
+	float: right;
+	width: 80%;
+}
+
+.context * {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.text_overflow {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.full_context * {
+	text-overflow: ellipsis;
+	/*overflow: hidden;
+	white-space: nowrap;*/
+}
+
+.card {
+	padding: 2px 16px;
+	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+	transition: 0.3s;
+	width: 85%;
+	margin: 10px;
+}
+
+.card:hover {
+	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+
+.container {
+}
+
+.st_off {
+	float: left;
+	overflow: hidden;
+	width: 75px;
+	height: 12px;
+	margin-top: 4px;
+	background: url(https://ssl.pstatic.net/static/movie/2012/09/sp_star.png) no-repeat;
+}
+
+.st_on {
+	display: block;
+	overflow: hidden;
+	height: 12px;
+	background: url(https://ssl.pstatic.net/static/movie/2012/09/sp_star.png) 0 -20px no-repeat;
+}
+
+.column {
+	float: left;
+	width: 50%;
+}
+
+
+/* Clear floats after the columns */
+.row:after {
+	content: "";
+	display: table;
+	clear: both;
+}
+
 .book {
 	display: block;
 	float: left;
@@ -37,161 +114,176 @@
 	vertical-align: middle;
 }
 </style>
+<script>
+$('.price').each(function (){
+	var item = $(this).text();
+	var num = Number(item).toLocaleString('kr');
+	$(this).text(num);
+});
+$('.clamp3line').each(function(){
+	$clamp($(this), {clamp: 3});
+})
+</script>
 <body>
 	<c:if test="${type eq 'book'}">
 		<c:forEach var="jsonArray" items="${jsonArray}">
-			<li style="margin-bottom: 30px;">
-
-				<p class="book">
-					<a href="${jsonArray.link}" target="_blank"> <img
-						src="${jsonArray.image}"
-						onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
-						alt="${jsonArray.title}" width="67" height="95">
+			<li class="container card">
+				<div class="img">
+					<a href="${jsonArray.link}" target="_blank">
+					<img src="${jsonArray.image}" onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
+						alt="${jsonArray.title}" width="67" height="auto">
 					</a>
-				</p>
-				<dl>
-					<dt>
-						<a href="${jsonArray.link}" target="_blank">${jsonArray.title}
-						</a>
+				</div>
+				<dl class="context">
+					<dt class="link">
+						<a href="${jsonArray.link}" target="_blank">${jsonArray.title} </a>
 					</dt>
-					<dd class="point">
-						<a
-							href="http://book.naver.com/search/search.nhn?query=${jsonArray.author}&amp;frameFilterType=1&amp;frameFilterValue=6000002015">${jsonArray.author}</a>
-						<span>|</span> &nbsp;<a
-							href="http://book.naver.com/search/search.nhn?filterType=7&amp;query=${jsonArray.publisher}">${jsonArray.publisher}</a>&nbsp;
+					<dd>
+						<a href="http://book.naver.com/search/search.nhn?query=${jsonArray.author}&amp;frameFilterType=1&amp;frameFilterValue=6000002015">${jsonArray.author}</a>
+						<span>|</span> <a href="http://book.naver.com/search/search.nhn?filterType=7&amp;query=${jsonArray.publisher}">${jsonArray.publisher}</a>
 					</dd>
-					<dd>가격 : ${jsonArray.price} 원</dd>
-					<dd>출판일 : ${jsonArray.pubdate}</dd>
+					<dd class="price">${jsonArray.price}</dd>
+					<dd>
+						출판일 : <span class="date">${jsonArray.pubdate}</span>
+					</dd>
 				</dl>
 			</li>
 		</c:forEach>
 	</c:if>
 	<c:if test="${type eq 'movie'}">
 		<c:forEach var="jsonArray" items="${jsonArray}">
-			<li style="margin-bottom: 40px;">
-				<p class="result_thumb">
-					<a href="${jsonArray.link}"><img src="${jsonArray.image}"
-					    onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
+			<li class="container card">
+				<div class="img">
+					<a href="${jsonArray.link}">
+					<img src="${jsonArray.image}"
+						onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
 						width="67" height="auto" alt="" ></a>
-				</p>
-				<dl>
+				</div>
+				<dl class="context">
 					<dt>
 						<a href="${jsonArray.link}">${jsonArray.title}</a>
 					</dt>
-					<dd class="point">평점 : ${jsonArray.userRating}</dd>
+					<dd>
+						<div>
+						<span>평점 :</span>
+						<span class="st_off">
+							<span class="st_on" style="width:${jsonArray.userRating * 10}%"></span>
+						</span>
+						<span>${jsonArray.userRating}</span>
+						</div>
+					</dd>
 					<dd class="director">감독 : ${jsonArray.director}</dd>
-					<dd class="actor" style="font-size:10px">배우 : ${jsonArray.actor}</dd>
+					<dd class="actor">배우 : ${jsonArray.actor}</dd>
 				</dl>
 			</li>
 		</c:forEach>
 	</c:if>
 	<c:if test="${type eq 'news'}">
-        <c:forEach var="jsonArray" items="${jsonArray}">
-        <table style="margin-bottom:10px;  border: 1px solid #AAAAAA;
-  padding: 3px 2px; text-align: middle;">
-    <tbody>
-        <tr>
-            <td style="white-space: nowrap; ">날짜: </td>
-            <td style="border-left: 10px;">${jsonArray.pubDate}</td>
-        </tr>
-        <tr>
-            <td>제목:</td>
-            <td style="border-left: 10px; "><a href="${jsonArray.link}">${jsonArray.title}</a></td>
-        </tr>
-        <tr>
-            <td>설명:</td>
-            <td style="border-left: 10px;">${jsonArray.description}</td>
-        </tr>
-    </tbody>
-    </table>
-           
-        </c:forEach>
-    </c:if>
-    <c:if test="${type eq 'shop'}">
-        <c:forEach var="jsonArray" items="${jsonArray}">
-    <table>
-    <tbody>
-        <tr>
-            <td style="white-space: nowrap; "><p class="result_thumb">
-                    <a href="${jsonArray.link}"><img src="${jsonArray.image}"
-                        onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
-                        width="100" height="auto" alt="" ></a>
-                </p></td>
-        </tr>
-        <tr>
-            <td colspan="4"><a href="${jsonArray.link}">${jsonArray.title}</a></td>
-        </tr>
-        <tr>
-            <td>${jsonArray.mallName}</td>
-        </tr>
-        <tr>
-            <td>${jsonArray.lprice}원 - ${jsonArray.hprice}원</td>
-        </tr>
-    </tbody>
-    </table>
-           
-        </c:forEach>
-    </c:if>
-    
-     <c:if test="${type eq 'geocode'}">
-        <c:forEach var="jsonArray" items="${jsonArray}">
-    <table>
-    <tbody>
-       
-        <tr>
-            <td colspan="4"><a href="${jsonArray.hyper}">${jsonArray.title}</a></td>
-        </tr>
-        <tr>
-            <td>주소 : </td>
-            <td>${jsonArray.address}</td>
-        </tr>
-    </tbody>
-    
-    </table>
-            <button onclick="location.href='${jsonArray.link}'" style="margin-bottom:10px;">거리뷰</button>
-        </c:forEach>
-    </c:if>
-    
-     <c:if test="${type eq 'dictionary'}">
-        <c:forEach var="jsonArray" items="${jsonArray}">
-    <table>
-    <tbody>
-       
-        <tr>
-            <td colspan="4"><a href="${jsonArray.link}">${jsonArray.title}</a></td>
-        </tr>
-        <tr>
-            <td>${jsonArray.expression}</td>
-            <td>${jsonArray.meaning}</td>
-        </tr>
-   
-    </tbody>
-    </table>
-        </c:forEach>
-    </c:if>
-    
-     <c:if test="${type eq 'place'}">
-        <c:forEach var="jsonArray" items="${jsonArray}">
-    <table>
-    <tbody>
-       
-        <tr>
-             <td style="white-space: nowrap; "><p class="result_thumb">
-                    <a href="${jsonArray.link}"><img src="${jsonArray.image}"
-                        onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
-                        width="100" height="auto" alt="" ></a>
-                </p></td>
-        </tr>
-        <tr>
-            <td><a href="${jsonArray.link}">${jsonArray.title}</a></td>
-            <td>${jsonArray.description}</td>
-            
-        </tr>
-   
-    </tbody>
-    </table>
-        </c:forEach>
-    </c:if>
+		<c:forEach var="jsonArray" items="${jsonArray}">
+		<li class="container">
+			<dl class="full_context card">
+				<dt class="text_overflow">
+					<a href="${jsonArray.link}" style="color: blue;">${jsonArray.title}</a>
+				</dt>
+				<dd>날짜: ${jsonArray.pubDate}
+				</dd>
+				<dd class="clamp3line" style="margin-top: 10px">${jsonArray.description}</dd>
+			</dl>
+		   </li>
+		</c:forEach>
+	</c:if>
+	<c:if test="${type eq 'shop'}">
+		<c:forEach var="ele" items="${jsonArray}" varStatus="status" step="2">
+		<div class="row">
+			<div class="column">
+				<div class="image"><p class="result_thumb">
+								<a href="${ele.link}"><img src="${ele.image}"
+								onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
+								width="100" height="auto" alt="" ></a>
+						</p>
+				</div>
+				<dl class="container">
+					<dt>
+						<a href="${ele.link}">${ele.title}</a>
+					</dt>
+					<dd style="color: gray; ">${ele.mallName} </dd>
+					<dd>${ele.lprice}원 - ${ele.hprice}원</dd>
+				</dl>
+			</div>
+			<c:if test="${!status.last}">
+			<c:set var="ele" value="${jsonArray[status.index + 1]}"/>
+			<div class="column">
+				<div class="image"><p class="result_thumb">
+								<a href="${ele.link}"><img src="${ele.image}"
+								onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
+								width="100" height="auto" alt="" ></a>
+						</p>
+				</div>
+				<dl class="container">
+					<dt>
+						<a href="${ele.link}">${ele.title}</a>
+					</dt>
+					<dd style="color: gray; ">${ele.mallName} </dd>
+					<dd>${ele.lprice}원 - ${ele.hprice}원</dd>
+				</dl>
+			</div>
+			</c:if>
+		</div>
+		</c:forEach>
+	</c:if>
+	 <c:if test="${type eq 'geocode'}">
+		<c:forEach var="jsonArray" items="${jsonArray}">
+		<li class="container card">
+			<dl class="full_context" style="float: left">
+				<dt>
+					<a href="${jsonArray.hyper}">${jsonArray.title}</a>
+				</dt>
+				<dd style="color:gray">${jsonArray.address}
+				</dd>
+			</dl>
+			<span class="right_float_btn" style="float: right">
+				<img src='${pageContext.request.contextPath}/img/placeholder.png' onclick="locationhref='${jsonArray.link}'" style=")"/>
+			</span>
+		</li>
+		</c:forEach>
+	</c:if>
+	 <c:if test="${type eq 'dictionary'}">
+		<c:forEach var="jsonArray" items="${jsonArray}">
+	   	<li class="container">
+	   		<dl class="full_context card">
+	   			<dt>
+	   				<a href="${jsonArray.link}" style="color:blue">${jsonArray.title}</a> 
+	   			</dt>
+				<dd>${jsonArray.expression}</dd>
+				<dd>${jsonArray.meaning}</dd>
+			</dl>
+		</li>
+		</c:forEach>
+	</c:if>
+	
+	 <c:if test="${type eq 'place'}">
+		<c:forEach var="jsonArray" items="${jsonArray}">
+		<li class="container card">
+			 <div class="img">
+				<a href="${jsonArray.link}">
+					<img src="${jsonArray.image}"
+						onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
+						alt="${jsonArray.title}"
+						width="67" height="auto">
+				</a>
+			</div>
+			<dl class="context">
+				<dt>
+					<a href="${jsonArray.link}" style="color:blue">${jsonArray.title}</a>
+				</dt>
+				<dd>${jsonArray.description}</dd>
+			</dl>
+		</li>
+		</c:forEach>
+	</c:if>
+	<!-- 
+	<div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+	 -->
 </body>
 </html>
 
