@@ -81,14 +81,14 @@ public class CrawlingService {
 						json = "{ \"title\":\"" + firstElements.get(i).select("span.fnt_e30 > a").text()
 							+ "\",\"expression\":\""
 							+ expression + "\""
-							+ ",\"link\":\"" + firstElements.get(i).select("span.fnt_e30 > a").attr("href") + "\""
+							+ ",\"link\":\"" +"http://endic.naver.com"+ firstElements.get(i).select("span.fnt_e30 > a").attr("href") + "\""
 							+ ",\"meaning\":\"" + ""
 							+ "\"" + "}";
 					} else {
 						json = "{ \"title\":\"" + firstElements.get(i).select("span.fnt_e30 > a").text()
 							+ "\",\"expression\":\""
 							+ secondElements.get(i).select("div > p:nth-child(1) > span:nth-child(1)").text() + "\""
-							+ ",\"link\":\"" + firstElements.get(i).select("span.fnt_e30 > a").attr("href") + "\""
+							+ ",\"link\":\"" +"http://endic.naver.com"+ firstElements.get(i).select("span.fnt_e30 > a").attr("href") + "\""
 							+ ",\"meaning\":\"" + secondElements.get(i).select("div > p:nth-child(1) > span.fnt_k05").text()
 							+ "\"" + "}";
 					}
