@@ -1,12 +1,5 @@
 $(function() {
-	function guid() {
-		  function s4() {
-		    return Math.floor((1 + Math.random()) * 0x10000)
-		      .toString(16)
-		      .substring(1);
-		  }
-		  return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-	}
+
 	var lines = $('#content3').val().split("\n");
 	var firstLine = lines[0];
 	var textList = firstLine.split(' ');
@@ -108,8 +101,6 @@ function dialogFunction(name, crawling_category, url) {
 	$("#dialog").dialog({
 				open : function() {
 					$(this).load(url);
-					$(this).parents(".ui-dialog").find(".ui-dialog-titlebar")
-							.append(name + " " + crawling_category);
 				},
 				width : 400,
 				height : 600,
