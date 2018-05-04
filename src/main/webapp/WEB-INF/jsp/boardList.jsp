@@ -17,7 +17,9 @@
 <title>게시물 목록</title>
 </head>
 <body>
-    <h3>게시물 목록</h3> 
+    <span id="title" style="float: left; margin-left: 10px; font-size: 30px;"> 게시물 목록</span>
+    <span id="cookie_id" style="float: right; margin-right: 10px; font-size: 20px;"> Cookie_id : ${cookie_id}</span>
+    <br></br>
     <button class="btn btn-primary" style="float : right;" onclick="location.href='/assignment/boards'">글쓰기</button>
  
     <table class="table">

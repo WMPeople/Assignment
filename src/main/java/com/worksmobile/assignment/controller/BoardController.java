@@ -113,6 +113,7 @@ public class BoardController {
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("board", board);
 		modelAndView.addObject("paging", page);
+		modelAndView.addObject("cookie_id", cookieService.getCookie(req).getValue());
 		modelAndView.setViewName("boardList");
 
 		return modelAndView;

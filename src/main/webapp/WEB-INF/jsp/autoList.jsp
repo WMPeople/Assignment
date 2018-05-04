@@ -18,8 +18,9 @@
 <title>자동 게시글 목록</title>
 </head>
 <body>
-    <h3>자동 게시글 목록</h3> 
-  
+    <span id="title" style="float: left; margin-left: 10px; font-size: 30px;">자동 게시글 목록</span>
+    <span id="cookie_id" style="float: right; margin-right: 10px; font-size: 20px;"> Cookie_id : ${cookie_id}</span>
+    <br></br>
  
     <table class="table">
         <tr>
@@ -35,7 +36,15 @@
         <tr>
             <td>${boardTemp.board_id}</td>
             <td>${boardTemp.version}</td>
-            <td>${boardTemp.cookie_id}</td>
+            <c:if test="${cookie_id eq boardTemp.cookie_id}"></c:if>
+            <c:choose>
+	              <c:when test="${cookie_id eq boardTemp.cookie_id}"> 
+	                  <td style = "color : #ec1313;">${boardTemp.cookie_id}</td>
+	              </c:when>
+                  <c:otherwise>
+                  <td >${boardTemp.cookie_id}</td>
+                  </c:otherwise>
+	        </c:choose>
        		<td><a href="${path}/assignment/autos/${boardTemp.board_id}/${boardTemp.version}/${boardTemp.cookie_id}">${boardTemp.subject}</a></td>
             <td>${boardTemp.created_time}</td>
 			<td> 

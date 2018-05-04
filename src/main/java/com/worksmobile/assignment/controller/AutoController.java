@@ -160,6 +160,7 @@ public class AutoController {
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("boardTemp", boardTempList);
 		modelAndView.addObject("paging", page);
+		modelAndView.addObject("cookie_id", cookieService.getCookie(req).getValue());
 		modelAndView.setViewName("autoList");
 
 		return modelAndView;

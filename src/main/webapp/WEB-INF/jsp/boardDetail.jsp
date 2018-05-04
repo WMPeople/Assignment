@@ -29,6 +29,7 @@
                     <font class="NaverTrans-Child">제목 : ${board.subject}</font>
                 </font>
             </h3>
+            <button class="btn btn-primary" style="float: right;" onclick="location.href='${path}/assignment'">홈으로</button>
         </div>
         <div class="infor _infor">
             <span class="name">게시물 번호 : <span class="_group">${board.board_id}</span> <span class="_company"></span></span>

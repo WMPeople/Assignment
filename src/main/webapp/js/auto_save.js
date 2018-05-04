@@ -13,8 +13,8 @@
  */
 //기본 유의미함 판단 조건
 var addCountCondition = 6;
-var newLineCountCondition = 5;
-var stringSizeDifferenceCondition = -0.5;
+var newLineCountCondition = 6;
+var stringSizeDifferenceCondition = -0.8;
 var addLengthCondition = 200;
 	
 $(function() {
@@ -239,15 +239,16 @@ function applyChange(){
 		($('#stringSizeDifferenceCondition').val() >= -2 && $('#stringSizeDifferenceCondition').val() <= -0.2) &&
 		($('#addLengthCondition').val() >= 100 && $('#addLengthCondition').val() <= 1000) ){
 		
-		addCountCondition = $('#addCountCondition').val();
-		newLineCountCondition = $('#newLineCountCondition').val();
+		addCountCondition = Math.floor($('#addCountCondition').val());
+		newLineCountCondition =  Math.floor($('#newLineCountCondition').val());
 		stringSizeDifferenceCondition = $('#stringSizeDifferenceCondition').val();
-		addLengthCondition = $('#addLengthCondition').val();
+		addLengthCondition =  Math.floor($('#addLengthCondition').val());
+		
 	} else {
 		alert('값을 확인해주세요');
-		$('#addCountCondition').val(addCountCondition);
-		$('#newLineCountCondition').val(newLineCountCondition);
-		$('#stringSizeDifferenceCondition').val(stringSizeDifferenceCondition);
-		$('#addLengthCondition').val(addLengthCondition);
 	}
+	$('#addCountCondition').val(addCountCondition);
+	$('#newLineCountCondition').val(newLineCountCondition);
+	$('#stringSizeDifferenceCondition').val(stringSizeDifferenceCondition);
+	$('#addLengthCondition').val(addLengthCondition);
 }
