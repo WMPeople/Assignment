@@ -32,15 +32,16 @@ public class NaverApiController {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value = "api/naver/{apiName}/{category}/{text}", method = RequestMethod.GET)
+	@RequestMapping(value = "api/naver/{apiName}/{category}/{text}/{startCnt}", method = RequestMethod.GET)
 	public ModelAndView naverApi(@PathVariable String apiName, @PathVariable String category,
-		@PathVariable String text) throws Exception {
+		@PathVariable String text, @PathVariable int startCnt) throws Exception {
 
-		HashMap<String, Object> param = naverAPIService.getSearchResult(apiName, category, text);
+		HashMap<String, Object> param = naverAPIService.getSearchResult(apiName, category, text, startCnt);
 
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("jsonArray", param.get("items"));
 		modelAndView.addObject("type", param.get("type"));
+		modelAndView.addObject("total", param.get("total"));
 		modelAndView.setViewName("crawling");
 		return modelAndView;
 	}

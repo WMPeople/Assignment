@@ -1,36 +1,20 @@
-function getUrl(category, crawling_text, page) {
+function getUrl(category, crawling_text, startCnt) {
 	var url;
 	const crawling_api = 'search';
-	const crawling_category = category;
 	
 	switch(category) {
 	case 'book':
-		url = "/assignment/api/naver/" + crawling_api + "/"
-		+ crawling_category + "/" + crawling_text;
-		break;
 	case 'movie':
-		url = "/assignment/api/naver/" + crawling_api + "/"
-		+ crawling_category + "/" + crawling_text;
-		break;
 	case 'news':
-		url = "/assignment/api/naver/" + crawling_api + "/"
-		+ crawling_category + "/" + crawling_text;
-		break;
 	case 'shop':
 		url = "/assignment/api/naver/" + crawling_api + "/"
-			+ crawling_category + "/" + crawling_text;
+		+ category + "/" + crawling_text + "/" + startCnt;
 		break;
 	case 'geocode':
-		url = "/assignment/api/browser/crawling/geocode/"
-			+ crawling_text;
-		break;
 	case 'dictionary':
-		url = "/assignment/api/browser/crawling/dictionary/"
-			+ crawling_text;
-		break;
 	case 'place':
-		url = "/assignment/api/browser/crawling/place/"
-			+ crawling_text;	
+		url = "/assignment/api/browser/crawling/" + category + "/"
+			+ crawling_text;
 		break;
 	default:
 		break;
@@ -86,7 +70,7 @@ $(function() {
 		}
 	}
 
-	var url = getUrl(category, encodeURI(crawling_text));
+	var url = getUrl(category, encodeURI(crawling_text), 1);
 	dialogFunction(category, url);
 });
 
@@ -103,8 +87,6 @@ function dialogFunction(crawling_category, url) {
 			});
 }
 
-var currentPage = 0;
-
 function doWhenDialogLoad(thisPtr, category, crawling_text) {
 	$('.price').each(function (){
 		var item = $(this).text();
@@ -116,15 +98,21 @@ function doWhenDialogLoad(thisPtr, category, crawling_text) {
 		$clamp($(this), {clamp: 3});
 	});
 
-	$('#dialog').scroll(function(event) {
-		event.stopPropagation();
-		
+	$('#dialog').scroll(function() {
 		
 		if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
+			var curCnt = $('#dialog').children().length;
+			var max = $('#total')[0].innerText;
+			const NAVER_API_MAX_CNT = 1000;
+			
+			if(curCnt >= max || curCnt >= NAVER_API_MAX_CNT) {
+				return;
+			}
+			
 			$('#loading').css('display', 'block');
 			var loadingHTML = $('#loading').innerHTML;
 			$.ajax({
-				url: getUrl(category, crawling_text, ++currentPage),
+				url: getUrl(category, crawling_text, curCnt + 1),
 				success: function(data) {
 					$('#loading').remove();
 					$("#dialog").append(data);

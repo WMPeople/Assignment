@@ -2,6 +2,7 @@
 	pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<span style="display:none" id="total">${total}</span>
 <c:if test="${type eq 'book'}">
 	<c:forEach var="jsonArray" items="${jsonArray}">
 		<li class="container card">
