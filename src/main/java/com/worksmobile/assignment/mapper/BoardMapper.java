@@ -18,13 +18,6 @@ public interface BoardMapper {
 
 	public int createBoard(Board board);
 
-	/**
-	 * 관련된 자동 저장 게시글도 같이 삭제됩니다.
-	 * @param parmas HashMap(board_id, version)
-	 * @return
-	 */
-	public int deleteBoardAndAutoSave(HashMap<String, Object> parmas);
-
 	public int deleteBoard(HashMap<String, Object> params);
 
 	public int boardUpdateWithoutFile(Board board);

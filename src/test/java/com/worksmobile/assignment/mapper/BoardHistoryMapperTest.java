@@ -19,10 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.worksmobile.assignment.AssignmentApplication;
-import com.worksmobile.assignment.bo.Compress;
-import com.worksmobile.assignment.mapper.BoardHistoryMapper;
-import com.worksmobile.assignment.mapper.BoardMapper;
-import com.worksmobile.assignment.mapper.FileMapper;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.File;
@@ -139,7 +135,7 @@ public class BoardHistoryMapperTest {
 	@Test
 	public void testDeleteSpecificOne() {
 		boardHistory = createBoardHistoryIfNotExists();
-		boardMapper.deleteBoardAndAutoSave(defaultNodePtr.toMap());
+		boardMapper.deleteBoard(defaultNodePtr.toMap());
 		int deletedColCnt = boardHistoryMapper.deleteHistory(defaultNodePtr);
 
 		assertEquals(1, deletedColCnt);

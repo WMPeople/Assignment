@@ -52,7 +52,7 @@ public class BoardMapperTest {
 		Board check = boardMapper.viewDetail(defaultBoard.toMap());
     	if(check != null)
     	{
-			boardMapper.deleteBoardAndAutoSave(defaultBoard.toMap());
+			boardMapper.deleteBoard(defaultBoard.toMap());
     	}
 		boardMapper.createBoard(defaultBoard);
 			
@@ -70,7 +70,7 @@ public class BoardMapperTest {
     	beforeVO.setContent("beforeVal");
     	if(null != boardMapper.viewDetail(beforeVO.toMap()))
     	{
-    		boardMapper.deleteBoardAndAutoSave(beforeVO.toMap());
+    		boardMapper.deleteBoard(beforeVO.toMap());
     	}
     	boardMapper.createBoard(beforeVO);
     	
@@ -89,7 +89,7 @@ public class BoardMapperTest {
     
     @Test
     public void testDelete() throws Exception{
-		int deletedCnt = boardMapper.deleteBoardAndAutoSave(defaultBoard.toMap());
+		int deletedCnt = boardMapper.deleteBoard(defaultBoard.toMap());
     	assertEquals(1, deletedCnt);
     	
 		Board deletedVO = null;

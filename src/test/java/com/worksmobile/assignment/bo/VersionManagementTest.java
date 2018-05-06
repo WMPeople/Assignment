@@ -378,7 +378,7 @@ public class VersionManagementTest {
 		for(int i = 1; i < boardCnt; i++) {
 			int beforeBoardId = boardHistoryList.get(i - 1).getBoard_id();
 			int currentBoardId = boardHistoryList.get(i).getBoard_id();
-			assertEquals(beforeBoardId + 1, currentBoardId);
+			assertTrue(beforeBoardId < currentBoardId);
 		}
 		
 		for(BoardHistory ele : boardHistoryList) {
