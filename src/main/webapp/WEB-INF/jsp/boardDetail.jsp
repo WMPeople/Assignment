@@ -17,7 +17,6 @@
 <script src="${pageContext.request.contextPath}/js/crawling.js"></script>
 <!-- 상품 정보에 관한 js -->
 <script src="${pageContext.request.contextPath}/js/clamp.js"></script>
-<script src="${pageContext.request.contextPath}/js/dialog.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>게시물 상세보기</title>

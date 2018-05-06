@@ -1,0 +1,98 @@
+.result_thumb {
+	display: block;
+	float: left;
+	width: 67px;
+	height: 95px;
+	margin-right: 13px;
+	background: #9f9f9f;
+	vertical-align: middle;
+}
+
+.container {
+	width: 100%;
+	overflow: auto;
+	display: block;
+}
+
+.img {
+	float: left;
+	width: 20%;
+	height: auto;
+	margin: 2px -2px;
+}
+
+.context {
+	float: right;
+	width: 75%;
+}
+
+.context * {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.text_overflow {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.full_context * {
+	text-overflow: ellipsis;
+}
+
+.card {
+	padding: 2px 2px;
+	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+	transition: 0.3s;
+	width: 85%;
+	margin: 10px;
+}
+
+.card:hover {
+	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+
+.container {
+}
+
+.st_off {
+	float: left;
+	overflow: hidden;
+	width: 75px;
+	height: 12px;
+	margin-top: 4px;
+	background: url(https://ssl.pstatic.net/static/movie/2012/09/sp_star.png) no-repeat;
+}
+
+.st_on {
+	display: block;
+	overflow: hidden;
+	height: 12px;
+	background: url(https://ssl.pstatic.net/static/movie/2012/09/sp_star.png) 0 -20px no-repeat;
+}
+
+.column {
+	float: left;
+	width: 43%;
+}
+
+
+.row:after {
+	content: "";
+	display: table;
+	clear: both;
+}
+
+.book {
+	display: block;
+	float: left;
+	margin-right: 13px;
+	background: #9f9f9f;
+	vertical-align: middle;
+}
+
+#loading {
+	display: none;
+}
