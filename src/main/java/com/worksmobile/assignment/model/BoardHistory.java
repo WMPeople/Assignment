@@ -1,7 +1,5 @@
 ﻿package com.worksmobile.assignment.model;
 
-import java.io.IOException;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,22 +23,13 @@ public class BoardHistory extends NodePtr{
 	public static final byte[] EMPTY_BYTE_ARRAY = new byte[1];
 	
 	public BoardHistory() {};
-
-	/***
-	 * 게시글을 새롭게 만들때 사용. (내용 제외)공통된 내용을 전부 복사합니다.
-	 * 중요! : 게시글 내용 압축은 담당하지 않습니다.
-	 * @param article 새로운 게시글의 내용.
-	 * @param nodePtr 게시글의 포인터
-	 * @throws IOException 
-	 */
-	public BoardHistory(Board article, NodePtr nodePtr, String status) {
+	
+	public void setNodePtr(NodePtr nodePtr) {
 		board_id = nodePtr.getBoard_id();
 		version = nodePtr.getVersion();
-		this.status = status;
-		history_subject = article.getSubject();
-		file_id = article.getFile_id();
+		root_board_id = nodePtr.getRoot_board_id();
 	}
-
+	
 	public void setParentNodePtrAndRoot(NodePtr parentNodePtr) {
 		parent_board_id = parentNodePtr.getBoard_id();
 		parent_version = parentNodePtr.getVersion();

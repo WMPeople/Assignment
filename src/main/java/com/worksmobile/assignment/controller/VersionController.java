@@ -1,6 +1,5 @@
 package com.worksmobile.assignment.controller;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.worksmobile.assignment.bo.Compress;
+import com.worksmobile.assignment.bo.CompressMaker;
 import com.worksmobile.assignment.bo.VersionManagementService;
+import com.worksmobile.assignment.mapper.BoardAdapter;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.mapper.FileMapper;
 import com.worksmobile.assignment.model.Board;
@@ -133,18 +134,8 @@ public class VersionController {
 		NodePtr node = new NodePtr(board_id, version);
 
 		BoardHistory boardHistory = boardHistoryMapper.selectHistory(node);
-		Board board = new Board(boardHistory);
+		Board board = BoardAdapter.from(boardHistory);
 		File file = fileMapper.getFile(board.getFile_id());
-
-		String deCompreesedContent = "";
-		try {
-			deCompreesedContent = Compress.deCompress(boardHistory.getHistory_content());
-		} catch (IOException e) {
-			e.printStackTrace();
-			deCompreesedContent = "압축 해제 실패";
-			throw new RuntimeException(e);
-		}
-		board.setContent(deCompreesedContent);
 
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("board", board);
@@ -178,9 +169,11 @@ public class VersionController {
 
 		NodePtr left = new NodePtr(board_id2, version2);
 		NodePtr right = new NodePtr(board_id1, version1);
+		
+		Compress compress = CompressMaker.getCompress();
 
-		String leftContent = Compress.deCompress(boardHistoryMapper.selectHistory(left).getHistory_content());
-		String rightContent = Compress.deCompress(boardHistoryMapper.selectHistory(right).getHistory_content());
+		String leftContent = compress.deCompress(boardHistoryMapper.selectHistory(left).getHistory_content());
+		String rightContent = compress.deCompress(boardHistoryMapper.selectHistory(right).getHistory_content());
 
 		//압출 해결 후 리턴 , 맵으로 리턴
 		ModelAndView modelAndView = new ModelAndView();

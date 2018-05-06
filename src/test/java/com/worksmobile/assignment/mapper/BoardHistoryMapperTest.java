@@ -85,8 +85,9 @@ public class BoardHistoryMapperTest {
 		article.setSubject("testInsert");
 		article.setContent("testContent");
 
-		BoardHistory createdHistory = new BoardHistory(article, defaultNodePtr, BoardHistory.STATUS_CREATED);
-		createdHistory.setHistory_content(Compress.compressArticleContent(article));
+		article.setNodePtr(defaultNodePtr);
+		BoardHistory createdHistory = BoardAdapter.from(article);
+		createdHistory.setStatus(BoardHistory.STATUS_CREATED);
 
 		BoardHistory check = boardHistoryMapper.selectHistory(defaultNodePtr);
 		if (check != null) {

@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -44,6 +45,8 @@ public class DBIntegrityTest {
 	
 	@Autowired
 	private FileMapper fileMapper;
+	
+	private Compress compress = CompressMaker.getCompress();
 	
 	@Rule
 	public ErrorCollector collector = new ErrorCollector();
@@ -87,12 +90,12 @@ public class DBIntegrityTest {
 	 * board와 boardHisoty의 내용은 압축 풀어도 같아야 합니다.
 	 */
 	@Test
-	public void testLeafContentIntegrity() throws JsonProcessingException {
+	public void testLeafContentIntegrity() throws IOException {
 		List<Board> allBoadList = selectAllBoard();
 		
 		for(Board ele : allBoadList) {
 			BoardHistory history = boardHistoryMapper.selectHistory(ele);
-			String content = Compress.deCompressHistoryContent(history);
+			String content = compress.deCompress(history.getHistory_content());
 			if(ele.getContent() == null) {
 				ele.setContent("");
 			}

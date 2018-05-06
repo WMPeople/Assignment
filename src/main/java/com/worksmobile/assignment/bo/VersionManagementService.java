@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.worksmobile.assignment.mapper.BoardAdapter;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.model.Board;
@@ -132,8 +133,7 @@ public class VersionManagementService {
 			throw new RuntimeException("recoverVersion에서 복구할 게시글 이력이 존재하지 않습니다. \nleafHistory : " + json);
 		}
 
-		Board recoveredBoard = new Board(recoverHistory);
-		recoveredBoard.setContent(Compress.deCompressHistoryContent(recoverHistory));
+		Board recoveredBoard = BoardAdapter.from(recoverHistory);
 		String status = String.format("%s(%s)", BoardHistory.STATUS_RECOVERED, recoverPtr.toString());
 		return createVersionWithBranch(recoveredBoard, leafPtr, status);
 	}
@@ -210,7 +210,7 @@ public class VersionManagementService {
 				if (parentHistory.isInvisibleRoot()) {// 부모가 안보이는 루트만 존재있으면 삭제합니다.
 					boardService.deleteBoardHistoryAndAutoSave(parentHistory);
 				} else { // 부모가 안보이는 루트가 아닌 노드는 board테이블에 존재해야 함.
-					parent.setContent(Compress.deCompressHistoryContent(parentHistory));
+					Board parent = BoardAdapter.from(parentHistory);
 					int createdCnt = boardMapper.createBoard(parent);
 					if (createdCnt == 0) {
 						throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +

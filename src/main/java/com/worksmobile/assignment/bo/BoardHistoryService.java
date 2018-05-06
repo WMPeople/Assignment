@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.worksmobile.assignment.mapper.BoardAdapter;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
@@ -25,8 +26,10 @@ public class BoardHistoryService {
 	private BoardHistoryMapper boardHistoryMapper;
 
 	private BoardHistory createInvisibleRoot() {
-		NodePtr nodePtr = new NodePtr(NodePtr.ISSUE_NEW_BOARD_ID, 0, NodePtr.ROOT_BOARD_ID);
-		BoardHistory rootHistory = new BoardHistory(new Board(), nodePtr, BoardHistory.STATUS_ROOT);
+		NodePtr nodePtr = new NodePtr(NodePtr.ISSUE_NEW_BOARD_ID, 0, NodePtr.INVISIALBE_ROOT_BOARD_ID);
+		BoardHistory rootHistory = new BoardHistory();
+		rootHistory.setNodePtr(nodePtr);
+		rootHistory.setStatus(BoardHistory.STATUS_ROOT);
 		rootHistory.setHistory_subject("RootSub");
 		rootHistory.setHistory_content(BoardHistory.EMPTY_BYTE_ARRAY);
 		int insertedRowCnt = boardHistoryMapper.createHistory(rootHistory);
@@ -39,13 +42,12 @@ public class BoardHistoryService {
 	}
 
 	private BoardHistory createVisibleRoot(Board article, BoardHistory rootHistory, String status) {
-		BoardHistory boardHistory = new BoardHistory(article, rootHistory, status);
+		BoardHistory boardHistory = BoardAdapter.from(article);
 		boardHistory.setParentNodePtrAndRoot(rootHistory);
+		boardHistory.setStatus(status);
 		boardHistory.setVersion(NodePtr.VISIBLE_ROOT_VERSION);
 		boardHistory.setRoot_board_id(rootHistory.getBoard_id());
 
-		byte[] compressedContent = Compress.compressArticleContent(article);
-		boardHistory.setHistory_content(compressedContent);
 		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
 		if (insertedRowCnt != 1) {
 			String json = JsonUtils.jsonStringIfExceptionToString(boardHistory);
@@ -56,18 +58,15 @@ public class BoardHistoryService {
 	}
 
 	private BoardHistory createLeafHistory(Board article, int version, String status, final NodePtr parentNodePtr) {
-		NodePtr createdNodePtr;
-		if (article.getBoard_id() == NodePtr.ISSUE_NEW_BOARD_ID) {
-			createdNodePtr = new NodePtr(NodePtr.ISSUE_NEW_BOARD_ID, version, NodePtr.ROOT_BOARD_ID);
-		} else {
-			createdNodePtr = new NodePtr(parentNodePtr.getBoard_id(), version, parentNodePtr.getRoot_board_id());
+		if (article.getBoard_id() != NodePtr.ISSUE_NEW_BOARD_ID) {
+			article.setBoard_id(parentNodePtr.getBoard_id());
 		}
-
-		BoardHistory boardHistory = new BoardHistory(article, createdNodePtr, status);
+		
+		article.setVersion(version);
+		BoardHistory boardHistory = BoardAdapter.from(article);
 		boardHistory.setParentNodePtrAndRoot(parentNodePtr);
+		boardHistory.setStatus(status);
 
-		byte[] compressedContent = Compress.compressArticleContent(article);
-		boardHistory.setHistory_content(compressedContent);
 		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
 		if (insertedRowCnt != 1) {
 			String json = JsonUtils.jsonStringIfExceptionToString(boardHistory);
@@ -96,5 +95,14 @@ public class BoardHistoryService {
 			createdHistory = createLeafHistory(article, article.getVersion(), status, parentNodePtr);
 		}
 		return createdHistory;
+	}
+	
+	public BoardHistory selectHistory(NodePtr nodePtr) throws NotExistHistoryException{
+		BoardHistory boardHistory = boardHistoryMapper.selectHistory(nodePtr);
+		if(boardHistory == null) {
+			String json = JsonUtils.jsonStringIfExceptionToString(nodePtr);
+			throw new NotExistHistoryException(json);
+		}
+		return boardHistory;
 	}
 }
