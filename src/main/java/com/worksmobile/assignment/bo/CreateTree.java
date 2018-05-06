@@ -26,12 +26,12 @@ public class CreateTree {
 	private ServletContext servletContext;
 
 	// @return container, type, nodeStructure : <Node>
-	public ObjectNode createTree(int rootBoardId) throws NoSuchRootId{
+	public ObjectNode createTree(int rootBoardId) throws NoSuchRootIdException{
 		ObjectMapper mapper = new ObjectMapper();
 		
 		Map<Entry<Integer, Integer>, BoardHistory> map = boardHistoryService.getHistoryMap(rootBoardId);
 		if(map.size() == 0) {
-			throw new NoSuchRootId("rootBoardId : " + rootBoardId);
+			throw new NoSuchRootIdException("rootBoardId : " + rootBoardId);
 		}
 
 		BoardHistory invisibleRootHistory = new BoardHistory();

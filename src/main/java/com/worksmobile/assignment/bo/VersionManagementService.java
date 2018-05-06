@@ -123,15 +123,9 @@ public class VersionManagementService {
 	 * @return 새롭게 등록된 버전에 대한 포인터.
 	 */
 	@Transactional
-	public NodePtr recoverVersion(final NodePtr recoverPtr, final NodePtr leafPtr) {
-		BoardHistory recoverHistory = boardHistoryMapper.selectHistory(recoverPtr);
-		BoardHistory leafHistory = boardHistoryMapper.selectHistory(leafPtr);
-		if (leafHistory == null || recoverHistory == null) {
-			String json = JsonUtils.jsonStringIfExceptionToString(leafHistory);
-			json += "\n";
-			json += JsonUtils.jsonStringIfExceptionToString(recoverHistory);
-			throw new RuntimeException("recoverVersion에서 복구할 게시글 이력이 존재하지 않습니다. \nleafHistory : " + json);
-		}
+	public NodePtr recoverVersion(final NodePtr recoverPtr, final NodePtr leafPtr) throws NotExistHistoryException{
+		BoardHistory recoverHistory = boardHistoryService.selectHistory(recoverPtr);
+		boardHistoryService.selectHistory(leafPtr);
 
 		Board recoveredBoard = BoardAdapter.from(recoverHistory);
 		String status = String.format("%s(%s)", BoardHistory.STATUS_RECOVERED, recoverPtr.toString());
@@ -163,12 +157,8 @@ public class VersionManagementService {
 	 * @param status 게시글 이력에 남길 상태
 	 * @return 생성된 게시글의 포인터
 	 */
-	private NodePtr createVersionWithBranch(Board article, NodePtr parentPtr, final String status) {
-		NodePtr dbParentPtr = boardHistoryMapper.selectHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
-		if (dbParentPtr == null) {
-			String json = JsonUtils.jsonStringIfExceptionToString(parentPtr);
-			throw new RuntimeException("존재하지 않는 parentPtr입니다. : " + json);
-		}
+	private NodePtr createVersionWithBranch(Board article, NodePtr parentPtr, final String status) throws NotExistNodePtrException{
+		NodePtr dbParentPtr = boardHistoryService.selectHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
 		List<BoardHistory> childrenList = boardHistoryMapper.selectChildren(dbParentPtr);
 		if (childrenList.size() == 0) {
 			boardService.deleteBoard(dbParentPtr.toMap());
@@ -190,7 +180,7 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public NodePtr deleteVersion(final NodePtr deletePtr) {
-		BoardHistory deleteHistory = boardHistoryMapper.selectHistory(deletePtr);
+		BoardHistory deleteHistory = boardHistoryService.selectHistory(deletePtr);
 		NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
 		NodePtr rtnNewLeafPtr = null;
 
@@ -201,10 +191,9 @@ public class VersionManagementService {
 			boardService.deleteBoardAndAutoSave(deletePtr);
 			boardService.deleteBoardHistoryAndAutoSave(deletePtr);
 			
-			BoardHistory parentHistory = boardHistoryMapper.selectHistory(parentPtr);
+			BoardHistory parentHistory = boardHistoryService.selectHistory(parentPtr);
 			
-			Board parent = new Board(parentHistory);
-			List<BoardHistory> brothers = boardHistoryMapper.selectChildren(parent);
+			List<BoardHistory> brothers = boardHistoryMapper.selectChildren(parentHistory);
 			
 			if (brothers.size() == 0) {
 				if (parentHistory.isInvisibleRoot()) {// 부모가 안보이는 루트만 존재있으면 삭제합니다.
@@ -253,7 +242,7 @@ public class VersionManagementService {
 		boardService.deleteBoardAndAutoSave(leafPtr);
 		
 		while (true) {
-			BoardHistory deleteHistory = boardHistoryMapper.selectHistory(leafPtr);
+			BoardHistory deleteHistory = boardHistoryService.selectHistory(leafPtr);
 			NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
 
 			boardService.deleteBoardHistoryAndAutoSave(leafPtr);
