@@ -23,6 +23,7 @@
 <body>
 	
     <h3>버전 관리 페이지 <button class="btn btn-primary" style="float:right;" onclick="location.href='${path}/assignment'">홈으로</button></h3> 
+    <button class="btn btn-primary" style="float:right;" onclick="location.href='${pageContext.request.contextPath}/treeViewer/${list[0].root_board_id}'">treeViewer</button>
     
     <!--     DIFF  -->
 	<form name="diffForm">

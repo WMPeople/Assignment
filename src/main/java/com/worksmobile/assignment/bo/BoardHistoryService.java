@@ -26,11 +26,11 @@ public class BoardHistoryService {
 	private BoardHistoryMapper boardHistoryMapper;
 
 	private BoardHistory createInvisibleRoot() {
-		NodePtr nodePtr = new NodePtr(NodePtr.ISSUE_NEW_BOARD_ID, 0, NodePtr.INVISIALBE_ROOT_BOARD_ID);
+		NodePtr nodePtr = new NodePtr(NodePtr.ISSUE_NEW_BOARD_ID, NodePtr.INVISIBLE_ROOT_VERSION, NodePtr.INVISIALBE_ROOT_BOARD_ID);
 		BoardHistory rootHistory = new BoardHistory();
 		rootHistory.setNodePtr(nodePtr);
 		rootHistory.setStatus(BoardHistory.STATUS_ROOT);
-		rootHistory.setHistory_subject("RootSub");
+		rootHistory.setHistory_subject("InvisibleRootSub");
 		rootHistory.setHistory_content(BoardHistory.EMPTY_BYTE_ARRAY);
 		int insertedRowCnt = boardHistoryMapper.createHistory(rootHistory);
 		if (insertedRowCnt != 1) {
@@ -87,7 +87,7 @@ public class BoardHistoryService {
 	
 	public BoardHistory createHistory(Board article, final String status, final NodePtr parentNodePtr) {
 		BoardHistory createdHistory;
-		if (article.getVersion() == 0) { // 루트 노드일 경우
+		if (article.getVersion() == NodePtr.INVISIBLE_ROOT_VERSION) { // 루트 노드일 경우
 			BoardHistory rootHistory = createInvisibleRoot();
 			
 			createdHistory = createVisibleRoot(article, rootHistory, status);

@@ -18,7 +18,7 @@ import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
 @Service
-public class CreateTree {
+public class TreeViewerService {
 	@Autowired
 	private BoardHistoryService boardHistoryService;
 	
@@ -26,19 +26,13 @@ public class CreateTree {
 	private ServletContext servletContext;
 
 	// @return container, type, nodeStructure : <Node>
-	public ObjectNode createTree(int rootBoardId) throws NoSuchRootIdException{
+	public ObjectNode getTreeJson(int rootBoardId) throws NotExistHistoryException{
 		ObjectMapper mapper = new ObjectMapper();
 		
+		NodePtr invisibleRootPtr = new NodePtr(rootBoardId, NodePtr.INVISIBLE_ROOT_VERSION, rootBoardId);
+		BoardHistory invisibleRootHistory = boardHistoryService.selectHistory(invisibleRootPtr);
 		Map<Entry<Integer, Integer>, BoardHistory> map = boardHistoryService.getHistoryMap(rootBoardId);
-		if(map.size() == 0) {
-			throw new NoSuchRootIdException("rootBoardId : " + rootBoardId);
-		}
 
-		BoardHistory invisibleRootHistory = new BoardHistory();
-		invisibleRootHistory.setBoard_id(rootBoardId);
-		invisibleRootHistory.setVersion(NodePtr.INVISIBLE_ROOT_VERSION);
-		invisibleRootHistory.setRoot_board_id(NodePtr.INVISIALBE_ROOT_BOARD_ID);
-		invisibleRootHistory.setHistory_subject("invisible root");
 		map.put(invisibleRootHistory.toBoardIdAndVersionEntry(), invisibleRootHistory);
 		
 		ObjectNode rootNode = mapper.createObjectNode();

@@ -18,10 +18,10 @@ import com.worksmobile.assignment.model.NodePtr;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class CreateTreeTest {
+public class TreeViewerServiceTest {
 	
 	@Autowired
-	private CreateTree createTree;
+	private TreeViewerService treeViewer;
 	
 	@Autowired
 	private VersionManagementService versionManagementService;
@@ -71,7 +71,7 @@ public class CreateTreeTest {
 	public void testGenerate() throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
 
-		ObjectNode node = createTree.createTree(article.getRoot_board_id());
+		ObjectNode node = treeViewer.getTreeJson(article.getRoot_board_id());
 		
 		String out = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(node);
 		assertNotEquals("", out);

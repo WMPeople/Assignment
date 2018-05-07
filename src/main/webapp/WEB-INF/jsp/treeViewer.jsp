@@ -9,16 +9,27 @@
     <title> Basic example </title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Treant.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/basic-example.css">
-    
+    <style>
+    #loading {
+		width: 3%;
+		top: 50%;
+		left: 50%;
+		margin-top: -50px;
+		margin-left: -100px;
+		position: fixed;
+		display: none;
+    }
+    </style>
 </head>
 <body>
+	<img src="${pageContext.request.contextPath}/img/ajax-loader.gif" id="loading" />
     <div class="chart" id="basic-example"></div>
     <script src="${pageContext.request.contextPath}/js/vendor/raphael.js"></script>
     <script src="${pageContext.request.contextPath}/js/Treant.js"></script>
-    <script src="${pageContext.request.contextPath}/js/create_tree.js"></script>
-    <form action="javascript:displayTree()">
-		<label for="root_board_id">루트 게시글 id : </label><input type="number" min="0" id="root_board_id"/>
-		<input type="submit" onClick="displayTree()" value="draw" />
+    <script src="${pageContext.request.contextPath}/js/tree_viewer.js"></script>
+    <form action="javascript:treeViewer()">
+		<label for="root_board_id">루트 게시글 번호 : </label><input type="number" min="0" id="root_board_id" value="${rootBoardId}"/>
+		<input type="submit" value="draw" />
     </form>
 </body>
 </html>
