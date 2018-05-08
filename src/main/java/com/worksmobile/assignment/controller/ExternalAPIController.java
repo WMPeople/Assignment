@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.worksmobile.assignment.bo.KakaoAPIService;
 import com.worksmobile.assignment.bo.NaverAPIService;
 
 /***
@@ -18,10 +19,13 @@ import com.worksmobile.assignment.bo.NaverAPIService;
  *
  */
 @RestController
-public class NaverApiController {
+public class ExternalAPIController {
 
 	@Autowired
 	private NaverAPIService naverAPIService;
+	
+	@Autowired
+	private KakaoAPIService kakaoAPIService;
 
 	/***
 	 * 네이버  API 입니다.
@@ -45,5 +49,24 @@ public class NaverApiController {
 		modelAndView.setViewName("crawling");
 		return modelAndView;
 	}
+	
+	@RequestMapping(value = "api/kakao/{apiName}/{category}/{text}/{pageNo}", method = RequestMethod.GET)
+	public ModelAndView kakaoApi(@PathVariable String apiName, @PathVariable String category,
+		@PathVariable String text, @PathVariable String pageNo) throws Exception {
+		String geocodeTolocal = null;
+		if ("geocode".equals(category)) {
+			geocodeTolocal = "local";
+		} else {
+			geocodeTolocal = "geocode";
+		}
+		HashMap<String, Object> param = kakaoAPIService.getSearchResult(apiName, geocodeTolocal, text, pageNo);
 
+		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.addObject("jsonArray", param.get("items"));
+		
+		modelAndView.addObject("type", category);
+		modelAndView.addObject("total", param.get("total"));
+		modelAndView.setViewName("crawling");
+		return modelAndView;
+	}
 }

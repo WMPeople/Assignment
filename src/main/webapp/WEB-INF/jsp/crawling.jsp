@@ -112,13 +112,13 @@
 	<li class="container card">
 		<dl class="full_context" style="float: left">
 			<dt>
-				<a href="${jsonArray.hyper}">${jsonArray.title}</a>
+				<a href="${jsonArray.place_url}">${jsonArray.place_name}</a>
 			</dt>
-			<dd style="color:gray">${jsonArray.address}
+			<dd style="color:gray">${jsonArray.road_address_name}
 			</dd>
 		</dl>
 		<span class="right_float_btn" style="float: right">
-			<a href="${jsonArray.link}">
+			<a href="${jsonArray.place_url}">
 				<img src='${pageContext.request.contextPath}/img/placeholder.png'/>
 			</a>
 		</span>
@@ -139,21 +139,14 @@
 	</c:forEach>
 </c:if>
 
- <c:if test="${type eq 'place'}">
+ <c:if test="${type eq 'local'}">
 	<c:forEach var="jsonArray" items="${jsonArray}">
-	<li class="container card">
-		 <div class="img">
-			<a href="${jsonArray.link}">
-				<img src="${jsonArray.image}"
-					onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
-					alt="${jsonArray.title}"
-					width="67" height="auto">
-			</a>
-		</div>
-		<dl class="context">
+	<li class="container">
+		<dl class="full_context card">
 			<dt>
 				<a href="${jsonArray.link}" style="color:blue">${jsonArray.title}</a>
 			</dt>
+			<dd>${jsonArray.address}</dd>
 			<dd>${jsonArray.description}</dd>
 		</dl>
 	</li>

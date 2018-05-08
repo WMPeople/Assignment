@@ -24,15 +24,15 @@ public class CrawlingController {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value = "api/browser/crawling/{category}/{text}", method = RequestMethod.GET)
-	public ModelAndView naverCrawling(@PathVariable String category, @PathVariable String text) throws Exception {
+	@RequestMapping(value = "api/browser/crawling/{category}/{text}/{pageNo}", method = RequestMethod.GET)
+	public ModelAndView naverCrawling(@PathVariable String category, @PathVariable String text, @PathVariable String pageNo) throws Exception {
 		HashMap<String, Object> param = null;
 		if ("geocode".equals(category)) {
-			param = crawlingService.getNaverCrawlingResult(category, text);
+			param = crawlingService.getNaverCrawlingResult(category, text, pageNo);
 		} else if ("dictionary".equals(category)) {
-			param = crawlingService.getNaverCrawlingResult(category, text);
+			param = crawlingService.getNaverCrawlingResult(category, text, pageNo);
 		} else if ("place".equals(category)) {
-			param = crawlingService.getNaverCrawlingResult(category, text);
+			param = crawlingService.getNaverCrawlingResult(category, text, pageNo);
 		}
 
 		if ("[]".equals(param.get("items").toString()) || param.get("items") == null) {
@@ -41,6 +41,7 @@ public class CrawlingController {
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("jsonArray", param.get("items"));
 		modelAndView.addObject("type", param.get("type"));
+		modelAndView.addObject("total", param.get("total"));
 		modelAndView.setViewName("crawling");
 		return modelAndView;
 	}

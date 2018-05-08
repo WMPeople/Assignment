@@ -53,15 +53,10 @@ public class NaverAPIService {
 			}
 			Object obj = parser.parse(response.toString());
 			JSONObject jsonObj = (JSONObject)obj;
-			System.out.println(jsonObj);
 			JSONArray items;
-
 			items = (JSONArray)jsonObj.get("items");
-			for (int i = 0; i < items.size(); i++) {
-				System.out.println(items.get(i));
-			}
-
 			br.close();
+			
 			HashMap<String, Object> param = new HashMap<>();
 			param.put("items", items);
 			param.put("type", category);

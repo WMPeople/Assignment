@@ -11,7 +11,6 @@ import java.util.HashMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Test;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,54 +18,11 @@ public class KakaoAPIService {
 
 	public static final String clientSecret = "f82a92ab82aed869e2ec2ab799c17958";
 	
-	public HashMap<String, Object> main(String temp1, String temp2, String temp3) {
-//
-//		String first = temp1;
-//		String second = temp2;
-//		String apiName = null;
-//		String category = null;
-//		if ("찾아가기 ".equals(first)) {
-//			apiName = "map";
-//			category = "geocode";
-//		}
-//
-//		if ("책 ".equals(first)) {
-//			apiName = "search";
-//			category = "book";
-//		}	
-//
-//		if ("영화 ".equals(first)) {
-//			apiName = "search";
-//			category = "movie";
-//		}
-//
-//		if ("맛집 ".equals(first)) {
-//			apiName = "search";
-//			category = "local";
-//		}
-//		
-//		if ("백과사전 ".equals(first)) {
-//			apiName = "search";
-//			category = "encyc";
-//		}
-//
-//		if ("쇼핑 ".equals(first)) {
-//			apiName = "search";
-//			category = "shop";
-//		}
-//		
-//		if ("뉴스 ".equals(first)) {
-//			apiName = "search";
-//			category = "shop";
-//		}
-//		
-		try {
-			String text = URLEncoder.encode(temp3, "UTF-8");
-		
+	public HashMap<String, Object> getSearchResult(String apiName, String category, String text, String pageNo) {
 
-			String apiURL = "https://dapi.kakao.com/v2/" + temp1 + "/" + temp2 + "?query=" + text; // json 결과
-			System.out.println(apiURL);
-			//String apiURL = "https://openapi.naver.com/v1/search/blog.xml?query="+ text; // xml 결과
+		try {
+			String encodedText = URLEncoder.encode(text, "UTF-8");
+			String apiURL = "https://dapi.kakao.com/v2/" + category + "/" + apiName + "/keyword.json?query=" + encodedText + "&page=" + pageNo; 
 			URL url = new URL(apiURL);
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
 			con.setRequestMethod("GET");
@@ -86,24 +42,24 @@ public class KakaoAPIService {
 			while ((inputLine = br.readLine()) != null) {
 				response.append(inputLine);
 			}
-			System.out.println(response.toString());
+			
 			Object obj = parser.parse(response.toString());
 			JSONObject jsonObj = (JSONObject)obj;
-			//			System.out.println(jsonObj);
 			JSONArray documents = (JSONArray)jsonObj.get("documents");
-			for (int i = 0; i < documents.size(); i++) {
-				System.out.println(documents.get(i));
-			}
+			jsonObj = (JSONObject)jsonObj.get("meta");
+			
 			br.close();
+			
 			HashMap<String, Object> param = new HashMap<>();
 			param.put("items", documents);
-			param.put("type", temp2);
+			param.put("type", category);
+			param.put("total",jsonObj.get("pageable_count"));
 			return param;
-			//			System.out.println(response.toString());
 		} catch (Exception e) {
 			System.out.println(e);
 		}
 		return null;
 
 	}
+
 }

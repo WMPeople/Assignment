@@ -1,7 +1,9 @@
-function getUrl(category, crawling_text, startCnt) {
+function getUrl(category, crawling_text, startCnt, pageNo) {
 	var url;
 	const crawling_api = 'search';
-	
+	if(pageNo == undefined) {
+		pageNo = 1;
+	}
 	switch(category) {
 	case 'book':
 	case 'movie':
@@ -11,10 +13,16 @@ function getUrl(category, crawling_text, startCnt) {
 		+ category + "/" + crawling_text + "/" + startCnt;
 		break;
 	case 'geocode':
+		url = "/assignment/api/kakao/" +crawling_api+"/" + category + "/"
+		+ crawling_text + "/" + pageNo;
+		break;
 	case 'dictionary':
-	case 'place':
 		url = "/assignment/api/browser/crawling/" + category + "/"
-			+ crawling_text;
+		+ crawling_text + "/" + pageNo;
+		break;
+	case 'local':
+		url = "/assignment/api/naver/" + crawling_api + "/"
+		+ category + "/" + crawling_text + "/" + startCnt;
 		break;
 	default:
 		break;
@@ -24,6 +32,7 @@ function getUrl(category, crawling_text, startCnt) {
 
 var category;
 var crawling_text;
+pageNo = 1;
 
 $(function() {
 	var lines = $('#content3').val().split("\n");
@@ -50,7 +59,7 @@ $(function() {
 		for(var i = 1 ; i < textList.length ; i ++) {
 			crawling_text = textList[i];
 		}
-	} //네이버 크롤링 
+	} //kakao api
 	else if (textList[0] == '지도' || textList[0] == '위치') {
 		category = 'geocode';
 		for(var i = 1 ; i < textList.length ; i ++) {
@@ -64,7 +73,7 @@ $(function() {
 		}
 	} //네이버 크롤링
 	else if (textList[0] == '맛집' || textList[0] == '음식점') {
-		category = 'place';
+		category = 'local';
 		for(var i = 1 ; i < textList.length ; i ++) {
 			crawling_text = textList[i];
 		}
@@ -88,6 +97,7 @@ function dialogFunction(crawling_category, url) {
 }
 
 function doWhenDialogLoad(thisPtr, category, crawling_text) {
+	
 	$('.price').each(function (){
 		var item = $(this).text();
 		var num = Number(item).toLocaleString('kr');
@@ -97,7 +107,7 @@ function doWhenDialogLoad(thisPtr, category, crawling_text) {
 	$('.clamp3line').each(function(){
 		$clamp($(this), {clamp: 3});
 	});
-
+	
 	$('#dialog').scroll(function() {
 		
 		if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
@@ -112,7 +122,7 @@ function doWhenDialogLoad(thisPtr, category, crawling_text) {
 			$('#loading').css('display', 'block');
 			var loadingHTML = $('#loading').innerHTML;
 			$.ajax({
-				url: getUrl(category, crawling_text, curCnt + 1),
+				url: getUrl(category, crawling_text, curCnt + 1, ++pageNo),
 				success: function(data) {
 					$('#loading').remove();
 					$("#dialog").append(data);
