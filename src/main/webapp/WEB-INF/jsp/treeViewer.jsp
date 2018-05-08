@@ -9,17 +9,7 @@
     <title> Basic example </title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Treant.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/basic-example.css">
-    <style>
-    #loading {
-		width: 3%;
-		top: 50%;
-		left: 50%;
-		margin-top: -50px;
-		margin-left: -100px;
-		position: fixed;
-		display: none;
-    }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/loading.css">
 </head>
 <body>
 	<img src="${pageContext.request.contextPath}/img/ajax-loader.gif" id="loading" />
