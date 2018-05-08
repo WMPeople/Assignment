@@ -8,21 +8,28 @@
 <script src="${pageContext.request.contextPath}/js/diff_match_patch.js"></script>
 <script src="${pageContext.request.contextPath}/js/replace_and_restore.js"></script>
 <script src="${pageContext.request.contextPath}/js/diff_match_custom.js"></script>
+<script src="${pageContext.request.contextPath}/js/progress_bar.js"></script>
 <link rel="stylesheet"
 	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 <link rel="stylesheet"
 	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
-<link rel="stylesheet"
-	href="${pageContext.request.contextPath}/css/tooltip.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/tooltip.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/progress_bar.css">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>버전 비교</title>
-</head>
 
+</head>
 <body>
 
 	<button class="btn btn-primary" style="float: right;"
 		onclick="location.href='${path}/assignment'">홈으로</button>
 	<h2>버전 비교</h2>
+	<div id="progress_holder">
+		<img src="${pageContext.request.contextPath}/img/ajax-loader.gif" id="loadingImg"/>
+		<div id="progress">
+			<div id="progressBar"></div>
+		</div>
+	</div>
 	<span class="toolTip">
 	정규식 <input type="button" value="add" onclick="add_item()"/>
 		<span class="tooltiptext">정규식에 해당되는 것들은 비교에서 같은 것으로 나옵니다.(순차적으로 적용됩니다)</span>

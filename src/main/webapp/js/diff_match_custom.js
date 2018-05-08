@@ -3,7 +3,6 @@
  * 커스텀을 위한 어뎁터 클래스로 볼수도 있습니다.
  * 
  * @author khh
- * @author rws
  */
 
 const cleanupOpt = Object.freeze({
@@ -18,6 +17,8 @@ const cleanupOpt = Object.freeze({
  * @param {Boolean} Diff_IgnoreCase 대소문자를 구분할지 여부입니다.
  * @param {String} text1 비교할 왼쪽 문자입니다.
  * @param {String} text2 비교할 오른쪽 문자입니다.
+ * @param {String} 왼쪽 결과를 보여줄 selector입니다.
+ * @param {String} 오른쪽 결과를 보여줄 selector입니다.
  */
 function DiffMatchCustom(Diff_Timeout, Diff_EditCost, Diff_IgnoreCase, text1, text2, leftOutputSelector, rightOutputSelector) {
 	this.dmp = new diff_match_patch();	
@@ -135,9 +136,6 @@ DiffMatchCustom.prototype.doReplace = function(regExp, withReplaceChar) {
 	return this.replace;
 }
 
-/**
- * replace가 async하게 작동하므로, 반환을 하지 않기에 replace가 완료되고 호출이 되어야 합니다.
- */
 DiffMatchCustom.prototype.applyTextAndPush = function(replace) {
 	var matchRtn = replace.getTextArr();
 	this.text1 = matchRtn[0];
@@ -159,12 +157,9 @@ DiffMatchCustom.prototype.restoreRegularExp = function(diffs, text1Match, text2M
 }
 
 /***
- * @param text1 비교할 텍스트 1입니다.(보통 왼쪽)
- * @param text2 비교할 텍스트 2입니다.(보통 오른쪽)
- * @param cleanupOption diff 알고리즘의 옵션입니다. cleanupOpt의 sementic, efficiency, no 중에 설정 가능합니다.
- * @param {Number} whiteCharLeastCnt 개수 이상으로 반복되는 공백문자를 무시합니다. (0이면 실행하지 않습니다.)
+ * @param {cleanupOpt} cleanupOption diff 알고리즘의 옵션입니다. cleanupOpt의 sementic, efficiency, no 중에 설정 가능합니다.
+ * @param {Number} ignoreWhiteCharCnt 개수 이상으로 반복되는 공백문자를 무시합니다. (0이면 실행하지 않습니다.)
  * @param {Number} priority 공백 및 개행 무시 우선이면 1, 정규식 무시 우선이면 0 입니다.
- * @return {!Array.<String>} 비교한 후의 html 입니다. 0이 왼쪽, 1이 오른쪽입니다.
  */
 DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCnt, regularExpArr, priority) {
 	this.ms_start = (new Date()).getTime();
@@ -255,16 +250,20 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 		document.getElementById(thisPtr.leftOutputSelector).innerHTML = ds[0];
 		document.getElementById(thisPtr.rightOutputSelector).innerHTML = ds[1];
 	});
-
+	
+	progressBar.setTotalCnt(this.taskQueue.length);
 	this.doTask(this);
 }
 
+var progressBar;
 var queueCnt = 0;	// 다른 곳에서 쓰면 다른 값. 다른 곳은 1, 
 DiffMatchCustom.prototype.doTask = function(thisPtr) {
 	if(thisPtr.taskQueue.length > 0) {
 		if(queueCnt == 0) {
 			var task = thisPtr.taskQueue.shift();
 			task(thisPtr);
+			
+			progressBar.increseProgress(1, task.name);
 		}
 		window.setTimeout(thisPtr.doTask.bind(null, thisPtr), 100);
 	}
@@ -285,6 +284,7 @@ function launch() {
 	} else if(regExpPri) {
 		pri = 0;
 	}
+	progressBar = new ProgressBar();
 
 	diffMatchCustom = new DiffMatchCustom(2, 4, caseSensitive, text1, text2, 'outputdivLeft', 'outputdivRight');
 	var ds;
@@ -301,6 +301,8 @@ function launch() {
 		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt);
 	}
 }
+
+// ================= 이벤트 핸들러를 위한 함수들 시작 ====================
 
 function chagnePriorityDisabled() {
 	var regularChkBox = document.getElementById("regularExpChkBox");
@@ -348,3 +350,5 @@ function onIgnoreWhiteSpaceChagned() {
 	
 	chagnePriorityDisabled();
 }
+
+// ===================== 이벤트 핸들러를 위한 함수들 끝 =======================
