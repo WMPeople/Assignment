@@ -60,7 +60,7 @@ public class BoardController {
 
 	@Autowired
 	private BoardTempService boardTempService;
-
+	
 	@RequestMapping(value = "/diff_test")
 	public ModelAndView diffTest() {
 		return new ModelAndView("diff_test");
