@@ -46,8 +46,6 @@ public class DBIntegrityTest {
 	@Autowired
 	private FileMapper fileMapper;
 	
-	private Compress compress = CompressMaker.getCompress();
-	
 	@Rule
 	public ErrorCollector collector = new ErrorCollector();
 	
@@ -95,7 +93,7 @@ public class DBIntegrityTest {
 		
 		for(Board ele : allBoadList) {
 			BoardHistory history = boardHistoryMapper.selectHistory(ele);
-			String content = compress.deCompress(history.getHistory_content());
+			String content = BoardHistoryCompression.getDeCompressedContent(history);
 			if(ele.getContent() == null) {
 				ele.setContent("");
 			}

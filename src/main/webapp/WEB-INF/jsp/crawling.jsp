@@ -72,8 +72,7 @@
 </c:if>
 <c:if test="${type eq 'shop'}">
 	<c:forEach var="ele" items="${jsonArray}" varStatus="status" step="2">
-	<div class="row">
-		<div class="column card">
+		<li class="column card">
 			<div class="image">
 				<a href="${ele.link}"><img src="${ele.image}"
 					onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
@@ -86,10 +85,10 @@
 				<dd style="color: gray; ">${ele.mallName} </dd>
 				<dd>${ele.lprice}원 <c:if test="${ele.hprice ne '0'}"> - ${ele.hprice}원 </c:if> </dd>
 			</dl>
-		</div>
+		</li>
 		<c:if test="${!status.last}">
 		<c:set var="ele" value="${jsonArray[status.index + 1]}"/>
-		<div class="column card">
+		<li class="column card">
 			<div class="image">
 				<a href="${ele.link}"><img src="${ele.image}"
 					onerror="this.src='http://static.naver.net/book/image/noimg3.gif';"
@@ -102,9 +101,8 @@
 				<dd style="color: gray; ">${ele.mallName} </dd>
 				<dd>${ele.lprice}원 <c:if test="${ele.hprice ne '0'}"> - ${ele.hprice}원 </c:if> </dd>
 			</dl>
-		</div>
+		</li>
 		</c:if>
-	</div>
 	</c:forEach>
 </c:if>
  <c:if test="${type eq 'geocode'}">

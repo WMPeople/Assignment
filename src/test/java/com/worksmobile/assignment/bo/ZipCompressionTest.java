@@ -17,15 +17,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class ZipCompressTest {
+public class ZipCompressionTest {
 	private final String plainText = "CDDCACBCBCCCBBCDA";
 	private final String hangulText = "가나다라마바사abcefegjwegioj";
 	
 	@Test
 	public void testZipping() throws IOException {
 		byte[] stringToBytes = plainText.getBytes(StandardCharsets.UTF_8);
-		byte[] zippedBytes = ZipCompress.zipBytes(ZipCompress.ZIP_FILE_NAME, stringToBytes);
-		byte[] unzippedBytes = ZipCompress.unzip(zippedBytes);
+		byte[] zippedBytes = ZipCompression.zipBytes(ZipCompression.ZIP_FILE_NAME, stringToBytes);
+		byte[] unzippedBytes = ZipCompression.unzip(zippedBytes);
 		assertFalse(Arrays.equals(zippedBytes, unzippedBytes));
 		assertTrue(Arrays.equals(stringToBytes, unzippedBytes));
 		String unzippedStr = new String(unzippedBytes, StandardCharsets.UTF_8);
@@ -37,8 +37,8 @@ public class ZipCompressTest {
 	@Test
 	public void testHangulZipping() throws IOException {
 		byte[] stringToBytes = hangulText.getBytes(StandardCharsets.UTF_8);
-		byte[] zippedBytes = ZipCompress.zipBytes(ZipCompress.ZIP_FILE_NAME, stringToBytes);
-		byte[] unzippedBytes = ZipCompress.unzip(zippedBytes);
+		byte[] zippedBytes = ZipCompression.zipBytes(ZipCompression.ZIP_FILE_NAME, stringToBytes);
+		byte[] unzippedBytes = ZipCompression.unzip(zippedBytes);
 		assertFalse(Arrays.equals(zippedBytes, unzippedBytes));
 		assertTrue(Arrays.equals(stringToBytes, unzippedBytes));
 		String unzippedStr = new String(unzippedBytes, StandardCharsets.UTF_8);
@@ -54,10 +54,10 @@ public class ZipCompressTest {
 		byte[] stringToBytes = sevenHundredThousandBuilder.toString().getBytes(StandardCharsets.UTF_8);
 		System.out.println("압축하지 않은 문자열 크기 : " + stringToBytes.length + "bytes");
 		
-		byte[] zippedBytes = ZipCompress.zipBytes(ZipCompress.ZIP_FILE_NAME, stringToBytes);
+		byte[] zippedBytes = ZipCompression.zipBytes(ZipCompression.ZIP_FILE_NAME, stringToBytes);
 		System.out.println("압축된 문자열 바이트 크기 : " + zippedBytes.length + "bytes");
 		
-		byte[] unzippedBytes = ZipCompress.unzip(zippedBytes);
+		byte[] unzippedBytes = ZipCompression.unzip(zippedBytes);
 		assertFalse(Arrays.equals(zippedBytes, unzippedBytes));
 		assertTrue(Arrays.equals(stringToBytes, unzippedBytes));
 		String unZippedStr = new String(unzippedBytes, StandardCharsets.UTF_8);
@@ -77,10 +77,10 @@ public class ZipCompressTest {
 		byte[] stringToBytes = textBuilder.toString().getBytes(StandardCharsets.UTF_8);
 		System.out.println("압축하지 않은 문자열 크기 : " + stringToBytes.length + "bytes");
 		
-		byte[] zippedBytes = ZipCompress.zipBytes(ZipCompress.ZIP_FILE_NAME, stringToBytes);
+		byte[] zippedBytes = ZipCompression.zipBytes(ZipCompression.ZIP_FILE_NAME, stringToBytes);
 		System.out.println("압축된 문자열 바이트 크기 : " + zippedBytes.length + "bytes");
 		
-		byte[] unzippedBytes = ZipCompress.unzip(zippedBytes);
+		byte[] unzippedBytes = ZipCompression.unzip(zippedBytes);
 		assertFalse(Arrays.equals(zippedBytes, unzippedBytes));
 		assertTrue(Arrays.equals(stringToBytes, unzippedBytes));
 		String unZippedStr = new String(unzippedBytes, StandardCharsets.UTF_8);
@@ -104,20 +104,20 @@ public class ZipCompressTest {
 			byte[] stringToBytes = textBuilder.toString().getBytes(StandardCharsets.UTF_8);
 
 			@SuppressWarnings("unused")
-			byte[] zippedBytes = ZipCompress.zipBytes(ZipCompress.ZIP_FILE_NAME, stringToBytes);
+			byte[] zippedBytes = ZipCompression.zipBytes(ZipCompression.ZIP_FILE_NAME, stringToBytes);
 		}
 
 		long end = System.currentTimeMillis();
 		System.out.println(end - start);
 
-		byte[] zippedBytes = ZipCompress.zipBytes(ZipCompress.ZIP_FILE_NAME,
+		byte[] zippedBytes = ZipCompression.zipBytes(ZipCompression.ZIP_FILE_NAME,
 			textBuilder.toString().getBytes(StandardCharsets.UTF_8));
 
 		long start2 = System.currentTimeMillis();
 
 		for (int i = 0; i < 10000; i++) {
 			@SuppressWarnings("unused")
-			byte[] unzipped = ZipCompress.unzip(zippedBytes);
+			byte[] unzipped = ZipCompression.unzip(zippedBytes);
 		}
 
 		long end2 = System.currentTimeMillis();

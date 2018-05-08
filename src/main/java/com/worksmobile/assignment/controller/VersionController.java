@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.worksmobile.assignment.bo.Compress;
-import com.worksmobile.assignment.bo.CompressMaker;
+import com.worksmobile.assignment.bo.BoardHistoryCompression;
 import com.worksmobile.assignment.bo.VersionManagementService;
 import com.worksmobile.assignment.mapper.BoardAdapter;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
@@ -170,10 +169,9 @@ public class VersionController {
 		NodePtr left = new NodePtr(board_id2, version2);
 		NodePtr right = new NodePtr(board_id1, version1);
 		
-		Compress compress = CompressMaker.getCompress();
 
-		String leftContent = compress.deCompress(boardHistoryMapper.selectHistory(left).getHistory_content());
-		String rightContent = compress.deCompress(boardHistoryMapper.selectHistory(right).getHistory_content());
+		String leftContent = BoardHistoryCompression.getDeCompressedContent(boardHistoryMapper.selectHistory(left));
+		String rightContent = BoardHistoryCompression.getDeCompressedContent(boardHistoryMapper.selectHistory(right));
 
 		//압출 해결 후 리턴 , 맵으로 리턴
 		ModelAndView modelAndView = new ModelAndView();

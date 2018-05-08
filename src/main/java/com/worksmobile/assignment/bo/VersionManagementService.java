@@ -90,7 +90,6 @@ public class VersionManagementService {
 	 *  게시판 DB 와 이력 DB 에 둘다 등록합니다.
 	 *  루트를 만들거나, 충돌 관리시에 게시글 번호가 새로 발급됩니다. (DB의 자동 증가를 통해 증가)
 	 * @param article 등록할 게시물의 게시글 id, 버전, 제목, 내용, 첨부파일이 사용됩니다.
-	 * @param version 새로운 게시물의 버전
 	 * @param status 게시물 이력의 상태에 들어갈 내용
 	 * @param parentNodePtr 게시물의 부모 노드 포인터
 	 * @return 새롭게 생성된 게시글 이력 

@@ -60,11 +60,6 @@ public class BoardController {
 
 	@Autowired
 	private BoardTempService boardTempService;
-	
-	@RequestMapping(value = "/diff_test")
-	public ModelAndView diffTest() {
-		return new ModelAndView("diff_test");
-	}
 
 	/***
 	 * 게시물 작성입니다. 글쓰기 폼 페이지로 이동합니다.

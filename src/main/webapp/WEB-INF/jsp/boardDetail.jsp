@@ -6,7 +6,7 @@
     
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/jquery-ui-1.11.0.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/common_ncs.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home_editor.min.css">
