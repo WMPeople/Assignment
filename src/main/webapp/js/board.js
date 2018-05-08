@@ -49,6 +49,7 @@ $(function(){
 	
 	
 	$("#btnCreate").click(function(){
+		oEditors.getById["content"].exec("UPDATE_CONTENTS_FIELD", []);
 		var availableFile = fileCheck(this.form.fileUp);
 		if (!availableFile) {
 			return;
@@ -83,6 +84,7 @@ $(function(){
 	});
 
 	$("#btnUpdate").click(function(){
+		oEditors.getById["content"].exec("UPDATE_CONTENTS_FIELD", []);
 		if ($('#subject').val() == '' || $('#content').val() == '') {
 	        alert("제목과 내용을 입력하세요.");
 	        return;

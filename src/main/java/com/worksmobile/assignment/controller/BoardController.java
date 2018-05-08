@@ -138,9 +138,11 @@ public class BoardController {
 			String json = JsonUtils.jsonStringIfExceptionToString(board);
 			throw new RuntimeException("show 메소드에서 viewDetail 메소드 실행 에러" + json);
 		}
-		String dirty = board.getContent();
-		String clean = XssPreventer.escape(dirty);
-		board.setContent(clean);
+//		String dirty = board.getContent();
+//		String clean = XssPreventer.escape(dirty);
+//		board.setContent(clean);
+		
+		board.setContent(board.getContent());
 
 		File file = fileMapper.getFile(board.getFile_id());
 

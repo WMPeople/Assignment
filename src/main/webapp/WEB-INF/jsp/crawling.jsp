@@ -241,7 +241,7 @@ $('.clamp3line').each(function(){
 				</dd>
 			</dl>
 			<span class="right_float_btn" style="float: right">
-				<img src='${pageContext.request.contextPath}/img/placeholder.png' onclick="locationhref='${jsonArray.link}'" style=")"/>
+				<img src='${pageContext.request.contextPath}/img/placeholder.png' onclick="location.href='${jsonArray.link}'" style=")"/>
 			</span>
 		</li>
 		</c:forEach>

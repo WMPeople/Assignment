@@ -1,5 +1,5 @@
 $(function() {
-
+	
 	var lines = $('#content3').val().split("\n");
 	var firstLine = lines[0];
 	var textList = firstLine.split(' ');

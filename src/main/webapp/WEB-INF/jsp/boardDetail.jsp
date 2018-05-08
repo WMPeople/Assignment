@@ -4,12 +4,9 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
     
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home.css">
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/common_ncs.css">
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home_editor.min.css">
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js"></script>
@@ -19,7 +16,6 @@
 <title>게시물 상세보기</title>
 </head>
 <body>
-    <pre></pre>
     <div class="board_view">
         <div class="subject _title_area">
             <span class="txt_noti _attention_txt_noti" style="display: none;"></span>
@@ -32,13 +28,14 @@
             <button class="btn btn-primary" style="float: right;" onclick="location.href='${path}/assignment'">홈으로</button>
         </div>
         <div class="infor _infor">
-            <span class="name">게시물 번호 : <span class="_group">${board.board_id}</span> <span class="_company"></span></span>
-            <span class="name">버전 : <span class="_group">${board.version}</span> <span class="_company"></span></span>
-            <span class="date">최종 수정시간 :  ${board.created_time}</span>
+            <span class="name">게시물 번호 : <span class="_group">${board.board_id} ,</span> <span class="_company"></span></span>
+            <span class="name">버전 : <span class="_group">${board.version} ,</span> <span class="_company"></span></span>
+            <span class="date">최종 수정시간 :  ${board.created_time} ,</span>
             <span class="date">첨부 파일 :   <a href="${path}/assignment/boards/download/${file.file_id}" name="file">${file.file_name}     </a> (${file.file_size})</span>
             <button class="btn btn-primary" id="btnAutoList" onclick="location.href='${path}/assignment/autos/${board.board_id}/${board.version}'">자동저장리스트</button>
-        <div class="cont _content translateArea" id="contents">
-                <textarea name="content3" id="content3" style="min-height: 500px; min-width: 700px;" readonly>${board.content}</textarea>
+        <div class="cont _content translateArea" id="content3">
+<%--                 <textarea name="content3" id="content3" style="min-height: 500px; min-width: 700px;" readonly>${board.content}</textarea> --%>
+            ${board.content}  
         </div>
         <div class="btn_box _btn_area _no_print">
             <form action="/assignment/boards/update" method="post" style="display: inline;">

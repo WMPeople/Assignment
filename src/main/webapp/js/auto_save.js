@@ -53,6 +53,7 @@ function optionAutoSave() {
 			if (!autoSaveChkBox) {
 				return;
 			}
+			oEditors.getById["content"].exec("UPDATE_CONTENTS_FIELD", []);
 			var textEle = document.querySelector('#content');
 			var textVal = textEle.value;
 			var ref1, ref2 // 전 데이터, 전전 데이터
@@ -88,12 +89,12 @@ function optionAutoSave() {
 
 					dmp.diff_cleanupSemantic(diff);
 
-					var addCount = 0; // 추가된 배열 카운트. 단, 배열 길이가 3이상인 것만
-					// 카운트한다. 즉, 사소한 추가는 제외.
+					var addCount = 0; // 추가된 배열 카운트. 단, 배열 길이가 3이상인 것만 카운트한다. 즉, 사소한 추가는 제외.
 					var addLength = 0; // 추가된 내용의 길이
 					var minorCount = 0; // 사소한 변경 카운트
 					var newLineCount = 0; // 개행 개수 카운트
-					var originalContentLength = originalContent.length; // 원본
+					var originalContentLength = originalContent.length; // 원본 문자열 길이
+					
 					// 원본 문자열 길이가 너무 짧으면 40이라고 생각한다. 너무 잦은 버전업을 막기 위해.
 					if (originalContentLength <= 40) {
 						originalContentLength = 40;

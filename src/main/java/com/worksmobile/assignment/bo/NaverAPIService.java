@@ -12,6 +12,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.stereotype.Service;
 
+/***
+ * 
+ * @author rws
+ *
+ */
 @Service
 public class NaverAPIService {
 

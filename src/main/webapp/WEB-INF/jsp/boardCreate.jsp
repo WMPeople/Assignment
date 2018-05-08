@@ -11,7 +11,9 @@
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js" type="text/javascript"> </script>
+<script src="${pageContext.request.contextPath}/se2/js/service/HuskyEZCreator.js" charset="utf-8"></script>
 <head>
+
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Insert title here</title>
 </head>
@@ -46,4 +48,13 @@
 </form>
 
 </body>
+<script type="text/javascript">
+var oEditors = [];
+nhn.husky.EZCreator.createInIFrame({
+    oAppRef: oEditors,
+    elPlaceHolder: "content",
+    sSkinURI: "${pageContext.request.contextPath}/se2/SmartEditor2Skin.html",
+    fCreator: "createSEditor2"
+});
+</script>
 </html>
