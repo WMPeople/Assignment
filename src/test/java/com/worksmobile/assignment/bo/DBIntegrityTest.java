@@ -93,7 +93,7 @@ public class DBIntegrityTest {
 		
 		for(Board ele : allBoadList) {
 			BoardHistory history = boardHistoryMapper.selectHistory(ele);
-			String content = BoardHistoryCompress.getDeCompressedContent(history);
+			String content = BoardHistoryCompression.getDeCompressedContent(history);
 			if(ele.getContent() == null) {
 				ele.setContent("");
 			}

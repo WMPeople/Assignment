@@ -101,7 +101,7 @@ function doWhenDialogLoad(thisPtr, category, crawling_text) {
 	$('#dialog').scroll(function() {
 		
 		if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
-			var curCnt = $('#dialog').children().length;
+			var curCnt = $('#dialog').children('li').length;
 			var max = $('#total')[0].innerText;
 			const NAVER_API_MAX_CNT = 1000;
 			

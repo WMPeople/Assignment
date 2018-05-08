@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import com.worksmobile.assignment.model.BoardHistory;
 
-public class BoardHistoryCompressTest {
+public class BoardHistoryCompressionTest {
 	private BoardHistory smallContentHistory;
 	private BoardHistory bigContentHistory;
 	
@@ -36,7 +36,7 @@ public class BoardHistoryCompressTest {
 	
 	@Test
 	public void testSetHistoryContentWhenCompressSizeIsBigger() throws IOException {
-		smallContentHistory = BoardHistoryCompress.setContent(smallContentHistory, smallContent);
+		smallContentHistory = BoardHistoryCompression.setContent(smallContentHistory, smallContent);
 		assertEquals(smallContentHistory.is_content_compressed(), false);
 		assertNotNull(smallContentHistory.getHistory_content());
 		assertArrayEquals(smallContentHistory.getHistory_content(), smallContent.getBytes(StandardCharsets.UTF_8));
@@ -44,7 +44,7 @@ public class BoardHistoryCompressTest {
 	
 	@Test
 	public void testSetHistoryContentWhenCompressSizeIsSmaller() throws IOException {
-		bigContentHistory = BoardHistoryCompress.setContent(bigContentHistory, bigContent);
+		bigContentHistory = BoardHistoryCompression.setContent(bigContentHistory, bigContent);
 		assertEquals(bigContentHistory.is_content_compressed(), true);
 		assertNotNull(bigContentHistory.getHistory_content());
 		assertThat(bigContentHistory.getHistory_content(), IsNot.not(equalTo(bigContent.getBytes(StandardCharsets.UTF_8))));
@@ -53,14 +53,14 @@ public class BoardHistoryCompressTest {
 	@Test
 	public void testGetHistoryContentWhenNotcompressed() throws IOException {
 		testSetHistoryContentWhenCompressSizeIsBigger();
-		String deCompressedStr = BoardHistoryCompress.getDeCompressedContent(smallContentHistory);
+		String deCompressedStr = BoardHistoryCompression.getDeCompressedContent(smallContentHistory);
 		assertEquals(smallContent, deCompressedStr);
 	}
 	
 	@Test
 	public void testGetHistoryContentWhenCompreesed() throws IOException {
 		testSetHistoryContentWhenCompressSizeIsSmaller();
-		String deCompressedStr = BoardHistoryCompress.getDeCompressedContent(bigContentHistory);
+		String deCompressedStr = BoardHistoryCompression.getDeCompressedContent(bigContentHistory);
 		assertEquals(bigContent, deCompressedStr);
 	}
 }
