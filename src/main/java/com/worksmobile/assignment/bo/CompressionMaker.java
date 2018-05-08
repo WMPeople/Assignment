@@ -1,9 +1,9 @@
 package com.worksmobile.assignment.bo;
 
-public class CompressMaker {
-	private static Compress compress = new ZipCompress();
+public class CompressionMaker {
+	private static Compression compress = new ZipCompression();
 	
-	public static Compress getCompress() {
+	public static Compression getCompress() {
 		return compress;
 	}
 }

@@ -7,7 +7,7 @@ import java.io.IOException;
  * @author khh
  *
  */
-public interface Compress {
+public interface Compression {
 
 	public byte[] compress(byte[] byteArr) throws IOException;
 

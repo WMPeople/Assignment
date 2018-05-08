@@ -5,8 +5,8 @@ import java.nio.charset.StandardCharsets;
 
 import com.worksmobile.assignment.model.BoardHistory;
 
-public class BoardHistoryCompress {
-	static Compress compress = CompressMaker.getCompress();
+public class BoardHistoryCompression {
+	static Compression compress = CompressionMaker.getCompress();
 	
 	public static BoardHistory setContent(BoardHistory boardHistory, String content) throws IOException {
 		BoardHistory rtn = boardHistory;

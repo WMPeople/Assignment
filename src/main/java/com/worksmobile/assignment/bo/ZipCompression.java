@@ -12,7 +12,7 @@ import java.util.zip.ZipOutputStream;
  * @author khh
  *
  */
-public class ZipCompress implements Compress{
+public class ZipCompression implements Compression{
 	
 	public static final String ZIP_FILE_NAME = "memory.one";
 
