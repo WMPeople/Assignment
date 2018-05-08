@@ -7,8 +7,8 @@
 	<select id="selectHistoryByRootBoardId"
     resultType="com.worksmobile.assignment.model.BoardHistory">
         SELECT board_id, version, created_time, status,
-        		history_subject, history_content, file_id, 
-        		parent_board_id, parent_version, root_board_id
+        		history_subject, history_content, is_content_compressed,
+        		file_id, parent_board_id, parent_version, root_board_id
 		FROM board_history
 		WHERE root_board_id = #{root_board_id};
     </select>
@@ -16,8 +16,8 @@
     <select id="selectHistory" 
     resultType="com.worksmobile.assignment.model.BoardHistory">
         SELECT board_id, version, created_time, status, 
-        		history_subject, history_content, file_id, 
-        		parent_board_id, parent_version, root_board_id
+        		history_subject, history_content, is_content_compressed,
+        		file_id, parent_board_id, parent_version, root_board_id
 		FROM board_history
 		WHERE board_id = #{board_id} AND version = #{version};
     </select>
@@ -25,8 +25,8 @@
     <select id="selectAllHistory"
     resultType="com.worksmobile.assignment.model.BoardHistory">
     	SELECT board_id, version, created_time, status, 
-        		history_subject, history_content, file_id, 
-        		parent_board_id, parent_version, root_board_id
+        		history_subject, history_content, is_content_compressed,
+        		file_id, parent_board_id, parent_version, root_board_id
         FROM board_history
     </select>
     
@@ -37,10 +37,11 @@
     
      <insert id="createHistory" parameterType="com.worksmobile.assignment.model.BoardHistory">
         INSERT INTO board_history(board_id, version, status,
-        						history_subject, history_content, file_id,
-        						parent_board_id, parent_version, root_board_id)
-		VALUES(#{board_id}, #{version}, #{status}, #{history_subject},
-				#{history_content}, #{file_id}, #{parent_board_id}, #{parent_version}, #{root_board_id});
+        						history_subject, history_content, is_content_compressed,
+        						file_id, parent_board_id, parent_version, root_board_id)
+		VALUES(#{board_id}, #{version}, #{status}, 
+				#{history_subject}, #{history_content}, #{is_content_compressed},
+				#{file_id}, #{parent_board_id}, #{parent_version}, #{root_board_id});
 		<selectKey keyProperty="board_id,created_time" resultType="com.worksmobile.assignment.model.BoardHistory" order="AFTER">
      		SELECT board_id, created_time FROM board_history
      		WHERE board_id =
@@ -65,8 +66,8 @@
      <select id="selectChildren" 
     resultType="com.worksmobile.assignment.model.BoardHistory">
         SELECT board_id, version, created_time, status,
-        		history_subject, history_content, file_id,
-        		parent_board_id, parent_version, root_board_id
+        		history_subject, history_content, is_content_compressed, 
+        		file_id, parent_board_id, parent_version, root_board_id
 		FROM board_history
 		WHERE parent_board_id = #{board_id} AND parent_version = #{version};
     </select>

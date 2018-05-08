@@ -29,9 +29,10 @@ public class BoardHistoryService {
 		NodePtr nodePtr = new NodePtr(NodePtr.ISSUE_NEW_BOARD_ID, NodePtr.INVISIBLE_ROOT_VERSION, NodePtr.INVISIALBE_ROOT_BOARD_ID);
 		BoardHistory rootHistory = new BoardHistory();
 		rootHistory.setNodePtr(nodePtr);
-		rootHistory.setStatus(BoardHistory.STATUS_ROOT);
+		rootHistory.setStatus(BoardHistory.STATUS_INVISIBLE_ROOT);
 		rootHistory.setHistory_subject("InvisibleRootSub");
-		rootHistory.setHistory_content(BoardHistory.EMPTY_BYTE_ARRAY);
+		rootHistory.setHistory_content("".getBytes());
+		rootHistory.set_content_compressed(false);
 		int insertedRowCnt = boardHistoryMapper.createHistory(rootHistory);
 		if (insertedRowCnt != 1) {
 			String json = JsonUtils.jsonStringIfExceptionToString(rootHistory);

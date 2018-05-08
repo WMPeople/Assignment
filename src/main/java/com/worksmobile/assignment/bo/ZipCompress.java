@@ -3,17 +3,19 @@ package com.worksmobile.assignment.bo;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * 
+ * @author khh
+ *
+ */
 public class ZipCompress implements Compress{
 	
 	public static final String ZIP_FILE_NAME = "memory.one";
 
-	// TODO : 인터페이스와 클래스로 분리하자.
-	// 전략 패턴, 템플릿 메서드 패턴.
 	public static byte[] zipBytes(String filename, byte[] input) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ZipOutputStream zos = new ZipOutputStream(baos);
@@ -43,19 +45,18 @@ public class ZipCompress implements Compress{
 		return unzippedBytes;
 	}
 
-	public byte[] compress(String plainText) throws IOException {
-		if (plainText == null) {
+	public byte[] compress(byte[] byteArr) throws IOException {
+		if (byteArr == null) {
 			return null;
 		}
-		byte[] stringToBytes = plainText.getBytes(StandardCharsets.UTF_8);
-		return zipBytes(ZIP_FILE_NAME, stringToBytes);
+		return zipBytes(ZIP_FILE_NAME, byteArr);
 	}
 
-	public String deCompress(byte[] compressed) throws IOException {
+	public byte[] deCompress(byte[] compressed) throws IOException {
 		if (compressed == null) {
 			return null;
 		}
 		byte[] contentByte = unzip(compressed);
-		return new String(contentByte, StandardCharsets.UTF_8);
+		return contentByte;
 	}
 }

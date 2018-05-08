@@ -2,10 +2,15 @@ package com.worksmobile.assignment.bo;
 
 import java.io.IOException;
 
+/**
+ * 
+ * @author khh
+ *
+ */
 public interface Compress {
 
-	public byte[] compress(String plainText) throws IOException;
+	public byte[] compress(byte[] byteArr) throws IOException;
 
-	public String deCompress(byte[] compressed) throws IOException;
+	public byte[] deCompress(byte[] compressed) throws IOException;
 	
 }
