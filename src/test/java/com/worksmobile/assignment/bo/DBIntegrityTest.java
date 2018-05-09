@@ -58,7 +58,7 @@ public class DBIntegrityTest {
 		}
 	}
 	
-	private List<Board> selectAllBoard() {
+	private List<Board> selectAllArticle() {
 		HashMap<String, Integer> articleParams = new HashMap<>();
 		articleParams.put("offset", 0);
 		articleParams.put("noOfRecords", Integer.MAX_VALUE);
@@ -66,7 +66,7 @@ public class DBIntegrityTest {
 	}
 	
 	/*
-	 * leaf 잎 노드는 항상 board에도 존재하여야 합니다.
+	 * 이력의 리프 노드는 항상 board에도 존재하여야 합니다.
 	 */
 	@Test
 	public void testLeafIntegrity() throws JsonProcessingException {
@@ -85,11 +85,23 @@ public class DBIntegrityTest {
 	}
 	
 	/*
+	 * 게시판의 게시글들은 이력에서 리프여야 합니다.
+	 */
+	@Test
+	public void testArticleIsHistoryLeaf() {
+		List<Board> articleList = selectAllArticle();
+		for(Board articleEle : articleList) {
+			boolean isLeaf = isLeafByBoardHistory(articleEle);
+			collector.checkThat(isLeaf, is(true));
+		}
+	}
+	
+	/*
 	 * board와 boardHisoty의 내용은 압축 풀어도 같아야 합니다.
 	 */
 	@Test
 	public void testLeafContentIntegrity() throws IOException {
-		List<Board> allBoadList = selectAllBoard();
+		List<Board> allBoadList = selectAllArticle();
 		
 		for(Board ele : allBoadList) {
 			BoardHistory history = boardHistoryMapper.selectHistory(ele);
@@ -106,7 +118,7 @@ public class DBIntegrityTest {
 	 */
 	@Test
 	public void testLeafCreatedTimeIntegrity() throws JsonProcessingException {
-		List<Board> allBoadList = selectAllBoard();
+		List<Board> allBoadList = selectAllArticle();
 		
 		for(Board ele : allBoadList) {
 			BoardHistory history = boardHistoryMapper.selectHistory(ele);
@@ -119,7 +131,7 @@ public class DBIntegrityTest {
 	 */
 	@Test
 	public void testLeafFileIdIntegrity() throws JsonProcessingException {
-		List<Board> allBoardList = selectAllBoard();
+		List<Board> allBoardList = selectAllArticle();
 		
 		for(Board ele : allBoardList) {
 			BoardHistory history = boardHistoryMapper.selectHistory(ele);
@@ -135,7 +147,7 @@ public class DBIntegrityTest {
 	public void testFileIdIntegrity() throws JsonProcessingException {
 		List<File> allFileList = fileMapper.getAllFile();
 
-		List<Board> allBoardList = selectAllBoard();
+		List<Board> allBoardList = selectAllArticle();
 		List<Integer> allFileIdInBoardList = new ArrayList<>(allBoardList.size());
 		for(Board ele : allBoardList) {
 			allFileIdInBoardList.add(ele.getBoard_id());
