@@ -18,7 +18,7 @@
 <title>Insert title here</title>
 </head>
 <body>
-
+<div id="dialog2"></div>
 <form id="fileForm" action="fileUpload" method="post" enctype="multipart/form-data">
 	<div id="articleEditor" >
 		<div class="board_write">
@@ -39,7 +39,7 @@
 					</div>
 				</li>
 			</ul>
-			<textarea  name="content" id="content" style="margin:8px; min-height: 500px; min-weight: 500px; padding:0px;" ></textarea>
+			<textarea  name="content" id="content" style="margin:8px; min-height: 500px; min-weight: 500px; padding:0px;"></textarea>
 			<div class="btn_area _btn_area">
 				 <button type="button" id= "btnCreate" class="btn tx_point _save"><strong>확인</strong></button>
 			</div>
@@ -49,7 +49,7 @@
 
 </body>
 <script type="text/javascript">
-var oEditors = [];
+oEditors = [];
 nhn.husky.EZCreator.createInIFrame({
     oAppRef: oEditors,
     elPlaceHolder: "content",

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.nhncorp.lucy.security.xss.XssFilter;
 import com.nhncorp.lucy.security.xss.XssPreventer;
 import com.worksmobile.assignment.bo.BoardTempService;
 import com.worksmobile.assignment.bo.CookieService;
@@ -138,9 +139,13 @@ public class BoardController {
 			String json = JsonUtils.jsonStringIfExceptionToString(board);
 			throw new RuntimeException("show 메소드에서 viewDetail 메소드 실행 에러" + json);
 		}
-//		String dirty = board.getContent();
-//		String clean = XssPreventer.escape(dirty);
-//		board.setContent(clean);
+		//TODO 필터제대로 적용, 테스트를 위한 필터 미적용상태.
+		XssFilter filter = XssFilter.getInstance();
+		String dirty = board.getContent();
+		System.out.println("dirty : " +dirty);
+		String clean = dirty;
+		System.out.println("clean : " +clean);
+		board.setContent(clean);
 		
 		board.setContent(board.getContent());
 

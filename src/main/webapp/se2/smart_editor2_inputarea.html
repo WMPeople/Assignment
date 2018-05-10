@@ -1,8 +1,71 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+
 <meta charset="utf-8">
 <title>Smart Editor&#8482; WYSIWYG Mode</title>
+
+<script src="../js/jquery-1.10.2.js"></script>
+<script src="../js/jquery-ui-1.11.0.js"></script>
+<script src="js/service/HuskyEZCreator.js" charset="utf-8"></script>
 </head>
-<body class="se2_inputarea" style="height:0;-webkit-nbsp-mode:normal"></body>
+<body id="real_textarea" class="se2_inputarea" style="height:0;-webkit-nbsp-mode:normal"></body>
+
+<script>	
+//에디터에서 키워드를 검색한다.
+document.getElementById('real_textarea').onkeyup =function() {
+	var curText = document.getElementById('real_textarea').innerHTML;
+	if (curText.indexOf('영화') != -1) {
+		
+		var movieName = prompt("영화 이름을 입력하세요.");
+		var text;
+		//TODO 에러 핸들링
+		if (movieName == null || movieName == "") {
+	        return;
+	    } else {
+	    	text = movieName;
+	    	
+	    }
+		var movieIndexNum = curText.indexOf('영화');
+	    document.getElementById('real_textarea').innerHTML = curText.slice(0, movieIndexNum) +'<input type="button" id="movie" onclick="m_over(this)" style = "font-size : 9px;" value="'+ text +'" ></input>' + curText.slice(movieIndexNum+2);
+	    oEditors.getById["content"].exec("UPDATE_CONTENTS_FIELD", []);
+
+	   
+	} else if (curText.indexOf('책') != -1) {
+        
+        var bookName = prompt("책 제목을 입력하세요.");
+        var text;
+        if (bookName == null || bookName == "") {
+            alert('입력안함');
+        } else {
+            text = bookName;
+            
+        }
+        
+        var bookIndexNum = curText.indexOf('책');
+        document.getElementById('real_textarea').innerHTML = curText.slice(0, bookIndexNum) +'<input type="button" id="book" onclick="m_over(this)" style = "font-size : 9px;" value="'+ text +'" ></input>' + curText.slice(bookIndexNum+1); 
+	}
+ };
+//onclick시 동작 메쏘드, api 호출을 하여 그 결과를 dialog로 만든다.
+function m_over(target){
+	var crawling_api = 'search';
+    var crawling_category_kakao = 'web';
+    var crawling_category = target.id;
+    var crawling_text = target.value;
+    var url = "/assignment/api/naver/" + crawling_api + "/"
+            + crawling_category + "/" + encodeURI(crawling_text);
+
+    $('html', parent.parent.document).find('#dialog2').dialog({
+        open : function() {
+            $(this).load(url);
+        },
+        width : 400,
+        height : 600,
+        resizable : false,
+        draggable : true,
+        modal : true
+    });
+}
+
+</script>
 </html>

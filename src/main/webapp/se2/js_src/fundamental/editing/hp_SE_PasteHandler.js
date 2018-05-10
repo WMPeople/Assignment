@@ -81,7 +81,6 @@ nhn.husky.SE_PasteHandler = jindo.$Class({
 		var elStyle = oTmpDoc.createElement("STYLE");
 		elStyle.innerHTML = sStyles;
 		elHead.appendChild(elStyle);
-
 		this._htStyleRule = this._getCSSStyleRule(elStyle.sheet.cssRules);
 		elStyle.parentNode.removeChild(elStyle);
 	},
@@ -187,9 +186,30 @@ nhn.husky.SE_PasteHandler = jindo.$Class({
 	 */
 	$ON_EVENT_EDITING_AREA_PASTE_DELAY : function() {
 		var el = this.oApp.getWYSIWYGDocument().body;
-
 		this._revertFontAfterPaste(el);
 		this._applyStyle(el);
 		this._removeLineHeightInSpan(el);
+		
+		String.prototype.trim = function(){
+		  return this.replace(/(^\s*)|(\s*$)/gi, "");
+		}
+
+		String.prototype.replaceAll = function(str1, str2){
+		  var temp_str = this.trim();
+		  temp_str = temp_str.replace(eval("/" + str1 + "/gi"), str2);
+		  return temp_str;
+		}
+		
+		var movieStr = '<input type="button" id="movie"';
+		var  movieStr2 = '<input type="button" id="movie" onclick="m_over(this)"';
+		var  movieStr3 = el.innerHTML;
+		el.innerHTML = movieStr3.replaceAll(movieStr, movieStr2);
+		
+		var bookStr = '<input type="button" id="book"';
+		var bookStr2 = '<input type="button" id="book" onclick="m_over(this)"';
+		var bookStr3 = el.innerHTML;
+		el.innerHTML = bookStr3.replaceAll(bookStr, bookStr2);
+		
+		
 	}
 });

@@ -15,6 +15,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>게시물 상세보기</title>
 </head>
+<div id="dialog3"> </div>
 <body>
     <div class="board_view">
         <div class="subject _title_area">
@@ -54,10 +55,27 @@
         </div>
     </div>
 </div>
-<div id="dialog">
-</div>
-
-
-
 </body>
+<script>
+function m_over(target){
+    var crawling_api = 'search';
+    var crawling_category_kakao = 'web';
+    var crawling_category = target.id;
+    var crawling_text = target.value;
+    var url = "/assignment/api/naver/" + crawling_api + "/"
+            + crawling_category + "/" + encodeURI(crawling_text);
+
+    $('html', parent.parent.document).find('#dialog3').dialog({
+        open : function() {
+            $(this).load(url);
+        },
+        width : 400,
+        height : 600,
+        resizable : false,
+        draggable : true,
+        modal : true
+    });
+}
+
+</script>
 </html>

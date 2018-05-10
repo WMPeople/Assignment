@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.navercorp.com/lucy-xss-servlet">
+<defenders>
+    <!-- XssPreventer 등록 -->
+    <defender>
+        <name>xssPreventerDefender</name>
+        <class>com.navercorp.lucy.security.xss.servletfilter.defender.XssPreventerDefender</class>
+    </defender>
+</defenders>
+<!-- default defender 선언, 별다른 defender 선언이 없으면 default defender를 사용해 필터링 한다. -->
+<default>
+    <defender>xssPreventerDefender</defender>
+</default>
+<!-- url 별 필터링 룰 선언 -->
+<url-rule-set>
+    <!-- url disable이 true이면 지정한 url 내의 모든 파라메터는 필터링 되지 않는다. -->
+    <url-rule>
+        <url disable="true">/</url>
+    </url-rule>
+    <!-- 
+    <url-rule>
+        <url disable="true">/app</url>    
+    </url-rule> 
+    -->    
+    <!-- 설정된 param은 필터링에서 제외된다. -->
+    <url-rule>
+        <url>/app/admin</url>
+        <params>
+            <param name="title" useDefender="false" />
+        </params>
+    </url-rule>
+</url-rule-set>
+</config>

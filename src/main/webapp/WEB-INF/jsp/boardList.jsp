@@ -17,16 +17,6 @@
 <title>게시물 목록</title>
 </head>
 <body>
-    <script>
-    var WMoo = document.registerElement('wm-movie', { 
-        prototype: Object.create(HTMLElement.prototype) });
-    var xFoo = document.createElement('x-foo');
-    xFoo.addEventListener('click',function(e){alert('tat');});
-    </script>
-    <asd-asd>asd</asd-asd>
-    <x-foo id="asdasd">xfoo</x-foo>
-    <script>document.getElementById('asdasd').innerHTML='zzz';</script>
-    <wm-movie>asdasd</wm-movie>
     <span id="title" style="float: left; margin-left: 10px; font-size: 30px;"> 게시물 목록</span>
     <span id="cookie_id" style="float: right; margin-right: 10px; font-size: 20px;"> Cookie_id : ${cookie_id}</span>
     <br></br>
