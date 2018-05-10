@@ -32,6 +32,8 @@ function getUrl(category, crawling_text, startCnt, pageNo) {
 
 var category;
 var crawling_text;
+var curIndex = 0;
+var url_category_text = [];
 pageNo = 1;
 
 $(function() {
@@ -45,7 +47,7 @@ $(function() {
 		var searchIndex = 0;
 		while(searchIndex != -1){
 			var searchIndex = copyContent.search(nameList[i]);
-			var curIndexSpace = '';
+			var tempSpace = '';
 			for(var j =0 ; j< nameList[i].length ; j++){
 				tempSpace += ' ';
 			}
@@ -86,7 +88,7 @@ $(function() {
 		  return resultArray;
 		}
 	keywordList = unique(keywordList);
-	var url_category_text = [];
+	
 	
 	//name 별로 다른 url을 호출한다.
 	for(var i = 0 ; i < keywordList.length ; i++){
@@ -127,7 +129,6 @@ $(function() {
 			break;
 		}
 		crawling_text = keywordList[i][1];
-		console.log(crawling_text);
 		url = getUrl(category, encodeURI(crawling_text), 1);
 		var list = [url , category, crawling_text];
 		url_category_text.push(list);
@@ -137,23 +138,23 @@ $(function() {
 });
 
 function dialogFunction(url_category_text) {
-	var curIndex = 0;
+	
 	$("#dialog").dialog({
 				open : function() {
-					$(this).load(url_category_text[0][0]);
-					doWhenDialogLoad(this, url_category_text[0][1], url_category_text[0][2]);
+					$(this).load(url_category_text[curIndex][0]);
+					doWhenDialogLoad();
 					 $("#dialog").dialog().parents(".ui-dialog").find(".ui-dialog-titlebar").remove();
 				},
 				width : 400,
 				height : 600,
 				resizable : false,
 				draggable : true,
-				buttons: { "close": function() { $(this).dialog("close"); } , "next" : function() {if(curIndex == url_category_text.length - 1){curIndex = -1;}$(this).load(url_category_text[++curIndex][0]); doWhenDialogLoad(this, url_category_text[curIndex][1], url_category_text[curIndex][2]); } 
-				, "previous" : function() {if(curIndex == 0){curIndex = url_category_text.length;}$(this).load(url_category_text[--curIndex][0]); doWhenDialogLoad(this, url_category_text[curIndex][1], url_category_text[curIndex][2]); }} 
+				buttons: { "previous" : function() {$('#dialog')[0].innerHTML='';if(curIndex == 0){curIndex = url_category_text.length;}$(this).load(url_category_text[--curIndex][0]); doWhenDialogLoad(); } , "next" : function() {$('#dialog')[0].innerHTML=''; if(curIndex == url_category_text.length - 1){curIndex = -1;}$(this).load(url_category_text[++curIndex][0]); doWhenDialogLoad(); } 
+				, "close": function() { $(this).dialog("close"); } } 
 			});
 }
 
-function doWhenDialogLoad(thisPtr, category, crawling_text) {
+function doWhenDialogLoad() {
 	
 	$('.price').each(function (){
 		var item = $(this).text();
@@ -179,7 +180,7 @@ function doWhenDialogLoad(thisPtr, category, crawling_text) {
 			$('#loading').css('display', 'block');
 			var loadingHTML = $('#loading').innerHTML;
 			$.ajax({
-				url: getUrl(category, crawling_text, curCnt + 1, ++pageNo),
+				url: getUrl(url_category_text[curIndex][1], url_category_text[curIndex][2], curCnt + 1, ++pageNo),
 				success: function(data) {
 					$('#loading').remove();
 					$("#dialog").append(data);
