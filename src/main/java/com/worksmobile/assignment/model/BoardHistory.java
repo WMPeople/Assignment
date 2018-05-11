@@ -51,6 +51,7 @@ public class BoardHistory extends NodePtr{
 		if (history_content != null) {
 			rtn.history_content = history_content.clone();
 		}
+		rtn.is_content_compressed = is_content_compressed;
 		rtn.parent_board_id = parent_board_id;
 		rtn.parent_version = parent_version;
 		rtn.root_board_id = root_board_id;
