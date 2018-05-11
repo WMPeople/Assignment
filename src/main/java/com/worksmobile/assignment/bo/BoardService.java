@@ -118,38 +118,7 @@ public class BoardService {
 
 		fileService.deleteNoMoreUsingFile(fileIdSet);
 	}
-
-	public void deleteBoardHistoryAndAttachment(NodePtr nodePtr) {
-		List<Board> boardList = boardMapper.getBoardList(nodePtr);
-		Set<Integer> fileIdSet = new HashSet<>();
-		for (int i = 0; i < boardList.size(); i++) {
-			fileIdSet.add(boardList.get(i).getFile_id());
-		}
-		boardMapper.deleteBoard(nodePtr.toMap());
-		boardTempMapper.deleteBoardTemp(nodePtr.toMap());
-
-		fileService.deleteNoMoreUsingFile(fileIdSet);
-	}
-
-	public Set<Integer> deleteBoardAndReturnfileIdSet(NodePtr leafPtr) {
-		List<Board> boardList = boardMapper.getBoardList(leafPtr);
-		Set<Integer> fileIdSet = new HashSet<>();
-		for (int i = 0; i < boardList.size(); i++) {
-			fileIdSet.add(boardList.get(i).getFile_id());
-		}
-		boardMapper.deleteBoard(leafPtr.toMap());
-		boardTempMapper.deleteBoardTemp(leafPtr.toMap());
-		return fileIdSet;
-	}
-
-	public int deleteBoardHistoryAndReturnfileId(NodePtr leafPtr) {
-		BoardHistory boardHistory = boardHistoryMapper.selectHistory(leafPtr);
-
-		boardHistoryMapper.deleteHistory(leafPtr);
-
-		return boardHistory.getFile_id();
-	}
-
+	
 	public boolean isLeaf(final NodePtr nodePtr) {
 		Board board = boardMapper.viewDetail(nodePtr.toMap());
 
