@@ -41,7 +41,7 @@
             <span class="date">첨부 파일 :   <a href="${path}/assignment/boards/download/${file.file_id}" name="file">${file.file_name}     </a> (${file.file_size})</span>
             <button class="btn btn-primary" id="btnAutoList" onclick="location.href='${path}/assignment/autos/${board.board_id}/${board.version}'">자동저장리스트</button>
         <div class="cont _content translateArea" id="contents">
-                <textarea name="content3" id="content3" style="min-height: 500px; min-width: 700px;" readonly>${board.content}</textarea>
+                <textarea name="content3" id="content_detail" style="min-height: 500px; min-width: 700px; display:none;" >${board.content}</textarea>
         </div>
         <div class="btn_box _btn_area _no_print">
             <form action="/assignment/boards/update" method="post" style="display: inline;">
@@ -62,8 +62,5 @@
 </div>
 <div id="dialog">
 </div>
-
-
-
 </body>
 </html>

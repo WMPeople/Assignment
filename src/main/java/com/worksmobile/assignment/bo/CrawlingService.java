@@ -12,6 +12,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /***
  * 브라우저 크롤링 서비스입니다.
  * @author khh, rws
@@ -62,33 +64,29 @@ public class CrawlingService {
 			secondElements = document.select("#content > div.word_num_nobor > dl > dd");
 
 			for (int j = 0; j < firstElements.size(); j++) {
+				
+				ObjectMapper mapper = new ObjectMapper(); 
 				String json = null;
-
-				String expression = secondElements.get(j).select("div > p:nth-child(1) > span:nth-child(1)")
-					.text();
+				HashMap<String, Object> mapForJson = new HashMap<String, Object>(); 
+				
+				String expression = secondElements.get(j).select("div > p:nth-child(1) > span:nth-child(1)").text();
 				String meaning = secondElements.get(j).select("div > p:nth-child(1) > span.fnt_k05").text();
+				
 				if (expression.equals(meaning)) {
-					json = "{ \"title\":\"" + firstElements.get(j).select("span.fnt_e30 > a").text()
-						+ "\",\"expression\":\""
-						+ expression + "\""
-						+ ",\"link\":\"" + "http://endic.naver.com"
-						+ firstElements.get(j).select("span.fnt_e30 > a").attr("href") + "\""
-						+ ",\"meaning\":\"" + ""
-						+ "\"" + "}";
+					mapForJson.put("title", firstElements.get(j).select("span.fnt_e30 > a").text()); 
+					mapForJson.put("expression", expression);
+					mapForJson.put("meaning", "");
+					mapForJson.put("link", "http://endic.naver.com"+ firstElements.get(j).select("span.fnt_e30 > a").attr("href"));
 				} else {
-					json = "{ \"title\":\"" + firstElements.get(j).select("span.fnt_e30 > a").text()
-						+ "\",\"expression\":\""
-						+ secondElements.get(j).select("div > p:nth-child(1) > span:nth-child(1)").text() + "\""
-						+ ",\"link\":\"" + "http://endic.naver.com"
-						+ firstElements.get(j).select("span.fnt_e30 > a").attr("href") + "\""
-						+ ",\"meaning\":\""
-						+ secondElements.get(j).select("div > p:nth-child(1) > span.fnt_k05").text()
-						+ "\"" + "}";
+					mapForJson.put("title", firstElements.get(j).select("span.fnt_e30 > a").text()); 
+					mapForJson.put("expression",  secondElements.get(j).select("div > p:nth-child(1) > span:nth-child(1)").text());
+					mapForJson.put("meaning", secondElements.get(j).select("div > p:nth-child(1) > span.fnt_k05").text());
+					mapForJson.put("link", "http://endic.naver.com"+ firstElements.get(j).select("span.fnt_e30 > a").attr("href"));
 				}
+				json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapForJson);
 				obj = parser.parse(json);
 				items.add(obj);
-				
-
+				System.out.println(json);
 			}
 			param.put("total", total);
 			param.put("items", items);

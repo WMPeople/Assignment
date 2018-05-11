@@ -18,17 +18,17 @@ $(document).ready(function() {
 	function createTag (sContent){
 		 var copyContent = sContent;
 		 var realContent = sContent;
-		    var nameList = ["위치", "영화", "책", "도서" , "맛집", "뉴스", "쇼핑", "음식점", "단어" , "영어단어", "구매", "지도"];
-		    var englishNameList = ["geocode", "movie", "book", "book" , "local", "news", "shop", "local", "dictionary" , "dictionary", "shop", "geocode"];
+		    var nameList = ["위치", "영화", "책", "도서" , "맛집", "뉴스", "쇼핑", "음식점", "영어단어", "구매", "지도"];
+		    var englishNameList = ["geocode", "movie", "book", "book" , "local", "news", "shop", "local", "dictionary", "shop", "geocode"];
 		    var nbsp = "&nbsp;"
 		    console.log(nbsp.length);
 		    for(var i =0; i< nameList.length ; i++){
 		        var searchIndex = 0;
-		        var copyContentArray = copyContent.split(nameList[i]);
+		        var copyContentArray = copyContent.split(nameList[i]+nbsp+"'");
 		        var copyContentArrayLength = copyContentArray.length;
 		        if (copyContentArrayLength >= 2) {
 		        	for(var j = 0 ; j< copyContentArrayLength - 1 ; j++){
-		        		 var searchIndex = copyContent.search(nameList[i]+nbsp);
+		        		 var searchIndex = copyContent.search(nameList[i]+nbsp+"'");
 				            if(searchIndex!= -1){
 				                var spaceIndex = searchIndex + nameList[i].length + nbsp.length - 1;
 				                var firstQuoteIndex = spaceIndex + 1;
@@ -42,6 +42,7 @@ $(document).ready(function() {
 				                    if(copyContent.charAt(startIndex) == "'"){
 				                    	secondQuoteIndex = copyContent.substring(startIndex).search("'") + startIndex;
 				                    } else {
+				                    	console.log(copyContent.substring(startIndex).search("'"));
 				                    	secondQuoteIndex = copyContent.substring(startIndex).search("'") + startIndex + 1;
 				                    	text = copyContent.substring(firstQuoteIndex + 1,secondQuoteIndex - 1);
 				                    }
@@ -70,7 +71,7 @@ $(document).ready(function() {
 	    for (var i = 0; i < arrayContentLength; i++) {
 	        sTemp = arrayContent[i].trim();
 	        if (sTemp === "") {
-	            break;
+	            continue;
 	        }
 	        
 	        if (sTemp !== null && sTemp !== "") {
@@ -176,7 +177,7 @@ function doWhenDialogLoad(thisPtr, category, crawling_text) {
 			}
 		}
 	}
-	
+	$('#dialog').off('scroll');
 	$('#dialog').scroll(makeScroolFunc(category, crawling_text));
 	
 	$('.price').each(function (){
