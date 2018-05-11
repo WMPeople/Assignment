@@ -1,3 +1,92 @@
+$(document).ready(function() {
+	function textToHTML() {
+		// DB에서 가져오는 게시물 내용값을 넣어줍니다.
+	    sHtml = document.getElementById('content_detail').value;
+	
+	    var sContent = sHtml;
+	    // & , < , > ,  스페이스바   각각 변경
+	    sContent =  sContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ /g, '&nbsp;');
+	    // addLineBreaker : <p>태그와 <br>태그를 이용하여 개행을 표현해주는 메쏘드입니다.
+	    sContent = addLineBreaker(sContent); 
+	    // 영화 '엑스맨'과 같은 정보 제공이 필요한 텍스트를 span 태그로 만들어서 mouseover 이벤트가 작동하도록 합니다.
+	    var copyContent = createTag(sContent);
+	    //완성된 html문을 div에 넣어줍니다.
+	    document.getElementById('contents').innerHTML = copyContent;
+	}
+	
+	//메타 데이터 제공을 위한 태그 생성
+	function createTag (sContent){
+		 var copyContent = sContent;
+		 var realContent = sContent;
+		    var nameList = ["위치", "영화", "책", "도서" , "맛집", "뉴스", "쇼핑", "음식점", "단어" , "영어단어", "구매", "지도"];
+		    var englishNameList = ["geocode", "movie", "book", "book" , "local", "news", "shop", "local", "dictionary" , "dictionary", "shop", "geocode"];
+		    var nbsp = "&nbsp;"
+		    console.log(nbsp.length);
+		    for(var i =0; i< nameList.length ; i++){
+		        var searchIndex = 0;
+		        var copyContentArray = copyContent.split(nameList[i]);
+		        var copyContentArrayLength = copyContentArray.length;
+		        if (copyContentArrayLength >= 2) {
+		        	for(var j = 0 ; j< copyContentArrayLength - 1 ; j++){
+		        		 var searchIndex = copyContent.search(nameList[i]+nbsp);
+				            if(searchIndex!= -1){
+				                var spaceIndex = searchIndex + nameList[i].length + nbsp.length - 1;
+				                var firstQuoteIndex = spaceIndex + 1;
+				                console.log(copyContent.charAt(spaceIndex));
+				                console.log(copyContent.charAt(firstQuoteIndex));
+				                if(copyContent.charAt(spaceIndex) == ';' && copyContent.charAt(firstQuoteIndex) == "'"){
+				                    var startIndex = firstQuoteIndex + 1;
+				                    console.log(copyContent.charAt(startIndex));
+				                    var secondQuoteIndex = '';
+				                    var text = '';
+				                    if(copyContent.charAt(startIndex) == "'"){
+				                    	secondQuoteIndex = copyContent.substring(startIndex).search("'") + startIndex;
+				                    } else {
+				                    	secondQuoteIndex = copyContent.substring(startIndex).search("'") + startIndex + 1;
+				                    	text = copyContent.substring(firstQuoteIndex + 1,secondQuoteIndex - 1);
+				                    }
+				                    console.log(copyContent.charAt(secondQuoteIndex));
+				                    if (text == "" || text == "''" || text == "'") {
+				                    	copyContent = copyContent.replace(nameList[i]+nbsp+"'"+text+"'",'<span> '+nameList[i]+" '"+text +"'"+'</span>');
+				                    } else {
+				                    	copyContent = copyContent.replace(nameList[i]+nbsp+"'"+text+"'",'<b id= '+englishNameList[i]+' class="'+ text +'" onmouseover="m_over(this)">'+nameList[i]+" '"+text +"'"+'</b>');
+				                    }
+				                }
+				            }  
+		        		
+		        	}
+		        }
+
+		    }
+		    return copyContent;
+	}
+	
+	//라인을 나눕니다.
+	function addLineBreaker(sContent){
+	    var oContent = '';
+	    arrayContent = sContent.split('\n');
+        arrayContentLength = arrayContent.length; 
+	    
+	    for (var i = 0; i < arrayContentLength; i++) {
+	        sTemp = arrayContent[i].trim();
+	        if (sTemp === "") {
+	            break;
+	        }
+	        
+	        if (sTemp !== null && sTemp !== "") {
+	            oContent +='<P>';
+	            oContent += arrayContent[i];
+	            oContent += '</P>';
+	        } else {
+	            oContent += '<P><BR></P>';
+	        }
+	    }
+	    
+	    return oContent.toString();
+	}
+	textToHTML();
+}); 
+
 function getUrl(category, crawling_text, startCnt, pageNo) {
 	var url;
 	const crawling_api = 'search';
@@ -32,129 +121,63 @@ function getUrl(category, crawling_text, startCnt, pageNo) {
 
 var category;
 var crawling_text;
-var curIndex = 0;
-var url_category_text = [];
 pageNo = 1;
 
-$(function() {
-	// textarea 내용 복사
-	var copyContent = $('#content3').val();
-	var keywordList = [];
-	var nameList = ["위치", "영화", "책", "도서" , "맛집", "뉴스", "쇼핑", "음식점", "단어" , "영어단어", "구매", "지도"];
-	
-	//keywordList 리스트에  ["영화" , "그린팩토리"] 형식으로 푸쉬된다.
-	for(var i =0; i< nameList.length ; i++){
-		var searchIndex = 0;
-		while(searchIndex != -1){
-			var searchIndex = copyContent.search(nameList[i]);
-			var tempSpace = '';
-			for(var j =0 ; j< nameList[i].length ; j++){
-				tempSpace += ' ';
-			}
-			copyContent = copyContent.replace(nameList[i],tempSpace);
-			if(searchIndex!= -1){
-				var spaceIndex = searchIndex + nameList[i].length;
-				var firstQuoteIndex = spaceIndex + 1;
-				if(copyContent.charAt(spaceIndex) == ' ' && copyContent.charAt(firstQuoteIndex) == "'"){
-					var startIndex = firstQuoteIndex + 1;
-					var secondQuoteIndex = copyContent.substring(startIndex).search("'") + startIndex + 1;
-					var text = copyContent.substring(firstQuoteIndex + 1,secondQuoteIndex - 1);
-					copyContent = copyContent.substring(0,searchIndex) + copyContent.substring(secondQuoteIndex);
-					if (text == "") {
-						continue;
-					} else {
-						var list = [nameList[i] , text]
-						keywordList.push(list);		
-					}
-					
-				}
-			}	
-		}
-	}
-	
-	//배열 중복 제거, 자원 감소
-	function unique(array) {
-		  var tempArray = [];
-		  var resultArray = [];
-		  for(var i = 0; i < array.length; i++) {
-		    var item = array[i]
-		    if(tempArray.includes(item[0])) {
-		      continue;
-		    } else {
-		      resultArray.push(item);
-		      tempArray.push(item[0]);
-		    }
-		  }
-		  return resultArray;
-		}
-	keywordList = unique(keywordList);
-	
-	
-	//name 별로 다른 url을 호출한다.
-	for(var i = 0 ; i < keywordList.length ; i++){
-		switch(keywordList[i][0]) {
-		case '책': category = 'book';
-		case '도서':
-			break;
-			
-		case '영화':
-			category = 'movie';
-			break;
-			
-		case '뉴스':
-			category = 'news';
-			break;
-			
-		case '쇼핑':
-		case '구매':
-			category = 'shop';
-			break;
-			
-		case '지도':
-		case '위치':
-			category = 'geocode';
-			break;
-			
-		case '단어':
-		case '영어단어':
-			category = 'dictionary';
-			break;
-			
-		case '맛집':
-		case '음식점':
-			category = 'local';
-			break;
-			
-		default:
-			break;
-		}
-		crawling_text = keywordList[i][1];
-		url = getUrl(category, encodeURI(crawling_text), 1);
-		var list = [url , category, crawling_text];
-		url_category_text.push(list);
-		
-	}
-	dialogFunction(url_category_text);
-});
+function m_over(target){
+	category = target.id;
+	crawling_text = target.className;
+	var url = getUrl(category, encodeURI(crawling_text), 1);
+	dialogFunction(this.category, url);
+}  
 
-function dialogFunction(url_category_text) {
-	
+function dialogFunction(crawling_category, url) {
+	console.log(category);
+	console.log(crawling_text);
 	$("#dialog").dialog({
 				open : function() {
-					$(this).load(url_category_text[curIndex][0]);
-					doWhenDialogLoad();
-					 $("#dialog").dialog().parents(".ui-dialog").find(".ui-dialog-titlebar").remove();
+					$(this).load(url);
+					doWhenDialogLoad(this, category, crawling_text);
 				},
 				width : 400,
 				height : 600,
 				resizable : false,
-				draggable : true,
-				buttons: { "previous" : function() {$('#dialog')[0].innerHTML='';if(curIndex == 0){curIndex = url_category_text.length;}$(this).load(url_category_text[--curIndex][0]); doWhenDialogLoad(); } , "next" : function() {$('#dialog')[0].innerHTML=''; if(curIndex == url_category_text.length - 1){curIndex = -1;}$(this).load(url_category_text[++curIndex][0]); doWhenDialogLoad(); } 
-				, "close": function() { $(this).dialog("close"); } } 
+				draggable : true
 			});
 }
 
-function doWhenDialogLoad() {
+function doWhenDialogLoad(thisPtr, category, crawling_text) {
+
+	var makeScroolFunc = function maker(category, crawling_text) {
+		return function (){
+			if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
+				var curCnt = $('#dialog').children('li').length;
+				var max = $('#total')[0].innerText;
+				const NAVER_API_MAX_CNT = 1000;
+				
+				if(curCnt >= max || curCnt >= NAVER_API_MAX_CNT) {
+					return;
+				}
+				$('#loading').css('display', 'block');
+				var loadingHTML = $('#loading').innerHTML;
+				$.ajax({
+					url: getUrl(category, crawling_text, curCnt + 1, ++pageNo),
+					success: function(data) {
+						$('#loading').remove();
+						$("#dialog").append(data);
+						$("#dialog").append(loadingHTML);
+						event.preventDefault();
+					},
+					error: function(request, status, error) {
+						$('#loading').remove();
+						$('#dialog body').append(loadingHTML);
+						alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+					}
+				});
+			}
+		}
+	}
+	
+	$('#dialog').scroll(makeScroolFunc(category, crawling_text));
 	
 	$('.price').each(function (){
 		var item = $(this).text();
@@ -166,33 +189,4 @@ function doWhenDialogLoad() {
 		$clamp($(this), {clamp: 3});
 	});
 	
-	$('#dialog').scroll(function() {
-		
-		if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
-			var curCnt = $('#dialog').children('li').length;
-			var max = $('#total')[0].innerText;
-			const NAVER_API_MAX_CNT = 1000;
-			
-			if(curCnt >= max || curCnt >= NAVER_API_MAX_CNT) {
-				return;
-			}
-			
-			$('#loading').css('display', 'block');
-			var loadingHTML = $('#loading').innerHTML;
-			$.ajax({
-				url: getUrl(url_category_text[curIndex][1], url_category_text[curIndex][2], curCnt + 1, ++pageNo),
-				success: function(data) {
-					$('#loading').remove();
-					$("#dialog").append(data);
-					$("#dialog").append(loadingHTML);
-					event.preventDefault();
-				},
-				error: function(request, status, error) {
-					$('#loading').remove();
-					$('#dialog body').append(loadingHTML);
-					alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
-				}
-			});
-		}
-	});
 }
