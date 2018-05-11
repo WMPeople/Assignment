@@ -61,7 +61,12 @@ public class BoardController {
 
 	@Autowired
 	private BoardTempService boardTempService;
-
+	
+	@RequestMapping(value = "/new")
+	public ModelAndView newTest() {
+		return new ModelAndView("NewFile");
+	}
+	
 	@RequestMapping(value = "/diff_test")
 	public ModelAndView diffTest() {
 		return new ModelAndView("diff_test");

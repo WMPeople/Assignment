@@ -28,6 +28,53 @@
             </h3>
             <button class="btn btn-primary" style="float: right;" onclick="location.href='${path}/assignment'">홈으로</button>
         </div>
+        <script>
+//         function textToHTML() {
+//             sHtml = document.getElementById('content2').value;
+
+//             var sContent = sHtml, aTemp = null;
+            
+//             // applyConverter에서 추가한 sTmpStr를 잠시 제거해준다. sTmpStr도 하나의 string으로 인식하는 경우가 있기 때문.
+//             aTemp = sContent.match('@[0-9]+@');
+//             if (aTemp !== null) {
+//                 sContent = sContent.replace(aTemp[0], "");
+//             }
+                    
+//             sContent =  sContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ /g, '&nbsp;');
+//             sContent = addLineBreaker(sContent);
+
+//             if (aTemp !== null) {
+//                 sContent = aTemp[0] + sContent;
+//             }
+            
+//             document.getElementById('content2').innerHTML = sContent;
+//         }
+
+//         function addLineBreaker(sContent){
+//             var oContent = '';
+//                 aContent = sContent.split('\n'); // \n을 기준으로 블럭을 나눈다.
+//                 aContentLng = aContent.length; 
+//                 sTemp = "";
+            
+//             for (var i = 0; i < aContentLng; i++) {
+//                 //sTemp = jindo.$S(aContent[i]).trim().$value();
+//                 sTemp = aContent[i].trim();
+//                 if (i === aContentLng -1 && sTemp === "") {
+//                     break;
+//                 }
+                
+//                 if (sTemp !== null && sTemp !== "") {
+//                     oContent +='<P>';
+//                     oContent += aContent[i];
+//                     oContent += '</P>';
+//                 } else {
+//                     oContent += '<P><BR></P>';
+//                 }
+//             }
+            
+//             return oContent.toString();
+//         }
+        </script>
         <div class="infor _infor">
             <span class="name">게시물 번호 : <span class="_group">${board.board_id} ,</span> <span class="_company"></span></span>
             <span class="name">버전 : <span class="_group">${board.version} ,</span> <span class="_company"></span></span>
@@ -35,9 +82,10 @@
             <span class="date">첨부 파일 :   <a href="${path}/assignment/boards/download/${file.file_id}" name="file">${file.file_name}     </a> (${file.file_size})</span>
             <button class="btn btn-primary" id="btnAutoList" onclick="location.href='${path}/assignment/autos/${board.board_id}/${board.version}'">자동저장리스트</button>
         <div class="cont _content translateArea" id="content3">
-<%--                 <textarea name="content3" id="content3" style="min-height: 500px; min-width: 700px;" readonly>${board.content}</textarea> --%>
-            ${board.content}  
+                <textarea name="content3" id="content2" style="min-height: 500px; min-width: 700px; display : none;" >${board.content}</textarea> 
         </div>
+        
+          <button id = "temp" onclick="textToHTML()"></button>
         <div class="btn_box _btn_area _no_print">
             <form action="/assignment/boards/update" method="post" style="display: inline;">
                 <input name="board_id" type="text" id="board_id" value="${board.board_id}" style="display:none;">
@@ -76,6 +124,52 @@ function m_over(target){
         modal : true
     });
 }
+function textToHTML() {
+    sHtml = document.getElementById('content2').value;
+
+    var sContent = sHtml, aTemp = null;
+    
+    // applyConverter에서 추가한 sTmpStr를 잠시 제거해준다. sTmpStr도 하나의 string으로 인식하는 경우가 있기 때문.
+    aTemp = sContent.match('@[0-9]+@');
+    if (aTemp !== null) {
+        sContent = sContent.replace(aTemp[0], "");
+    }
+            
+    sContent =  sContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ /g, '&nbsp;');
+    sContent = addLineBreaker(sContent);
+
+    if (aTemp !== null) {
+        sContent = aTemp[0] + sContent;
+    }
+    
+    document.getElementById('content3').innerHTML = sContent;
+}
+
+function addLineBreaker(sContent){
+    var oContent = '';
+        aContent = sContent.split('\n'); // \n을 기준으로 블럭을 나눈다.
+        aContentLng = aContent.length; 
+        sTemp = "";
+    
+    for (var i = 0; i < aContentLng; i++) {
+        //sTemp = jindo.$S(aContent[i]).trim().$value();
+        sTemp = aContent[i].trim();
+        if (i === aContentLng -1 && sTemp === "") {
+            break;
+        }
+        
+        if (sTemp !== null && sTemp !== "") {
+            oContent +='<P>';
+            oContent += aContent[i];
+            oContent += '</P>';
+        } else {
+            oContent += '<P><BR></P>';
+        }
+    }
+    
+    return oContent.toString();
+}
+
 
 </script>
 </html>
