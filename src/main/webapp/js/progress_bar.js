@@ -5,7 +5,7 @@
 
 function ProgressBar() {
 	this.holder = document.getElementById('progress_holder');
-	this.elem = document.getElementById("progressBar");
+	this.curStatus = document.getElementById("progressBar");
 	
 	this.totalCnt;
 	this.curCnt = 0;
@@ -20,10 +20,10 @@ ProgressBar.prototype.increseProgress = function (increseCnt, curTaskInfo) {
 	if (percent >= 100) {
 		this.holder.style.display = 'none';
 	} else {
-		this.elem.style.width = percent + '%'; 
-		this.elem.innerHTML = percent.toFixed(2) + '% ' + this.curCnt + ' / ' + this.totalCnt;
+		this.curStatus.style.width = percent + '%'; 
+		this.curStatus.innerHTML = percent.toFixed(2) + '% ' + this.curCnt + ' / ' + this.totalCnt;
 		if(curTaskInfo !== undefined) {
-			this.elem.innerHTML += '  ' + curTaskInfo;
+			this.curStatus.innerHTML += '  ' + curTaskInfo;
 		}
 	}
 }
