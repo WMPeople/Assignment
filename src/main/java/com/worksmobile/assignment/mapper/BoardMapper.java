@@ -22,8 +22,6 @@ public interface BoardMapper {
 
 	public int boardUpdateWithoutFile(Board board);
 
-	public int boardUpdate(Board board);
-
 	public Board viewDetail(HashMap<String, Object> parmas);
 
 	public File boardFileDownload(HashMap<String, Integer> params);

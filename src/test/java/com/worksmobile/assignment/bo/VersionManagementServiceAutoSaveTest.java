@@ -51,7 +51,7 @@ public class VersionManagementServiceAutoSaveTest {
 	private VersionManagementService versionManagementService;
 	
 	private Board defaultBoard;
-	private BoardHistory defaultCreated;
+	private Board defaultCreated;
 	private static final String DEFAULT_JUNIT_COOKIE_ID = "JunitCookieId";
 	private static final String DEFAULT_CREATED_TIME = "2018-04-26 오전 11:10:32";
 	private BoardTemp autoSaveArticle = new BoardTemp();

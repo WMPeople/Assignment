@@ -6,20 +6,12 @@ import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
 @AllArgsConstructor
 public class NodePtr {
-	@Getter
-	@Setter
 	protected Integer board_id = null;
-	@Getter
-	@Setter
 	protected Integer version = null;
-	@Getter
-	@Setter
 	protected int root_board_id;
 
 	public static final int INVISIBLE_ROOT_VERSION = 0;
@@ -32,6 +24,12 @@ public class NodePtr {
 	public NodePtr(Integer board_id, Integer version) {
 		this.board_id = board_id;
 		this.version = version;
+	}
+	
+	public NodePtr(NodePtr nodePtr) {
+		this.board_id = nodePtr.getBoard_id();
+		this.version = nodePtr.getVersion();
+		this.root_board_id = nodePtr.getRoot_board_id();
 	}
 
 	/***

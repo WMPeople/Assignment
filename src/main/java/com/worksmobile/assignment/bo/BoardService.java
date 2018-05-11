@@ -27,7 +27,7 @@ import com.worksmobile.assignment.util.JsonUtils;
 public class BoardService {
 	@Autowired
 	private BoardMapper boardMapper;
-
+	
 	@Autowired
 	private BoardHistoryMapper boardHistoryMapper;
 
@@ -142,14 +142,6 @@ public class BoardService {
 		return fileIdSet;
 	}
 
-	public int deleteBoardHistoryAndReturnfileId(NodePtr leafPtr) {
-		BoardHistory boardHistory = boardHistoryMapper.selectHistory(leafPtr);
-
-		boardHistoryMapper.deleteHistory(leafPtr);
-
-		return boardHistory.getFile_id();
-	}
-
 	public boolean isLeaf(final NodePtr nodePtr) {
 		Board board = boardMapper.viewDetail(nodePtr.toMap());
 
@@ -159,5 +151,23 @@ public class BoardService {
 			return false;
 		}
 	}
-
+	
+	public NodePtr createArticle(Board article) {
+		if (article.getSubject().length() == 0) {
+			throw new RuntimeException("제목이 비어있을 수 없습니다.");
+		}
+		if (article.getContent() == null || article.getContent().length() == 0) {
+			throw new RuntimeException("내용이 null 이거나 비어 있습니다. content : " + article.getContent());
+		}
+		
+		int insertedRowCnt = boardMapper.createBoard(article);
+		if (insertedRowCnt != 1) {
+			throw new RuntimeException("createArticle메소드에서 createBoard error" + article);
+		}
+		return new NodePtr(article);
+	}
+	
+	public Board selectArticle(NodePtr nodePtr) {
+		return boardMapper.viewDetail(nodePtr.toMap());
+	}
 }

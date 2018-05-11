@@ -1,61 +1,68 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
  
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
  
-<mapper namespace="com.worksmobile.Assignment.Mapper.BoardHistoryMapper">
-	<select id="getHistoryByBoardId"
-    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-        SELECT board_id, version, branch, created, status, history_subject, 
-        		history_content, file_name, file_data, file_size, parent_board_id,
-        		parent_version, parent_branch
+<mapper namespace="com.worksmobile.assignment.mapper.BoardHistoryMapper">
+	<select id="selectHistoryByRootBoardId"
+    resultType="com.worksmobile.assignment.model.BoardHistory">
+        SELECT board_id, version, created_time, status,
+        		history_subject, history_content, file_id, 
+        		parent_board_id, parent_version, root_board_id
 		FROM board_history
-		WHERE board_id = #{board_id};
+		WHERE root_board_id = #{root_board_id};
     </select>
 
-    <select id="getHistory" 
-    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-        SELECT board_id, version, branch, created, status, history_subject, 
-        		history_content, file_name, file_data, file_size, parent_board_id,
-        		parent_version, parent_branch
-		FROM board_history
-		WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
-    </select>
-    
-    <delete id="deleteHistory" parameterType="int">
-		DELETE FROM board_history
-		WHERE board_id = #{board_id} AND version = #{version} AND branch = #{branch};
-    </delete>
-    
-     <insert id="createHistory" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-        INSERT INTO board_history(board_id, version, branch, status, history_subject,
-        						history_content, file_name, file_data, file_size,
-        						parent_board_id, parent_version, parent_branch)
-		VALUES(#{board_id}, #{version}, #{branch}, #{status}, #{history_subject},
-				#{history_content}, #{file_name}, #{file_data,jdbcType=BLOB}, 
-				#{file_size}, #{parent_board_id}, #{parent_version}, #{parent_branch});
-    </insert>
-
-    <update id="updateHistoryParent" parameterType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-		UPDATE board_history
-		SET
-		  parent_board_id = #{parent_board_id}, parent_version = #{parent_version}, parent_branch = #{parent_branch}
-		WHERE
-		  board_id = #{board_id} AND version = #{version} AND branch = #{branch};
-    </update>
-
-	<select id="getLastbranch" resultType="int">
-    	SELECT IFNULL(MAX(branch), 0) AS MaxBranch
+    <select id="selectHistory" 
+    resultType="com.worksmobile.assignment.model.BoardHistory">
+        SELECT board_id, version, created_time, status, 
+        		history_subject, history_content, file_id, 
+        		parent_board_id, parent_version, root_board_id
 		FROM board_history
 		WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
-     <select id="getChildren" 
-    resultType="com.worksmobile.Assignment.Domain.BoardHistoryDTO">
-        SELECT board_id, version, branch, created, status, history_subject, 
-        		history_content, file_name, file_data, file_size, parent_board_id,
-        		parent_version, parent_branch
-		FROM board_history
-		WHERE parent_board_id = #{board_id} AND parent_version = #{version} AND parent_branch = #{branch};
+    <select id="selectAllHistory"
+    resultType="com.worksmobile.assignment.model.BoardHistory">
+    	SELECT board_id, version, created_time, status, 
+        		history_subject, history_content, file_id, 
+        		parent_board_id, parent_version, root_board_id
+        FROM board_history
     </select>
+    
+    <delete id="deleteHistory" parameterType="int">
+		DELETE FROM board_history
+		WHERE board_id = #{board_id} AND version = #{version};
+    </delete>
+    
+     <insert id="createHistory" parameterType="com.worksmobile.assignment.model.BoardHistory">
+        INSERT INTO board_history(board_id, version, status, created_time,
+        						history_subject, history_content, file_id,
+        						parent_board_id, parent_version, root_board_id)
+		VALUES(#{board_id}, #{version}, #{status}, #{created_time}, #{history_subject},
+				#{history_content}, #{file_id}, #{parent_board_id}, #{parent_version}, #{root_board_id});
+    </insert>
+
+    <update id="updateHistoryParentAndRoot" parameterType="com.worksmobile.assignment.model.BoardHistory">
+		UPDATE board_history
+		SET
+		  parent_board_id = #{parent_board_id}, parent_version = #{parent_version}, root_board_id = #{root_board_id}
+		WHERE
+		  board_id = #{board_id} AND version = #{version};
+    </update>
+
+     <select id="selectChildren" 
+    resultType="com.worksmobile.assignment.model.BoardHistory">
+        SELECT board_id, version, created_time, status,
+        		history_subject, history_content, file_id,
+        		parent_board_id, parent_version, root_board_id
+		FROM board_history
+		WHERE parent_board_id = #{board_id} AND parent_version = #{version};
+    </select>
+    
+    <select id="selectFileCount" parameterType ="int" resultType="int">
+		SELECT count(*)
+		FROM board_history
+		WHERE file_id = #{file_id};  
+	</select>
 </mapper>

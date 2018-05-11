@@ -36,23 +36,11 @@
     </delete>
     
      <insert id="createHistory" parameterType="com.worksmobile.assignment.model.BoardHistory">
-        INSERT INTO board_history(board_id, version, status,
-        						history_subject, history_content, is_content_compressed,
-        						file_id, parent_board_id, parent_version, root_board_id)
-		VALUES(#{board_id}, #{version}, #{status}, 
-				#{history_subject}, #{history_content}, #{is_content_compressed},
-				#{file_id}, #{parent_board_id}, #{parent_version}, #{root_board_id});
-		<selectKey keyProperty="board_id,created_time" resultType="com.worksmobile.assignment.model.BoardHistory" order="AFTER">
-     		SELECT board_id, created_time FROM board_history
-     		WHERE board_id =
-     		<if test = "board_id == null">
-     								LAST_INSERT_ID()
-     		</if>
-     		<if test = "board_id != null">
-     								#{board_id}
-     		</if>
-     													AND version = #{version};
-     	</selectKey>
+        INSERT INTO board_history(board_id, version, status, is_content_compressed, created_time,
+        						history_subject, history_content, file_id,
+        						parent_board_id, parent_version, root_board_id)
+		VALUES(#{board_id}, #{version}, #{status}, #{is_content_compressed}, #{created_time}, #{history_subject},
+				#{history_content}, #{file_id}, #{parent_board_id}, #{parent_version}, #{root_board_id});
     </insert>
 
     <update id="updateHistoryParentAndRoot" parameterType="com.worksmobile.assignment.model.BoardHistory">

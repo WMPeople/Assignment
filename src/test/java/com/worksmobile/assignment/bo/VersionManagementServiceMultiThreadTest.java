@@ -45,12 +45,12 @@ public class VersionManagementServiceMultiThreadTest {
 	private BoardHistoryMapper boardHistoryMapper;
 
 	@Rule
-	private ErrorCollector collector = new ErrorCollector();
+	public ErrorCollector collector = new ErrorCollector();
 	
 	private final static int THREAD_COUNT = 20000;
 	
 	private Board defaultBoard;
-	private BoardHistory defaultCreated;
+	private Board defaultCreated;
 	private List<Thread> threadList = new ArrayList<>(THREAD_COUNT);
 	
 	@Before
@@ -87,7 +87,7 @@ public class VersionManagementServiceMultiThreadTest {
 					copyedBoard.setSubject(defaultBoard.getSubject());
 					copyedBoard.setContent(defaultBoard.getContent());
 
-					BoardHistory createdHistory = versionManagementService.createArticle(copyedBoard);
+					Board createdHistory = versionManagementService.createArticle(copyedBoard);
 					
 					NodePtr nodePtr = createdHistory;
 					BoardHistory dbHistory = boardHistoryMapper.selectHistory(nodePtr);

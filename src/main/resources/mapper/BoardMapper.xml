@@ -27,12 +27,26 @@
 	<!--  board_history와 동시에 넣어져야함. -->
     <insert id="createBoard" parameterType="com.worksmobile.assignment.model.Board">
         INSERT INTO board
-        (board_id,version,subject,content,created_time,file_id,root_board_id)
-        VALUES (#{board_id}, #{version},#{subject},#{content},#{created_time},#{file_id},#{root_board_id});
+        (board_id, version, subject, content, created_time, file_id, root_board_id)
+        VALUES (#{board_id}, #{version}, #{subject}, #{content}, CURRENT_TIMESTAMP, #{file_id}, 
+        <if test = "root_board_id == 0">
+        																						LAST_INSERT_ID() + 1
+        </if>
+        <if test = "root_board_id != 0">
+        																						#{root_board_id}
+        </if>
+        																												);
 
-        <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
-     		SELECT created_time FROM board
-     		WHERE board_id = #{board_id} AND version = #{version};
+        <selectKey keyProperty="board_id,created_time,root_board_id" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
+     		SELECT board_id, created_time, root_board_id FROM board
+     		WHERE board_id =
+     		<if test = "board_id == null">
+     						LAST_INSERT_ID()
+     		</if>
+     		<if test = "board_id != null">
+     						#{board_id}
+     		</if>
+     										AND version = #{version};
      	</selectKey>
     </insert>
     
@@ -40,22 +54,6 @@
         DELETE FROM board 
         WHERE board_id = #{board_id} AND version = #{version} ;
     </delete>
-    
-    <!--  히스토리 먼저 처리하고 boardUpdate 실행됨 -->
-    <update id="boardUpdate" parameterType="hashmap">
-        UPDATE board 
-        SET 
-        subject = #{subject},
-        content = #{content},
-        created_time = CURRENT_TIMESTAMP,
-        file_id = #{file_id},
-        root_board_id = #{root_board_id}
-        WHERE board_id = #{board_id} AND version = #{version};
-        <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
-     		SELECT created_time FROM board
-     		WHERE board_id = #{board_id} AND version = #{version};
-     	</selectKey>
-    </update>
     
      <update id="boardUpdateWithoutFile" parameterType="hashmap">
         UPDATE board 

@@ -1,53 +1,86 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
  
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
  
-<mapper namespace="com.worksmobile.Assignment.Mapper.BoardMapper">
+<mapper namespace="com.worksmobile.assignment.mapper.BoardMapper">
 	
-	<select id="boardList" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
-        select board_id,version,branch,subject,created
-        from board;
+   <!-- offset위치부터 noOfRecords 수 만큼 select 한다. -->
+   <select id="articleList" resultType="com.worksmobile.assignment.model.Board" parameterType="hashmap">
+		SELECT board_id,version,subject,content,created_time,file_id,root_board_id 
+		FROM board
+		LIMIT #{offset}, #{noOfRecords};  
+	</select>
+	
+	<select id="articleGetCount" resultType="int">
+		SELECT count(*) 
+		FROM board
+	</select>
+	    
+    <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.assignment.model.Board" >
+    	SELECT board_id,version,subject,content,created_time,file_id,root_board_id
+    	FROM board
+    	WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
-    <select id="viewDetail" parameterType="hashmap" resultType="com.worksmobile.Assignment.Domain.BoardDTO" >
-    	select board_id,version,branch,subject,content,created,file_name,file_size,file_data
-    	from board
-    	where board_id = #{board_id} and version = #{version} and branch = #{branch};
-    </select>
-    
-<!--     board_history와 동시에 넣어져야함. -->
-    <insert id="boardCreate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
-        insert into board
-        (board_id,version,branch,subject,content,created,file_name,file_data,file_size)
-        VALUES (#{board_id}, #{version},#{branch},#{subject},#{content},#{created},#{file_name},#{file_data,jdbcType=BLOB},#{file_size});
+	<!--  board_history와 동시에 넣어져야함. -->
+    <insert id="createBoard" parameterType="com.worksmobile.assignment.model.Board">
+        INSERT INTO board
+        (board_id, version, subject, content, created_time, file_id, root_board_id)
+        VALUES (#{board_id}, #{version}, #{subject}, #{content}, CURRENT_TIMESTAMP, #{file_id}, 
+        <if test = "root_board_id == 0">
+        																						LAST_INSERT_ID() + 1
+        </if>
+        <if test = "root_board_id != 0">
+        																						#{root_board_id}
+        </if>
+        																												);
+
+        <selectKey keyProperty="board_id,created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
+     		SELECT board_id, created_time FROM board
+     		WHERE board_id =
+     		<if test = "board_id == null">
+     						LAST_INSERT_ID()
+     		</if>
+     		<if test = "board_id != null">
+     						#{board_id}
+     		</if>
+     										AND version = #{version};
+     	</selectKey>
     </insert>
     
-    <!--  게시물 삭제시 이력 모두 삭제되어야 한다. -->
-    <delete id="boardDelete" parameterType="hashmap">
-        delete from board 
-        where board_id = #{board_id} and version = #{version} and branch = #{branch};
+    <delete id="deleteBoard" parameterType="hashmap">
+        DELETE FROM board 
+        WHERE board_id = #{board_id} AND version = #{version} ;
     </delete>
     
-    <!-- 히스토리 먼저 처리하고 boardUpdate 실행됨 -->
-    <!--  우선 업데이트시 파일은 건드리지 않는다. -->
-    <update id="boardUpdate" parameterType="com.worksmobile.Assignment.Domain.BoardDTO">
+     <update id="boardUpdateWithoutFile" parameterType="hashmap">
         UPDATE board 
-        set 
+        SET 
         subject = #{subject},
         content = #{content},
-        created = CURRENT_TIMESTAMP
-        where board_id = #{board_id} and version = #{version} and branch = #{branch};
+        created_time = CURRENT_TIMESTAMP,
+        root_board_id = #{root_board_id}
+        WHERE board_id = #{board_id} AND version = #{version};
+        <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
+     		SELECT created_time FROM board
+     		WHERE board_id = #{board_id} AND version = #{version};
+     	</selectKey>
     </update>
     
-    <select id="boardFileDownload" parameterType="int" resultType="com.worksmobile.Assignment.Domain.BoardDTO">
-        SELECT file_name,file_data,file_size
-        FROM board
-        where board_id = #{board_id} and version = #{version} and branch = #{branch};
+    <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.assignment.model.File">
+        SELECT b.file_name, b.file_data, b.file_size
+        FROM board as a
+        JOIN file as b
+        ON a.file_id = b.file_id
+        WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
-    <select id="getMaxBoardId" resultType="int">
-    	SELECT IFNULL(MAX(board_id), 0) AS MaxBoardId
-    	FROM board;
+    
+    <select id="getBoardList" resultType="com.worksmobile.assignment.model.Board" >
+    	SELECT board_id, version, subject, content, created_time, file_id, root_board_id
+    	FROM board
+    	WHERE board_id = #{board_id} AND version = #{version};
     </select>
+
 </mapper>
