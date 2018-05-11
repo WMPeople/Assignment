@@ -48,7 +48,7 @@ function DiffMatchCustom(Diff_Timeout, Diff_EditCost, Diff_IgnoreCase, text1, te
  * @param {String} whiteCharRegularExp 정규식 문자열
  * @return {!Array.<Number, !diff_match_patch.Diff>} Array of diff tuples.
  */
-DiffMatchCustom.prototype.markToEqualDiff = function(diffs, curIdx, diffStatus, diffStr, matchResult, whiteCharRegularExp) {
+DiffMatchCustom.prototype._markToEqualDiff = function(diffs, curIdx, diffStatus, diffStr, matchResult, whiteCharRegularExp) {
 	while (matchResult != null) {
 		var firstSubstr;
 		if (matchResult.index !== 0) {
@@ -81,7 +81,7 @@ DiffMatchCustom.prototype.markToEqualDiff = function(diffs, curIdx, diffStatus, 
  * @param {Number} leastRepeatCnt 개행, 공백, 탭 옵션용입니다. 이 갯수 이상부터 같다고 판단합니다.
  * @return{!Array.<!diff_match_patch.Diff>} 공백이 무시된 결과
  */
-DiffMatchCustom.prototype.ignoreWhiteCharater = function(diffs, leastRepeatCnt) {
+DiffMatchCustom.prototype._ignoreWhiteCharater = function(diffs, leastRepeatCnt) {
 	var text2DiffLength = 0;
 	const r = leastRepeatCnt;
 	var whiteCharRegularExp = '(\t{' + r + ',}|\n{' + r + ',}|\r{' + r + ',}|\ {' + r + ',})';
@@ -98,7 +98,7 @@ DiffMatchCustom.prototype.ignoreWhiteCharater = function(diffs, leastRepeatCnt) 
 				continue;
 			}
 			diffs.splice(i, 1);
-			var rtn = this.markToEqualDiff(diffs, i, diffStatus, diffStr, matchResult, whiteCharRegularExp);
+			var rtn = this._markToEqualDiff(diffs, i, diffStatus, diffStr, matchResult, whiteCharRegularExp);
 			i = rtn[0];
 			diffs = rtn[1];
 		}
@@ -235,7 +235,7 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 			ignoreWhiteCharCnt > 0 &&
 			!isWhitespaceFirst) {
 		this.taskQueue.push(function ignoreWhiteCharacter(thisPtr) {
-			thisPtr.diffRtn = thisPtr.ignoreWhiteCharater(thisPtr.diffRtn, ignoreWhiteCharCnt);
+			thisPtr.diffRtn = thisPtr._ignoreWhiteCharater(thisPtr.diffRtn, ignoreWhiteCharCnt);
 		});
 	}
 	// 공백문자 후처리 필터 끝

@@ -73,7 +73,7 @@ Replace.prototype.doQueueTask = function(thisPtr) {
  * @param {Number} replaceDiffLength 치환하면서 어긋난 위치 보정값 
  * @param {Number} textIdx 왼쪽이면 0, 오른쪽으면 1
  */
-Replace.prototype.doReplaceTask = function(thisPtr, match, replaceDiffLength, textIdx) {
+Replace.prototype._doReplaceTask = function(thisPtr, match, replaceDiffLength, textIdx) {
 	window.queueCnt = 2;
 	var idx = 0;
 	
@@ -84,7 +84,7 @@ Replace.prototype.doReplaceTask = function(thisPtr, match, replaceDiffLength, te
 		thisPtr._textMatch[textIdx].push(match);
 		idx++;
 		if(idx > 100) {
-			window.setTimeout(thisPtr.doReplaceTask(thisPtr, match, replaceDiffLength, textIdx), 10);
+			window.setTimeout(thisPtr._doReplaceTask(thisPtr, match, replaceDiffLength, textIdx), 10);
 			return;
 		}
 	}
@@ -104,7 +104,7 @@ Replace.prototype.doReplaceAsync = function() {
 	
 	const makeFunc = function getReplaceTaskFunc(match, replaceDiffLength, textIdx) {
 		return function replaceOneSection(thisPtr) {
-			thisPtr.doReplaceTask(thisPtr, match, replaceDiffLength, textIdx);
+			thisPtr._doReplaceTask(thisPtr, match, replaceDiffLength, textIdx);
 		}
 	}
 	this.taskQueue.push(makeFunc(undefined, 0, 0));
@@ -168,9 +168,9 @@ function Restore(text1Match, text2Match, diffs, isHaveReplaceChar) {
 
 Restore.prototype.doRestore = function() {
 	if(this._isHaveReplaceChar.length == 0) {
-		return this.resotreWithoutReplaceChar();
+		return this._resotreWithoutReplaceChar();
 	} else {
-		return this.restoreWithReplaceChar();
+		return this._restoreWithReplaceChar();
 	}
 }
 
@@ -183,7 +183,7 @@ Restore.prototype.doRestore = function() {
  * @param {String} diffStr diff 블럭의 변경 내용 (블럭 끝나는 위치를 알기 위함)
  * @return {Boolean}
  */
-Restore.prototype.isHaveChangePos = function(idx, matchArr, startPos, diffStr) {
+Restore.prototype._isHaveChangePos = function(idx, matchArr, startPos, diffStr) {
 	if(idx < matchArr.length &&
 		(startPos <= matchArr[idx].index &&
 		matchArr[idx].index < startPos + diffStr.length)) {
@@ -231,7 +231,7 @@ Restore.prototype._restoreWithReplaceChar = function(matchArr, matchIdx, curText
  * 정규식 치환한 것을 다시 복원하는 작업을 합니다.
  * @return {!Array.<!diff_match_patch.Diff>} 복원된 diff입니다.
  */
-Restore.prototype.restoreWithReplaceChar = function() {
+Restore.prototype._restoreWithReplaceChar = function() {
 	var curTextLengths = [0, 0];	// 현재 문서의 위치
 	var text1MatchIdx = 0;
 	var text2MatchIdx = 0;
@@ -249,8 +249,8 @@ Restore.prototype.restoreWithReplaceChar = function() {
 		}
 		
 		if(diffStatus == window.DIFF_EQUAL){ 
-			if(	!(this.isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr) ||
-				this.isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr) )) {
+			if(	!(this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr) ||
+				this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr) )) {
 				curTextLengths[0] += diffStr.length;
 				curTextLengths[1] += diffStr.length;
 				continue;
@@ -294,7 +294,7 @@ Restore.prototype.restoreWithReplaceChar = function() {
 		}
 		else if(diffStatus == window.DIFF_INSERT ||
 				diffStatus == window.DIFF_INSERT * 2) {	// right 에 속하면
-			if(!this.isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr)){
+			if(!this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr)){
 				curTextLengths[1] += diffStr.length;
 				continue;
 			} else {
@@ -305,7 +305,7 @@ Restore.prototype.restoreWithReplaceChar = function() {
 			}
 		} else if(diffStatus == window.DIFF_DELETE ||
 					diffStatus == window.DIFF_DELETE * 2) {	// left 에 속하면
-			if(!this.isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr)) {
+			if(!this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr)) {
 				curTextLengths[0] += diffStr.length;
 				continue;
 			} else {
@@ -362,7 +362,7 @@ Restore.prototype._restoreWithoutReplaceChar = function(matchArr, matchIdx, curT
  * @param {!Array.<!diff_match_patch.Diff>} diffs Array of diff tuples
  * @return {!Array.<!diff_match_patch.Diff>} 복원된 diff입니다.
  */
-Restore.prototype.resotreWithoutReplaceChar = function() {
+Restore.prototype._resotreWithoutReplaceChar = function() {
 	var curTextLengths = [0, 0];	// 현재 문서의 위치
 	var text1MatchIdx = 0;
 	var text2MatchIdx = 0;
@@ -380,16 +380,16 @@ Restore.prototype.resotreWithoutReplaceChar = function() {
 		}
 
 		if(diffStatus == window.DIFF_EQUAL){ 
-			if(	!(this.isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr) ||
-				this.isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr)) ) {
+			if(	!(this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr) ||
+				this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr)) ) {
 				curTextLengths[0] += diffStr.length;
 				curTextLengths[1] += diffStr.length;
 			} else {
 				// 범위 벗어나지 않았고, 왼쪽이 포함이면 일단 왼쪽
 				// 범위 벗어나지 않았고, 오른쪽이 포함이면 일단 오른쪽
 				// 단 둘다 포함이면 가까운 쪽부터 하자.
-				var isLeftInside = this.isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr);
-				var isRightInside = this.isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr);
+				var isLeftInside = this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr);
+				var isRightInside = this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr);
 				var isLeftTurn = false;
 				if(isLeftInside && isRightInside) {
 					isLeftTurn = 	this._text1Match[text1MatchIdx].index - curTextLengths[0] <
@@ -415,7 +415,7 @@ Restore.prototype.resotreWithoutReplaceChar = function() {
 			}
 		} else if(diffStatus == window.DIFF_INSERT ||
 				diffStatus == window.DIFF_INSERT * 2) {	// right 에 속하면
-			if(!this.isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr)){
+			if(!this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr)){
 				curTextLengths[1] += diffStr.length;
 			} else {
 				var length = this._restoreWithoutReplaceChar(this._text2Match, text2MatchIdx, curTextLengths[1], diffStatus);
@@ -425,7 +425,7 @@ Restore.prototype.resotreWithoutReplaceChar = function() {
 			}
 		} else if(diffStatus == window.DIFF_DELETE ||
 					diffStatus == window.DIFF_DELETE * 2) {	// left 에 속하면
-			if(!this.isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr)) {
+			if(!this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr)) {
 				curTextLengths[0] += diffStr.length;
 			} else {
 				var length = this._restoreWithoutReplaceChar(this._text1Match, text1MatchIdx, curTextLengths[0], diffStatus);
