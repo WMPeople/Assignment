@@ -25,14 +25,9 @@ function DiffMatchCustom(Diff_Timeout, Diff_EditCost, Diff_IgnoreCase, text1, te
 	this.dmp.Diff_Timeout = parseFloat(Diff_Timeout);
 	this.dmp.Diff_EditCost = parseFloat(Diff_EditCost);
 	this.dmp.Diff_Sensitive = Diff_IgnoreCase;
-	this.text1Match = [];	// [ text1MatchObj]
-	this.text2Match = [];	// [ text2MatchObj]
-	this.whiteSpaceText1Match = [];
-	this.whiteSpaceText2Match = [];
 	this.text1 = text1;
 	this.text2 = text2;
 	this.originText2 = text2;
-	this.isPreFilterOn = true;
 	this.ms_start;
 	this._replaceStack = new Array();
 	this.taskQueue = new Array();
@@ -53,10 +48,8 @@ function DiffMatchCustom(Diff_Timeout, Diff_EditCost, Diff_IgnoreCase, text1, te
  * @param {String} whiteCharRegularExp 정규식 문자열
  * @return {!Array.<Number, !diff_match_patch.Diff>} Array of diff tuples.
  */
-DiffMatchCustom.prototype.markToEqualDiff = function(diffs, curIdx, diffStatus, diffStr, matchResult, whiteCharRegularExp) {
-	
+DiffMatchCustom.prototype._markToEqualDiff = function(diffs, curIdx, diffStatus, diffStr, matchResult, whiteCharRegularExp) {
 	while (matchResult != null) {
-
 		var firstSubstr;
 		if (matchResult.index !== 0) {
 			firstSubstr = diffStr.substr(0, matchResult.index);
@@ -83,12 +76,12 @@ DiffMatchCustom.prototype.markToEqualDiff = function(diffs, curIdx, diffStatus, 
 }
 
 /**
- * 공백 문자를 무시합니다. diff 결과를 수정합니다.
+ * diff 결과에서 공백 문자를 같다고 수정합니다.
  * @param{!Array.<!diff_match_patch.Diff>} diffs diff알고리즘 결과
  * @param {Number} leastRepeatCnt 개행, 공백, 탭 옵션용입니다. 이 갯수 이상부터 같다고 판단합니다.
  * @return{!Array.<!diff_match_patch.Diff>} 공백이 무시된 결과
  */
-DiffMatchCustom.prototype.ignoreWhiteCharater = function(diffs, leastRepeatCnt) {
+DiffMatchCustom.prototype._ignoreWhiteCharater = function(diffs, leastRepeatCnt) {
 	var text2DiffLength = 0;
 	const r = leastRepeatCnt;
 	var whiteCharRegularExp = '(\t{' + r + ',}|\n{' + r + ',}|\r{' + r + ',}|\ {' + r + ',})';
@@ -105,7 +98,7 @@ DiffMatchCustom.prototype.ignoreWhiteCharater = function(diffs, leastRepeatCnt) 
 				continue;
 			}
 			diffs.splice(i, 1);
-			var rtn = this.markToEqualDiff(diffs, i, diffStatus, diffStr, matchResult, whiteCharRegularExp);
+			var rtn = this._markToEqualDiff(diffs, i, diffStatus, diffStr, matchResult, whiteCharRegularExp);
 			i = rtn[0];
 			diffs = rtn[1];
 		}
@@ -124,6 +117,10 @@ DiffMatchCustom.prototype.getWhiteCharacterRegExp = function(leastRepeatCnt) {
 	return new RegExp(whiteCharRegularExp, 'g');
 }
 
+/*
+ * replace의 doReplaceWithTask는 비동기 실행 함수입니다.
+ * 따라서 그 결과를 가져오기 위해서 task를 나누어야 합니다.
+ */
 /**
  * @param {RegExp} regExp
  * @param {Boolean} withReplaceChar
@@ -131,10 +128,11 @@ DiffMatchCustom.prototype.getWhiteCharacterRegExp = function(leastRepeatCnt) {
  */
 DiffMatchCustom.prototype.doReplace = function(regExp, withReplaceChar) {
 	this.replace = new Replace(regExp, withReplaceChar, this.text1, this.text2);
-	this.replace.doReplaceWithTask();
+	this.replace.doReplaceAsync();
 
 	return this.replace;
 }
+
 
 DiffMatchCustom.prototype.applyTextAndPush = function(replace) {
 	var matchRtn = replace.getTextArr();
@@ -159,16 +157,15 @@ DiffMatchCustom.prototype.restoreRegularExp = function(diffs, text1Match, text2M
 /***
  * @param {cleanupOpt} cleanupOption diff 알고리즘의 옵션입니다. cleanupOpt의 sementic, efficiency, no 중에 설정 가능합니다.
  * @param {Number} ignoreWhiteCharCnt 개수 이상으로 반복되는 공백문자를 무시합니다. (0이면 실행하지 않습니다.)
- * @param {Number} priority 공백 및 개행 무시 우선이면 1, 정규식 무시 우선이면 0 입니다.
+ * @param {Number} isWhitespaceFirst 공백 및 개행 무시 우선이면 true, 정규식 무시 우선이면 false 입니다.
  */
-DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCnt, regularExpArr, priority) {
+DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCnt, regularExpArr, isWhitespaceFirst) {
 	this.ms_start = (new Date()).getTime();
-	
 	
 	// 변경 무시 옵션에 따른 무시 사전 필터 시작
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
-			priority == 1) {
+			isWhitespaceFirst) {
 		this.taskQueue.push(function whiteChar(thisPtr) {
 			var regExp = thisPtr.getWhiteCharacterRegExp(ignoreWhiteCharCnt);
 			thisPtr.doReplace(regExp, false);
@@ -190,12 +187,13 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 			});
 		}
 	}
+	// 변경 무시 옵션에 따른 사전 필터 끝
+	
 	this.taskQueue.push(function doDiffMain(thisPtr) {
 		thisPtr.diffRtn = thisPtr.dmp.diff_main(thisPtr.text1, thisPtr.text2);
 	});
 	
 	this.taskQueue.push(function cleanupTask(thisPtr) {
-		// 결과를 clean up 합니다.
 		switch(cleanupOption) {
 		case cleanupOpt.sementicCleanup:
 			thisPtr.dmp.diff_cleanupSemantic(thisPtr.diffRtn);
@@ -223,7 +221,7 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 	}
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
-			priority == 1) {
+			isWhitespaceFirst) {
 		this.taskQueue.push(function recoverWhiteSpace(thisPtr) {
 			var replace = thisPtr._replaceStack.pop();
 			var matchArr = replace.getTextMatchArr();
@@ -235,13 +233,14 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 	// 공백문자 후처리 필터
 	if(typeof ignoreWhiteCharCnt != 'undefined' &&
 			ignoreWhiteCharCnt > 0 &&
-			priority == 0) {
+			!isWhitespaceFirst) {
 		this.taskQueue.push(function ignoreWhiteCharacter(thisPtr) {
-			thisPtr.diffRtn = thisPtr.ignoreWhiteCharater(thisPtr.diffRtn, ignoreWhiteCharCnt);
+			thisPtr.diffRtn = thisPtr._ignoreWhiteCharater(thisPtr.diffRtn, ignoreWhiteCharCnt);
 		});
 	}
+	// 공백문자 후처리 필터 끝
 
-	this.taskQueue.push(function prettyAndDisplay(thisPtr) {
+	this.taskQueue.push(function prettyAndPrint(thisPtr) {
 		var ds = thisPtr.dmp.diff_prettyHtml(thisPtr.diffRtn, '', thisPtr.originText2);
 		
 		var ms_end = (new Date()).getTime();
@@ -276,13 +275,13 @@ function launch() {
 	var caseSensitive = $('#caseSensitive').is(':checked');
 	var regularExpListChildren = $('#regularList').children();
 	var ignoreWhiteCharCnt = $("#ignoreWhiteCharCnt").val();
-	var whiteCharPri = $('#whiteCharPriorityOpt').prop("checked");
-	var regExpPri = $('#regularExpPriorityOpt').prop("checked");
-	var pri;
-	if(whiteCharPri) {
-		pri = 1;
-	} else if(regExpPri) {
-		pri = 0;
+	var whiteCharFirst = $('#whiteCharPriorityOpt').prop("checked");
+	var regExpFirst = $('#regularExpPriorityOpt').prop("checked");
+	var isWhiteCharFirst;
+	if(whiteCharFirst) {
+		isWhiteCharFirst = true;
+	} else if(regExpFirst) {
+		isWhiteCharFirst = false;
 	}
 	progressBar = new ProgressBar();
 
@@ -296,7 +295,7 @@ function launch() {
 			var re = new RegExp(regularExp, regularExpOpt);
 			regularExpArr.push(re);
 		}
-		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExpArr, pri);
+		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExpArr, isWhiteCharFirst);
 	} else {
 		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt);
 	}
