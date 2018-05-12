@@ -30,7 +30,6 @@ import com.worksmobile.assignment.util.JsonUtils;
 
 /***
  * 자동 저장 관련한 컨트롤러입니다.
- * @author khh
  * @author rws
  *
  */

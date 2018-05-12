@@ -1,11 +1,12 @@
 package com.worksmobile.assignment.bo;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.hamcrest.Matchers.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -65,13 +66,15 @@ public class VersionManagementTest {
 		defaultCreated = versionManagementService.createArticle(defaultBoard);
 		
 		Board article = boardMapper.viewDetail(defaultCreated.toMap());
+		assertNotNull(article);
 		BoardHistory articleHistory = boardHistoryMapper.selectHistory(defaultCreated);
+		assertNotNull(articleHistory);
 		assertEquals(article.getCreated_time(), articleHistory.getCreated_time());
 	}
 	
 	@Test
 	public void testCanCreate() {
-		versionManagementService = new VersionManagementService();
+		assertEquals(defaultBoard.getBoard_id(), (Integer)defaultBoard.getRoot_board_id());
 	}
 
 	private NodePtr makeChild(NodePtr parentPtr) throws JsonProcessingException {
@@ -197,8 +200,10 @@ public class VersionManagementTest {
 	public void testMakeModifyHasChild() throws JsonProcessingException {
 		NodePtr parentPtr = defaultCreated;
 
-		makeChild(parentPtr);
-		makeChild(parentPtr);
+		NodePtr child1 = makeChild(parentPtr);
+		NodePtr child2 = makeChild(parentPtr);
+		assertEquals(parentPtr.getRoot_board_id(), child1.getRoot_board_id());
+		assertEquals(parentPtr.getRoot_board_id(), child2.getRoot_board_id());
 	}
 	
 	@Test
@@ -312,6 +317,19 @@ public class VersionManagementTest {
 		List<BoardHistory> relatedHistoryList = versionManagementService.getRelatedHistory(generationList.get(0));
 	}
 	
+	private boolean hasNodePtr(List<NodePtr> list, NodePtr target) throws JsonProcessingException {
+		NodePtr targetPtr = new NodePtr(target);
+		String targetJson = JsonUtils.jsonStringFromObject(targetPtr);
+		for(NodePtr ele : list) {
+			String eleJson = JsonUtils.jsonStringFromObject(new NodePtr(ele));
+			boolean has = targetJson.equals(eleJson);
+			if(has) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@Test
 	public void testGetRelatedHistory() throws JsonProcessingException, NotLeafNodeException {
 		int childrenCnt = 2;
@@ -341,7 +359,7 @@ public class VersionManagementTest {
 		for (BoardHistory eleHistory : relatedHistoryList) {
 			assertNotNull(eleHistory);
 			NodePtr eleNodePtr = eleHistory;
-			assertTrue(nodePtrList.contains(eleNodePtr));
+			collector.checkThat(JsonUtils.jsonStringFromObject(eleNodePtr), true, is(hasNodePtr(nodePtrList, eleNodePtr)));
 		}
 	}
 	
@@ -374,27 +392,27 @@ public class VersionManagementTest {
 	}
 	
 	@Test
-	public void testBoardIdIsSequenceNumber() throws InterruptedException {
+	public void testBoardIdIsSequenceNumber() throws InterruptedException, JsonProcessingException {
 		int boardCnt = 10;
-		List<Board> boardHistoryList = new ArrayList<>(boardCnt);
+		List<Board> boardList = new ArrayList<>(boardCnt);
 		for(int i = 0; i < boardCnt; i++) {
 			Board article = new Board();
 			article.setSubject("초기글");
 			article.setContent("맨 처음에 작성한 글입니다.");
 			versionManagementService.createArticle(article);
-			boardHistoryList.add(article);
+			boardList.add(article);
 		}
 		
 		for(int i = 1; i < boardCnt; i++) {
-			int beforeBoardId = boardHistoryList.get(i - 1).getBoard_id();
-			int currentBoardId = boardHistoryList.get(i).getBoard_id();
+			int beforeBoardId = boardList.get(i - 1).getBoard_id();
+			int currentBoardId = boardList.get(i).getBoard_id();
 			
 			collector.checkThat(currentBoardId, greaterThan(beforeBoardId));
 		}
 		
-		for(Board ele : boardHistoryList) {
+		for(Board ele : boardList) {
 			Board dbBoard = boardMapper.viewDetail(ele.toMap());
-			collector.checkThat(dbBoard, is(not(null)));
+			collector.checkThat(JsonUtils.jsonStringFromObject(dbBoard), dbBoard, is(notNullValue()));
 			collector.checkThat(dbBoard.getBoard_id(), is(ele.getBoard_id()));
 		}
 	}

@@ -86,7 +86,7 @@ public class BoardHistoryService {
 		BoardHistory createdHistory;
 		if (article.getVersion() == NodePtr.VISIBLE_ROOT_VERSION) { // 루트 노드일 경우
 			BoardHistory rootHistory = createInvisibleRoot(article.getBoard_id(), article.getCreated_time());
-
+			
 			createdHistory = createVisibleRoot(article, rootHistory, status);
 		} else {// 루트가 아닌 리프 노드일 경우 (중간 노드일 경우는 없음)
 			createdHistory = createLeafHistory(article, status, parentNodePtr);
@@ -117,5 +117,21 @@ public class BoardHistoryService {
 	
 	public List<BoardHistory> selectChildren(NodePtr nodePtr) {
 		return boardHistoryMapper.selectChildren(nodePtr);
+	}
+
+	public void deleteBoardHistory(NodePtr leafPtr) {
+		int deletedCnt = boardHistoryMapper.deleteHistory(leafPtr);
+		if(deletedCnt != 1) {
+			String json = JsonUtils.jsonStringIfExceptionToString(leafPtr);
+			throw new RuntimeException("deletedCnt expected 1 but : " + json);
+		}
+	}
+	
+	public void deleteBoardHistory(List<NodePtr> ptrList) {
+		int deletedCnt = boardHistoryMapper.deleteHistories(ptrList);
+		if(deletedCnt != ptrList.size()) {
+			String json = JsonUtils.jsonStringIfExceptionToString(ptrList);
+			throw new RuntimeException("deletedCnt expected " + ptrList.size() + " but " + deletedCnt + " : " + json);
+		}
 	}
 }

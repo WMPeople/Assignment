@@ -170,4 +170,14 @@ public class BoardService {
 	public Board selectArticle(NodePtr nodePtr) {
 		return boardMapper.viewDetail(nodePtr.toMap());
 	}
+
+	public void updateArticle(Board article, NodePtr parentPtr) {
+		int updatedCnt = boardMapper.updateArticle(article, parentPtr);
+		if(updatedCnt != 1) {
+			String articleJson = JsonUtils.jsonStringIfExceptionToString(article);
+			String parentPtrJson = JsonUtils.jsonStringIfExceptionToString(parentPtr);
+			throw new RuntimeException("updateArticle 실패 article : " + articleJson + "\n" +
+										"parentNodePtr : " + parentPtrJson);
+		}
+	}
 }

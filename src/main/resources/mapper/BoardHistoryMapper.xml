@@ -35,6 +35,16 @@
 		WHERE board_id = #{board_id} AND version = #{version};
     </delete>
     
+    <delete id="deleteHistories">
+    	DELETE FROM board_history
+    	WHERE (board_id, version) IN
+    	(
+    		<foreach collection="list" item="ele" separator=",">
+    		(#{ele.board_id}, #{ele.version})
+    		</foreach>
+    	)
+    </delete>
+    
      <insert id="createHistory" parameterType="com.worksmobile.assignment.model.BoardHistory">
         INSERT INTO board_history(board_id, version, status, is_content_compressed, created_time,
         						history_subject, history_content, file_id,

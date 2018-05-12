@@ -28,6 +28,8 @@ public interface BoardTempMapper {
 	
 	public int deleteBoardTempWithoutCookieId(HashMap<String, Object> parmas);
 	
+	public int deleteBoardTempsWithoutCookieId(List<NodePtr> nodePtrList);
+	
 	public int boardTempUpdateWithoutFile(BoardTemp boardTemp);
 
 	public int boardTempUpdate(BoardTemp boardTemp);
@@ -36,12 +38,13 @@ public interface BoardTempMapper {
 
 	public File boardTempFileDownload(HashMap<String, Integer> params);
 
-
 	/**
 	 * @param nodePtr board_id 와 version만 사용하여 가져옵니다.
 	 * @return
 	 */
 	public List<BoardTemp> getBoardTempList(NodePtr nodePtr);
+	
+	public List<BoardTemp> selectBoardTemps(List<NodePtr> nodePtrList);
 
 	public List<BoardTemp> autoList(HashMap<String, Integer> params);
 
