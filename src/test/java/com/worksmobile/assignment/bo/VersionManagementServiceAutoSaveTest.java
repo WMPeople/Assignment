@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -50,7 +51,6 @@ public class VersionManagementServiceAutoSaveTest {
 	@Autowired
 	private VersionManagementService versionManagementService;
 	
-	private Board defaultBoard;
 	private Board defaultCreated;
 	private static final String DEFAULT_JUNIT_COOKIE_ID = "JunitCookieId";
 	private static final String DEFAULT_CREATED_TIME = "2018-04-26 오전 11:10:32";
@@ -58,18 +58,18 @@ public class VersionManagementServiceAutoSaveTest {
 
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
-		defaultBoard = new Board();
-		defaultBoard.setSubject("versionTestSub");
-		defaultBoard.setContent("versionTestCont");
+		defaultCreated = new Board();
+		defaultCreated.setSubject("versionTestSub");
+		defaultCreated.setContent("versionTestCont");
 
-		defaultCreated = versionManagementService.createArticle(defaultBoard);
+		defaultCreated = versionManagementService.createArticle(defaultCreated);
 
 		autoSaveArticle.setSubject("자동 저장중...");
 		autoSaveArticle.setContent("temp article content");
 		autoSaveArticle.setNodePtr(defaultCreated);
 		autoSaveArticle.setCookie_id(DEFAULT_JUNIT_COOKIE_ID);
 
-		boardTempService.makeTempBoard(defaultBoard.getBoard_id(), defaultBoard.getVersion(), DEFAULT_JUNIT_COOKIE_ID, DEFAULT_CREATED_TIME, autoSaveArticle.getContent(), autoSaveArticle.getFile_id(), autoSaveArticle.getSubject());
+		boardTempService.makeTempBoard(defaultCreated.getBoard_id(), defaultCreated.getVersion(), DEFAULT_JUNIT_COOKIE_ID, DEFAULT_CREATED_TIME, autoSaveArticle.getContent(), autoSaveArticle.getFile_id(), autoSaveArticle.getSubject());
 	}
 
 	private NodePtr makeChild(NodePtr parentPtr) throws JsonProcessingException {
@@ -90,7 +90,7 @@ public class VersionManagementServiceAutoSaveTest {
 		return childPtr;
 	}
 
-	private BoardTemp makeAutoSave(NodePtr nodePtr) {
+	private BoardTemp makeAutoSave(final NodePtr nodePtr) {
 		BoardTemp autoSave = new BoardTemp();
 		autoSave.setSubject("autoSaveSub");
 		autoSave.setContent("autoSaveCont");
@@ -154,10 +154,10 @@ public class VersionManagementServiceAutoSaveTest {
 		Board dbAtuoSave = boardMapper.viewDetail(autoSave.toMap());
 		assertNull(dbAtuoSave);
 	}
-
+	
 	@Test
 	public void testDeleteHasChildrenNodeAndAutoSave() throws JsonProcessingException {
-		NodePtr rootPtr = defaultCreated;
+		NodePtr rootPtr = new NodePtr(defaultCreated);
 
 		NodePtr middlePtr = makeChild(rootPtr);
 
@@ -170,12 +170,27 @@ public class VersionManagementServiceAutoSaveTest {
 		}
 
 		versionManagementService.deleteVersion(middlePtr);
-
+		
 		for (NodePtr child : childrenList) {
-			BoardHistory history = boardHistoryMapper.selectHistory(child);
-			NodePtr parentPtr = history.getParentPtrAndRoot();
-			assertEquals(rootPtr, parentPtr);
+			BoardHistory childhistory = boardHistoryMapper.selectHistory(child);
+			NodePtr parentPtr = childhistory.getParentPtrAndRoot();
+			JsonUtils.assertConvertToJsonObject(rootPtr, parentPtr);
 		}
 	}
+	
+	@Test
+	public void testModifyAricleHasAutoSave() {
+		BoardTemp autoSave = makeAutoSave(defaultCreated);
+		NodePtr beforeModified = new NodePtr(autoSave);
 
+		NodePtr modifiedNodePtr = versionManagementService.modifyVersion(defaultCreated, defaultCreated, DEFAULT_JUNIT_COOKIE_ID);
+		BoardTemp modifiedAutoSave = makeAutoSave(modifiedNodePtr);
+		BoardTemp dbModifiedAutoSave = makeAutoSave(modifiedAutoSave);
+		assertNotNull(dbModifiedAutoSave);
+		
+		HashMap<String, Object> params = beforeModified.toMap();
+		params.put("cookie_id", DEFAULT_JUNIT_COOKIE_ID);
+		BoardTemp beforeAutoSave = boardTempMapper.viewDetail(params);
+		assertNull(beforeAutoSave);
+	}
 }

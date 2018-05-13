@@ -263,8 +263,8 @@ public class VersionManagementTest {
 		versionManagementService.deleteVersion(middlePtr);
 		
 		for (NodePtr child : childrenList) {
-			BoardHistory history = boardHistoryMapper.selectHistory(child);
-			NodePtr parentPtr = history.getParentPtrAndRoot();
+			BoardHistory childhistory = boardHistoryMapper.selectHistory(child);
+			NodePtr parentPtr = childhistory.getParentPtrAndRoot();
 			JsonUtils.assertConvertToJsonObject(rootPtr, parentPtr);
 		}
 	}

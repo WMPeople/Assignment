@@ -13,7 +13,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.worksmobile.assignment.bo.BoardTempService;
 import com.worksmobile.assignment.mapper.BoardTempMapper;
-import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardTemp;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
@@ -32,10 +31,10 @@ public class AutoSaveArticleEventListener {
 	
 	@TransactionalEventListener(phase=TransactionPhase.BEFORE_COMMIT)
 	public void deleteAutoSave(ArticleModifiedEvent event) {
-		Board modifiedArticle = event.getArticle();
+		NodePtr oldNodePtr = event.getParentPtr();
 		String cookieId = event.getCookieId();
 		
-		HashMap<String, Object> deleteParams = modifiedArticle.toMap();
+		HashMap<String, Object> deleteParams = oldNodePtr.toMap();
 		deleteParams.put("cookie_id", cookieId);
 		
 		BoardTemp autoSave = boardTempMapper.viewDetail(deleteParams);
