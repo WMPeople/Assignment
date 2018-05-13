@@ -1,17 +1,22 @@
 package com.worksmobile.assignment.bo;
 
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,32 +54,34 @@ public class VersionManagementTest {
 	@Autowired
 	private BoardHistoryMapper boardHistoryMapper;
 	
+	@Autowired
+	AsyncAwaitHelper asyncAwaitHelper;
+	
 	@Rule
 	public ErrorCollector collector = new ErrorCollector();
 
-	private Board defaultBoard;
 	private Board defaultCreated;
 	private Comparator<NodePtr> compareNodePtr = Comparator.comparing(NodePtr::getRoot_board_id)
 			.thenComparing(NodePtr::getBoard_id).thenComparing(NodePtr::getVersion);
 	
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
-		defaultBoard = new Board();
-		defaultBoard.setSubject("초기글");
-		defaultBoard.setContent("맨 처음에 작성한 글입니다.");
+		defaultCreated = new Board();
+		defaultCreated.setSubject("초기글");
+		defaultCreated.setContent("맨 처음에 작성한 글입니다.");
 
-		defaultCreated = versionManagementService.createArticle(defaultBoard);
+		versionManagementService.createArticle(defaultCreated);
 		
 		Board article = boardMapper.viewDetail(defaultCreated.toMap());
 		assertNotNull(article);
-		BoardHistory articleHistory = boardHistoryMapper.selectHistory(defaultCreated);
+		BoardHistory articleHistory = asyncAwaitHelper.waitAndSelectBoardHistory(defaultCreated);
 		assertNotNull(articleHistory);
 		assertEquals(article.getCreated_time(), articleHistory.getCreated_time());
 	}
 	
 	@Test
 	public void testCanCreate() {
-		assertEquals(defaultBoard.getBoard_id(), (Integer)defaultBoard.getRoot_board_id());
+		assertEquals(defaultCreated.getBoard_id(), (Integer)defaultCreated.getRoot_board_id());
 	}
 
 	private NodePtr makeChild(NodePtr parentPtr) throws JsonProcessingException {
@@ -91,6 +98,10 @@ public class VersionManagementTest {
 		assertEquals((Integer) (parentVersion + 1), childPtr.getVersion());
 		
 		JsonUtils.assertConvertToJsonObject(child, leafBoard);
+		
+		BoardHistory childHistory = asyncAwaitHelper.waitAndSelectBoardHistory(childPtr);
+		Board convertedChild = BoardAdapter.from(childHistory);
+		JsonUtils.assertConvertToJsonObject(child, convertedChild);
 		
 		return childPtr;
 	}
@@ -111,13 +122,14 @@ public class VersionManagementTest {
 		Board defaultBoard2 = new Board();
 		defaultBoard2.setSubject("versionTestSub2");
 		defaultBoard2.setContent("versionTestCont2");
-
+		
 		defaultCreated = versionManagementService.createArticle(defaultBoard2);
 		
 		assertNotNull(defaultCreated);
 		
+		await().untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(defaultCreated), not(nullValue())));
 		NodePtr newChildPtr = makeChild(defaultCreated);
-
+		
 		assertEquals(defaultCreated.getBoard_id(), newChildPtr.getBoard_id());
 		assertNotNull(defaultCreated.getVersion());
 		assertEquals(defaultCreated.getVersion() + 1, (int) newChildPtr.getVersion());
@@ -126,10 +138,8 @@ public class VersionManagementTest {
 	
 	@Test
 	public void testCreateArticle() throws InterruptedException, ExecutionException, JsonProcessingException {
-		defaultBoard.setNodePtr(defaultCreated);
-		
 		Board dbBoard = boardMapper.viewDetail(defaultCreated.toMap());
-		JsonUtils.assertConvertToJsonObject(defaultBoard, dbBoard);
+		JsonUtils.assertConvertToJsonObject(defaultCreated, dbBoard);
 	}
 	
 	@Test
@@ -139,40 +149,43 @@ public class VersionManagementTest {
 			sevenHundredContent.append(i % 10);
 		}
 		
-		defaultBoard = new Board();
-		defaultBoard.setSubject("칠십만자가 들어가있습니다");
-		defaultBoard.setContent(sevenHundredContent.toString());
+		Board article = new Board();
+		article.setSubject("칠십만자가 들어가있습니다");
+		article.setContent(sevenHundredContent.toString());
 
-		defaultCreated = versionManagementService.createArticle(defaultBoard);
+		defaultCreated = versionManagementService.createArticle(article);
 		
-		BoardHistory dbHistory = boardHistoryMapper.selectHistory(defaultCreated);
+		BoardHistory dbHistory = asyncAwaitHelper.waitAndSelectBoardHistory(defaultCreated);
 		
 		Board deConvered = BoardAdapter.from(dbHistory);
 		JsonUtils.assertConvertToJsonObject(defaultCreated, deConvered);
 		
-		defaultBoard.setNodePtr(defaultCreated);
-		defaultBoard.setCreated_time(dbHistory.getCreated_time());
+		article.setNodePtr(defaultCreated);
+		article.setCreated_time(dbHistory.getCreated_time());
 		
 		Board dbBoard = boardMapper.viewDetail(defaultCreated.toMap());
-		JsonUtils.assertConvertToJsonObject(defaultBoard, dbBoard);
+		JsonUtils.assertConvertToJsonObject(article, dbBoard);
 	}
 	
 	@Test
 	public void testRecoverVersion() throws InterruptedException, ExecutionException, JsonProcessingException {
-		Board createdHistory = versionManagementService.createArticle(defaultBoard);
+		NodePtr prevPtr = defaultCreated;
+		Board leaf = boardMapper.viewDetail(prevPtr.toMap());
+		await().untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(prevPtr), not(nullValue())));
+		NodePtr newLeafPtr = versionManagementService.recoverVersion(prevPtr, prevPtr);
 		
-		NodePtr prevPtr = createdHistory;
-		Board prevleaf = boardMapper.viewDetail(prevPtr.toMap());
-		NodePtr newleafPtr = versionManagementService.recoverVersion(prevPtr, prevPtr);
+		BoardHistory recoveredHistory = asyncAwaitHelper.waitAndSelectBoardHistory(newLeafPtr);
+		Board newleaf = boardMapper.viewDetail(newLeafPtr.toMap());
 		
-		BoardHistory recoveredHistory = boardHistoryMapper.selectHistory(newleafPtr);
-		Board newleaf = boardMapper.viewDetail(newleafPtr.toMap());
-		
-		prevleaf.setNodePtr(newleafPtr);
-		prevleaf.setCreated_time(newleaf.getCreated_time()); // 버전 복구시 시간이 달라짐
+		assertEquals(leaf.getBoard_id(), newLeafPtr.getBoard_id());
+		assertNotEquals(leaf.getVersion(), newLeafPtr.getVersion());
+		assertEquals(leaf.getRoot_board_id(), newLeafPtr.getRoot_board_id());
+		leaf.setVersion(newLeafPtr.getVersion());
+		leaf.setBoard_id(newLeafPtr.getBoard_id());
+		leaf.setCreated_time(newleaf.getCreated_time()); // 버전 복구시 시간이 달라짐
 		
 		assertNotNull(recoveredHistory);
-		JsonUtils.assertConvertToJsonObject(newleaf, prevleaf);
+		JsonUtils.assertConvertToJsonObject(newleaf, leaf);
 	}
 	
 	@Test
@@ -188,7 +201,7 @@ public class VersionManagementTest {
 		assertNull(parentBoard);
 		Board leafBoard = boardMapper.viewDetail(resultPtr.toMap());
 		assertNotNull(leafBoard);
-		int defaultVersion = defaultBoard.getVersion() == null ? 0 : defaultBoard.getVersion();
+		int defaultVersion = defaultCreated.getVersion() == null ? 0 : defaultCreated.getVersion();
 		assertEquals((Integer) (defaultVersion + 1), resultPtr.getVersion());
 		
 		child.setNodePtr(resultPtr);
@@ -213,7 +226,7 @@ public class VersionManagementTest {
 		NodePtr deletePtr = makeChild(rootPtr);
 		versionManagementService.deleteVersion(deletePtr);
 
-		List<BoardHistory> children = boardHistoryMapper.selectChildren(rootPtr);
+		List<BoardHistory> children = boardHistoryMapper.selectChildren(rootPtr);	// TODO : await
 		assertEquals(0, children.size());
 	}
 	
@@ -226,12 +239,15 @@ public class VersionManagementTest {
 		
 		versionManagementService.deleteVersion(middlePtr);
 		
-		BoardHistory childHistory = boardHistoryMapper.selectHistory(childPtr);
+		BoardHistory childHistory = asyncAwaitHelper.waitAndSelectBoardHistory(childPtr);
 		NodePtr childParentPtr = childHistory.getParentPtrAndRoot();
 		
 		assertEquals(rootPtr, childParentPtr);
 	}
 	
+	/*
+	 * 중간 노드를 지워서 자식이 지워진 노드의 부모를 가리키는지 확인합니다.
+	 */
 	@Test
 	public void testDeleteHasChildrenNode() throws JsonProcessingException {
 		NodePtr rootPtr = new NodePtr(defaultCreated);
@@ -278,25 +294,32 @@ public class VersionManagementTest {
 		NodePtr leafPtr = makeChild(hasChildPtr);
 		
 		versionManagementService.deleteArticle(leafPtr);
+		
+		await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(leafPtr), is(nullValue())));
+		await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(hasChildPtr), is(nullValue())));
 	}
 	
 	@Test
 	public void testDeleteArticleHasOneChild() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
 		List<NodePtr> generationList = new ArrayList<>(generationCnt);
-		generationList.add(defaultBoard);
+		generationList.add(defaultCreated);
 		for(int i = 1; i < generationCnt; i++) {
 			generationList.add(makeChild(generationList.get(i - 1)));
 		}
 		
 		versionManagementService.deleteArticle(generationList.get(generationCnt - 1));
+		
+		for(NodePtr ele : generationList) {
+			await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(ele), is(nullValue())));
+		}
 	}
 	
 	@Test(expected=NotLeafNodeException.class)
 	public void testDeleteArticleShouldTrhowNotLeafNodeException() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
 		List<NodePtr> generationList = new ArrayList<>(generationCnt);
-		generationList.add(defaultBoard);
+		generationList.add(defaultCreated);
 		for(int i = 1; i < generationCnt; i++) {
 			generationList.add(makeChild(generationList.get(i - 1)));
 		}
@@ -308,7 +331,7 @@ public class VersionManagementTest {
 	public void testGetRelatedHistoryhouldTrhowNotLeafNodeException() throws JsonProcessingException, NotLeafNodeException {
 		int generationCnt = 5;
 		List<NodePtr> generationList = new ArrayList<>(generationCnt);
-		generationList.add(defaultBoard);
+		generationList.add(defaultCreated);
 		for(int i = 1; i < generationCnt; i++) {
 			generationList.add(makeChild(generationList.get(i - 1)));
 		}
@@ -353,6 +376,7 @@ public class VersionManagementTest {
 		nodePtrList.add(leafPtr);
 		NodePtr leafPtrWithoutRootBoardId = new NodePtr(leafPtr.getBoard_id(), leafPtr.getVersion());
 		
+		await().untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(leafPtr), not(nullValue())));
 		List<BoardHistory> relatedHistoryList = versionManagementService.getRelatedHistory(leafPtrWithoutRootBoardId);
 		assertEquals(relatedHistoryList.size(), relatedCnt);
 		assertNotNull(relatedHistoryList);
@@ -377,6 +401,7 @@ public class VersionManagementTest {
 		NodePtr child = makeChild(middle2);
 		leafToRoot.add(child);
 		
+		await().untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(child), not(nullValue())));
 		List<BoardHistory> relatedHistoryList = versionManagementService.getRelatedHistory(child);
 		
 		assertEquals(relatedHistoryList.size(), leafToRoot.size());
