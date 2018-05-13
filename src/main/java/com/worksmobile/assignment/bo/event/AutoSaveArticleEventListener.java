@@ -16,6 +16,7 @@ import com.worksmobile.assignment.mapper.BoardTempMapper;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardTemp;
 import com.worksmobile.assignment.model.NodePtr;
+import com.worksmobile.assignment.util.JsonUtils;
 
 @Component
 public class AutoSaveArticleEventListener {
@@ -30,7 +31,7 @@ public class AutoSaveArticleEventListener {
 	private ApplicationEventPublisher publisher;
 	
 	@TransactionalEventListener(phase=TransactionPhase.BEFORE_COMMIT)
-	public void eventListener(ArticleModifiedEvent event) {
+	public void deleteAutoSave(ArticleModifiedEvent event) {
 		Board modifiedArticle = event.getArticle();
 		String cookieId = event.getCookieId();
 		
@@ -48,10 +49,16 @@ public class AutoSaveArticleEventListener {
 	}
 	
 	@EventListener
-	public void eventListenr(AutoSaveDeleteRequestEvent event) {
+	public void deleteAutoSaves(AutoSaveDeleteRequestEvent event) {
 		List<NodePtr> deleteList = event.getNodePtrList();
 		List<BoardTemp> autoSaveList = boardTempMapper.selectBoardTemps(deleteList);
-		boardTempMapper.deleteBoardTempsWithoutCookieId(deleteList);
+		int deletedCnt = boardTempMapper.deleteBoardTempsWithoutCookieId(deleteList);
+		
+		if(deletedCnt != autoSaveList.size()) {
+			String json = JsonUtils.jsonStringIfExceptionToString(deleteList);
+			throw new RuntimeException("deleted cnt : " + deletedCnt + " but, " + autoSaveList.size() + " expected. \n" +
+										"deleteList : " + json);
+		}
 		
 		Set<Integer> fileIds = event.getFileIds();
 		for(BoardTemp ele : autoSaveList) {
