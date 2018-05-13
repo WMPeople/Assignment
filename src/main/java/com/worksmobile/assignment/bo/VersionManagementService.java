@@ -65,7 +65,10 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public NodePtr modifyVersion(Board modifiedArticle, NodePtr parentPtr, String cookieId) {
-		BoardHistory dbParentPtr = boardHistoryService.selectHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
+		NodePtr dbParentPtr = boardService.selectArticle(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
+		if(dbParentPtr == null) {
+			dbParentPtr = boardHistoryService.selectHistory(parentPtr);
+		}
 		
 		NodePtr newPtr = boardService.modifyArticle(modifiedArticle, dbParentPtr);
 		
