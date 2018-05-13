@@ -42,10 +42,9 @@ public class VersionManagementService {
 	 */
 	@Transactional
 	public Board createArticle(Board article) {
-		article.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
 		article.setVersion(NodePtr.VISIBLE_ROOT_VERSION);
 		
-		boardService.createArticle(article);
+		boardService.createNewArticle(article);
 		
 		publisher.publishEvent(new ArticleCreatedEvent(article));
 		
@@ -68,23 +67,13 @@ public class VersionManagementService {
 	public NodePtr modifyVersion(Board modifiedArticle, NodePtr parentPtr, String cookieId) {
 		BoardHistory dbParentPtr = boardHistoryService.selectHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
 		
-		modifiedArticle.setVersion(dbParentPtr.getVersion() + 1);
-		modifiedArticle.setRoot_board_id(dbParentPtr.getRoot_board_id());
-
-		if(boardService.isLeaf(dbParentPtr)) {
-			modifiedArticle.setBoard_id(dbParentPtr.getBoard_id());
-			boardService.updateArticle(modifiedArticle, parentPtr);	// TODO : 여기서 첨부파일이 링크가 끊어졋는지 확인 하여야 합니다.
-		} else {
-			modifiedArticle.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
-			boardService.createArticle(modifiedArticle);
-		}
+		NodePtr newPtr = boardService.modifyArticle(modifiedArticle, dbParentPtr);
 		
 		publisher.publishEvent(new ArticleModifiedEvent(modifiedArticle, dbParentPtr, cookieId));
 		
-		return modifiedArticle;
+		return newPtr;
 	}
 
-	// TODO : decompressed Data를 활용할 수 있습니다.
 	/***
 	 * 버전 복구 기능입니다. board DB및  boardHistory 둘다 등록 됩니다.
 	 * @param recoverPtr 복구할 버전에 대한 포인터.
@@ -97,21 +86,12 @@ public class VersionManagementService {
 		NodePtr dbParentPtr = boardHistoryService.selectHistory(leafPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
 		
 		Board recoveredBoard = BoardAdapter.from(recoverHistory);
-		
-		recoveredBoard.setVersion(dbParentPtr.getVersion() + 1);
-		recoveredBoard.setRoot_board_id(dbParentPtr.getRoot_board_id());
-		
-		if(boardService.isLeaf(dbParentPtr)) {	// TODO : 여기서 자동저장을 그대로 복사할지 여부를 정해야 합니다.
-			recoveredBoard.setBoard_id(dbParentPtr.getBoard_id());	// TODO : 첨부파일 링크가 끊어졌는지 확인해야 합니다.
-			boardService.updateArticle(recoveredBoard, dbParentPtr);
-		} else {
-			recoveredBoard.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
-			boardService.createArticle(recoveredBoard);
-		}
+
+		NodePtr newPtr = boardService.modifyArticle(recoveredBoard, dbParentPtr);
 		
 		publisher.publishEvent(new ArticleRevoeredEvent(recoveredBoard, recoverHistory, dbParentPtr));
 		
-		return recoveredBoard;
+		return newPtr;
 	}
 	
 	/**
@@ -126,17 +106,17 @@ public class VersionManagementService {
 			String leafPtrJson = JsonUtils.jsonStringIfExceptionToString(leafPtr);
 			throw new NotLeafNodeException("node 정보" + leafPtrJson);
 		}
+		boardHistoryService.selectHistory(leafPtr);		// check null
 		
 		boardService.deleteBoardAndAutoSave(leafPtr);	// TODO : AutoSave는 Event로 빼야 합니다.
 		
 		publisher.publishEvent(new ArticleDeletedEvent(leafPtr));
-		
 	}
 	
 	// TODO : 위의 게시판에 대한 것을들 모두 BoardService로 옮겨야 함.
 	/*========================== 게시판에 대한 CUD 끝 ========================
 	 * 
-	 * ========================= 이력에 대한 CRUD 시작 ========================
+	 * ========================= 이력에 대한 RD 시작 ========================
 	 */
 	
 	/***
@@ -163,7 +143,7 @@ public class VersionManagementService {
 			// 자신 밖에 없고 부모가 안보이는 루트가 아니면
 			if(brothers.size() == 1 && !parentHistory.isInvisibleRoot()) {
 				Board parent = BoardAdapter.from(parentHistory);
-				boardService.createArticle(parent);
+				boardService.createNewArticle(parent);
 				rtnNewLeafPtr = parent;
 			}
 			// 여기 부터 이력

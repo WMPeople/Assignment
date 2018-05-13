@@ -152,14 +152,14 @@ public class BoardService {
 		}
 	}
 	
-	public NodePtr createArticle(Board article) {
+	public NodePtr createNewArticle(Board article) {
 		if (article.getSubject().length() == 0) {
 			throw new RuntimeException("제목이 비어있을 수 없습니다.");
 		}
 		if (article.getContent() == null || article.getContent().length() == 0) {
 			throw new RuntimeException("내용이 null 이거나 비어 있습니다. content : " + article.getContent());
 		}
-		
+		article.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
 		int insertedRowCnt = boardMapper.createBoard(article);
 		if (insertedRowCnt != 1) {
 			throw new RuntimeException("createArticle메소드에서 createBoard error" + article);
@@ -167,17 +167,36 @@ public class BoardService {
 		return new NodePtr(article);
 	}
 	
+	/**
+	 * 충돌관리의 역할을 가지고 있습니다.
+	 * @param article
+	 * @param paretNodePtr
+	 * @return
+	 */
+	public NodePtr modifyArticle(Board article, NodePtr paretNodePtr) {
+		article.setVersion(paretNodePtr.getVersion() + 1);
+		article.setRoot_board_id(paretNodePtr.getRoot_board_id());
+
+		if(isLeaf(paretNodePtr)) {
+			article.setBoard_id(paretNodePtr.getBoard_id());
+			return updateArticle(article, paretNodePtr);	// TODO : 여기서 첨부파일이 링크가 끊어졋는지 확인 하여야 합니다.
+		} else {
+			return createNewArticle(article);
+		}
+	}
+	
 	public Board selectArticle(NodePtr nodePtr) {
 		return boardMapper.viewDetail(nodePtr.toMap());
 	}
 
-	public void updateArticle(Board article, NodePtr parentPtr) {
-		int updatedCnt = boardMapper.updateArticle(article, parentPtr);
+	private NodePtr updateArticle(Board article, NodePtr oldPtr) {
+		int updatedCnt = boardMapper.updateArticle(article, oldPtr);
 		if(updatedCnt != 1) {
 			String articleJson = JsonUtils.jsonStringIfExceptionToString(article);
-			String parentPtrJson = JsonUtils.jsonStringIfExceptionToString(parentPtr);
+			String parentPtrJson = JsonUtils.jsonStringIfExceptionToString(oldPtr);
 			throw new RuntimeException("updateArticle 실패 article : " + articleJson + "\n" +
 										"parentNodePtr : " + parentPtrJson);
 		}
+		return new NodePtr(article);
 	}
 }
