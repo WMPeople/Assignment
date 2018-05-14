@@ -39,7 +39,6 @@ public class ExternalAPIController {
 	@RequestMapping(value = "api/naver/{apiName}/{category}/{text}/{startCnt}", method = RequestMethod.GET)
 	public ModelAndView naverApi(@PathVariable String apiName, @PathVariable String category,
 		@PathVariable String text, @PathVariable int startCnt) throws Exception {
-
 		HashMap<String, Object> param = naverAPIService.getSearchResult(apiName, category, text, startCnt);
 
 		ModelAndView modelAndView = new ModelAndView();

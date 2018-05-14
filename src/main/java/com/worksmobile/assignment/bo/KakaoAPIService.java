@@ -11,6 +11,7 @@ import java.util.HashMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,6 +19,7 @@ public class KakaoAPIService {
 
 	public static final String clientSecret = "f82a92ab82aed869e2ec2ab799c17958";
 	
+	@Cacheable(value="findKakaoAPICache", key="{#apiName, #category, #text, #pageNo}")
 	public HashMap<String, Object> getSearchResult(String apiName, String category, String text, String pageNo) {
 
 		try {
