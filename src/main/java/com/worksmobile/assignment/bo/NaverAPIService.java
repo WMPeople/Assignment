@@ -10,6 +10,7 @@ import java.util.HashMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,6 +26,7 @@ public class NaverAPIService {
 	 * @param text ex) 어린왕자
 	 * @return
 	 */
+	@Cacheable(value="findNaverAPICache", key="{#apiName, #category, #text, #startCnt}")
 	public HashMap<String, Object> getSearchResult(String apiName, String category, String text, int startCnt) {
 
 		try {

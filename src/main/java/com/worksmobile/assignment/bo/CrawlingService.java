@@ -8,6 +8,7 @@ import org.json.simple.parser.JSONParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +29,7 @@ public class CrawlingService {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
+	@Cacheable(value="findCrawlingedCache", key="{#category, #text, #pageNo}")
 	public HashMap<String, Object> getNaverCrawlingResult(String category, String text, String pageNo) throws Exception {
 		String encodedText = URLEncoder.encode(text, "UTF-8");
 		String url = null;

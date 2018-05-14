@@ -25,7 +25,6 @@ public class ArticleHistoryEventListener {
 	@Autowired
 	private ApplicationEventPublisher publisher;
 	
-	// TODO : 아래의 3개의 메소드는 유사합니다. 이를 합칠수 있을 수도?
 	@EventListener
 	@Async
 	public void addHistory(ArticleCreatedEvent articleCreatedEvent) {
@@ -53,7 +52,7 @@ public class ArticleHistoryEventListener {
 	}
 	
 
-	// TODO : check thread safe
+	// TODO : check thread safe, 삭제 중간에 삭제 대상의 자식을 만들 수 없게 하여야 합니다.
 	// TODO : 삭제 대상을 파악할 때 한번에 들고와서 판단할 수 있을 것으로 생각됨.
 	@EventListener
 	@Async
@@ -70,12 +69,12 @@ public class ArticleHistoryEventListener {
 			deleteHistoryList.add(deleteHistory);
 			fileIds.add(deleteHistory.getFile_id());
 			
-			List<BoardHistory> brothers = boardHistoryService.selectChildren(parentPtr);
+			List<BoardHistory> siblings = boardHistoryService.selectChildren(parentPtr);
 			
-			if (brothers.size() > 1 ||
+			if (siblings.size() > 1 ||
 				deleteHistory.isInvisibleRoot()) {
 				break;
-			} else if(brothers.size() == 0) {
+			} else if(siblings.size() == 0) {
 				String json = JsonUtils.jsonStringIfExceptionToString(parentPtr);
 				throw new RuntimeException("자기자신이 없습니다.(안보이는 루트 제외) nodePtr : " + json);
 			}

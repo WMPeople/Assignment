@@ -50,7 +50,7 @@ public class BoardService {
 
 		if(isLeaf(paretNodePtr)) {
 			article.setBoard_id(paretNodePtr.getBoard_id());
-			return updateArticle(article, paretNodePtr);	// TODO : 여기서 첨부파일이 링크가 끊어졋는지 확인 하여야 합니다.
+			return updateArticle(article, paretNodePtr);
 		} else {
 			return createNewArticle(article);
 		}

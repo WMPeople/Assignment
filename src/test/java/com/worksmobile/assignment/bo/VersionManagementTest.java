@@ -226,7 +226,7 @@ public class VersionManagementTest {
 		NodePtr deletePtr = makeChild(rootPtr);
 		versionManagementService.deleteVersion(deletePtr);
 
-		List<BoardHistory> children = boardHistoryMapper.selectChildren(rootPtr);	// TODO : await
+		List<BoardHistory> children = boardHistoryMapper.selectChildren(rootPtr);
 		assertEquals(0, children.size());
 	}
 	
