@@ -35,7 +35,7 @@ import com.worksmobile.assignment.util.JsonUtils;
  * @Controller와 @ResponseBody의 조합으로 기능합니다.
  * 
  * 페이지 이동 및 게시판 관련한 CRUD를 처리하는 컨트롤러 입니다.
- * @author khh, rws
+ * @author rws
  *
  */
 @RestController
@@ -74,12 +74,10 @@ public class BoardController {
 	 * 게시물 수정 버튼을 눌렀을 때 자동 저장 게시글이 없으면 만들고, 수정 페이지로 이동합니다.
 	 */
 	@RequestMapping(value = "/boards/update", method = RequestMethod.POST)
-	public ModelAndView updateForm(int board_id, int version, String created_time, String content,
-		int file_id, String subject, HttpServletRequest req) throws Exception {
+	public ModelAndView updateForm(Board board, HttpServletRequest req) throws Exception {
 
-		boardTempService.makeTempBoard(board_id, version, cookieService.getCookie(req).getValue(), created_time,
-			content,
-			file_id, subject);
+		boardTempService.makeTempBoard(board.getBoard_id(), board.getVersion(), cookieService.getCookie(req).getValue(),
+			board.getCreated_time(), board.getContent(), board.getFile_id(), board.getSubject());
 		return new ModelAndView("boardUpdate");
 	}
 

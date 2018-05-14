@@ -11,6 +11,17 @@
         WHERE board_id = #{board_id} AND version = #{version} AND cookie_id = #{cookie_id};
     </select>
     
+    <select id="selectBoardTemps" resultType="com.worksmobile.assignment.model.BoardTemp">
+        SELECT board_id,version,subject,content,created_time,file_id,cookie_id 
+        FROM board_temp
+        WHERE (board_id, version) IN
+    	(
+    		<foreach collection="list" item="ele" separator=",">
+    		(#{ele.board_id}, #{ele.version})
+    		</foreach>
+    	)
+    </select>
+    
     <select id="autoList" resultType="com.worksmobile.assignment.model.BoardTemp" parameterType="hashmap">
         SELECT board_id,version,subject,content,created_time,file_id,cookie_id 
         FROM board_temp 
@@ -45,6 +56,15 @@
         WHERE board_id = #{board_id} AND version = #{version};
     </delete>
     
+    <delete id="deleteBoardTempsWithoutCookieId">
+    	DELETE FROM board_temp
+    	WHERE (board_id, version) IN
+    	(
+    		<foreach collection="list" item="ele" separator=",">
+    		(#{ele.board_id}, #{ele.version})
+    		</foreach>
+    	)
+    </delete>
     
     <!--  히스토리 먼저 처리하고 boardUpdate 실행됨 -->
     <update id="boardTempUpdate" parameterType="hashmap">

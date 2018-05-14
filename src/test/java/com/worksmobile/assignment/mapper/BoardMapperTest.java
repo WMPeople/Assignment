@@ -1,4 +1,4 @@
-package com.worksmobile.assignment.mapper;
+﻿package com.worksmobile.assignment.mapper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -59,32 +59,6 @@ public class BoardMapperTest {
 		Board insertedVO = null;
 		insertedVO = boardMapper.viewDetail(defaultBoard.toMap());
 		assertEquals(defaultBoard, insertedVO);
-	}
-    
-    @Test
-    public void testUpdate() throws Exception{
-		Board beforeVO = new Board();
-    	beforeVO.setBoard_id(defaultNodePtr.getBoard_id());
-    	beforeVO.setVersion(defaultNodePtr.getVersion());
-    	beforeVO.setSubject("test1111");
-    	beforeVO.setContent("beforeVal");
-    	if(null != boardMapper.viewDetail(beforeVO.toMap()))
-    	{
-    		boardMapper.deleteBoard(beforeVO.toMap());
-    	}
-    	boardMapper.createBoard(beforeVO);
-    	
-
-		Board afterVO = new Board();
-    	afterVO.setBoard_id(defaultNodePtr.getBoard_id());
-    	afterVO.setVersion(defaultNodePtr.getVersion());
-    	afterVO.setSubject("after sub");
-    	afterVO.setContent("after con");
-    	boardMapper.boardUpdate(afterVO);
-    	
-		Board updatedVO = null;
-    	updatedVO = boardMapper.viewDetail(afterVO.toMap());
-    	assertEquals(afterVO, updatedVO);
 	}
     
     @Test

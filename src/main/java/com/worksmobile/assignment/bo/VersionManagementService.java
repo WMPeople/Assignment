@@ -1,17 +1,22 @@
 ﻿package com.worksmobile.assignment.bo;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.worksmobile.assignment.bo.event.ArticleCreatedEvent;
+import com.worksmobile.assignment.bo.event.ArticleDeletedEvent;
+import com.worksmobile.assignment.bo.event.ArticleModifiedEvent;
+import com.worksmobile.assignment.bo.event.ArticleRevoeredEvent;
+import com.worksmobile.assignment.bo.event.AutoSaveDeleteRequestEvent;
 import com.worksmobile.assignment.mapper.BoardAdapter;
-import com.worksmobile.assignment.mapper.BoardHistoryMapper;
-import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
@@ -24,13 +29,6 @@ import com.worksmobile.assignment.util.JsonUtils;
  */
 @Service
 public class VersionManagementService {
-
-	@Autowired
-	private BoardMapper boardMapper;
-
-	@Autowired
-	private BoardHistoryMapper boardHistoryMapper;
-
 	@Autowired
 	private BoardService boardService;
 
@@ -38,8 +36,153 @@ public class VersionManagementService {
 	private BoardHistoryService boardHistoryService;
 
 	@Autowired
-	private BoardTempService boardTempService;
+	private ApplicationEventPublisher publisher;
+	
+	/***
+	 * 최초 기록 게시글을 등록합니다. 
+	 * @param article 게시글에 대한 정보.
+	 * @return 새로운 게시글의 이력
+	 */
+	@Transactional
+	public Board createArticle(Board article) {
+		article.setVersion(NodePtr.VISIBLE_ROOT_VERSION);
+		
+		boardService.createNewArticle(article);
+		
+		publisher.publishEvent(new ArticleCreatedEvent(article));
+		
+		return article;
+	}
+	
+	/*
+	 *  TODO : board update 쿼리문으로 변경해야 합니다. 
+	 *  delete create보다는 update가 비용 효율면에서 좋습니다.
+	 */
+	/***
+	 * 새로운 버전을 등록합니다. 충돌 관리가 적용되어 있습니다.
+	 * 자동저장이 없을 수도 있으므로 자동저장 삭제를 확인하지 않습니다.
+	 * @param modifiedArticle 새롭게 등록될 게시글에 대한 정보. cookie_id가 존재하면 자동 저장 내역이 삭제 됩니다.
+	 * @param parentPtr 부모를 가리키는 노드 포인터.
+	 * @param cookieId 자신의 쿠키 id, 자동 저장에서 삭제 됩니다.
+	 * @return 새롭게 생성된 리프 노드를 가리킵니다.
+	 */
+	@Transactional
+	public NodePtr modifyVersion(Board modifiedArticle, NodePtr parentPtr, String cookieId) {
+		NodePtr dbParentPtr = boardService.selectArticle(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
+		if(dbParentPtr == null) {
+			dbParentPtr = boardHistoryService.selectHistory(parentPtr);
+		}
+		
+		NodePtr newPtr = boardService.modifyArticle(modifiedArticle, dbParentPtr);
+		
+		publisher.publishEvent(new ArticleModifiedEvent(modifiedArticle, dbParentPtr, cookieId));
+		
+		return newPtr;
+	}
 
+	/***
+	 * 버전 복구 기능입니다. board DB및  boardHistory 둘다 등록 됩니다.
+	 * @param recoverPtr 복구할 버전에 대한 포인터.
+	 * @param leafPtr 복구 후 부모가 될 리프 포인터. 리프 게시글인지 검사하지 않습니다.
+	 * @return 새롭게 등록된 버전에 대한 포인터.
+	 */
+	@Transactional
+	public NodePtr recoverVersion(final NodePtr recoverPtr, final NodePtr leafPtr) throws NotExistHistoryException{
+		BoardHistory recoverHistory = boardHistoryService.selectHistory(recoverPtr);
+		NodePtr dbParentPtr = boardHistoryService.selectHistory(leafPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
+		
+		Board recoveredBoard = BoardAdapter.from(recoverHistory);
+
+		NodePtr newPtr = boardService.modifyArticle(recoveredBoard, dbParentPtr);
+		
+		publisher.publishEvent(new ArticleRevoeredEvent(recoveredBoard, recoverHistory, dbParentPtr));
+		
+		return newPtr;
+	}
+	
+	/**
+	 * 특정 게시글을 삭제합니다. 부모를 모두 삭제합니다. (단, 형제 노드가 존재 할때까지)
+	 * 자동 저장 게시글이 있다면 전부 삭제됩니다.!!!!
+	 * @param leafPtr 리프 노드만 주어야합니다.
+	 * @throws NotLeafNodeException 리프 노드가 아닌 것을 삭제할때 발생됨.
+	 */
+	@Transactional
+	public void deleteArticle(NodePtr leafPtr) throws NotLeafNodeException {
+		if (!boardService.isLeaf(leafPtr)) {
+			String leafPtrJson = JsonUtils.jsonStringIfExceptionToString(leafPtr);
+			throw new NotLeafNodeException("node 정보" + leafPtrJson);
+		}
+		boardHistoryService.selectHistory(leafPtr);		// check null
+		
+		boardService.deleteBoard(leafPtr);
+		
+		publisher.publishEvent(new ArticleDeletedEvent(leafPtr));
+	}
+	
+	// TODO : 위의 게시판에 대한 것을들 모두 BoardService로 옮겨야 함.
+	/*========================== 게시판에 대한 CUD 끝 ========================
+	 * 
+	 * ========================= 이력에 대한 RD 시작 ========================
+	 */
+	
+	/***
+	 * 특정 버전에 대한 이력 1개를 삭제합니다. leaf노드이면 게시글도 삭제 됩니다. 
+	 * 부모의 이력은 삭제되지 않음을 유의 해야 합니다.
+	 * 자동 저장 게시글도 함께 삭제 됩니다.!!!!
+	 * @param deletePtr 삭제할 버전에 대한 정보.
+	 * @return 새로운 리프 노드의 주소. 새로운 리프노드를 생성하지 않았으면 null을 반환함.
+	 */
+	@Transactional
+	public NodePtr deleteVersion(final NodePtr deletePtr) {
+		BoardHistory deleteHistory = boardHistoryService.selectHistory(deletePtr);
+		NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
+		NodePtr rtnNewLeafPtr = null;
+		
+		List<BoardHistory> deleteNodeChildren = boardHistoryService.selectChildren(deleteHistory);
+
+		Set<Integer> deletedFileIds = new HashSet<>();
+		List<NodePtr> deleteHistoryNodePtrs = new ArrayList<>(2);	
+
+		if (boardService.isLeaf(deleteHistory)) { // 리프 노드라면
+			boardService.deleteBoard(deleteHistory);
+			
+			BoardHistory parentHistory = boardHistoryService.selectHistory(parentPtr);
+			List<BoardHistory> brothers = boardHistoryService.selectChildren(parentHistory);
+			
+			// 자신 밖에 없고 부모가 안보이는 루트가 아니면
+			if(brothers.size() == 1 && !parentHistory.isInvisibleRoot()) {
+				Board parent = BoardAdapter.from(parentHistory);
+				boardService.createNewArticle(parent);
+				rtnNewLeafPtr = parent;
+			}
+			// 여기 부터 이력
+			boardHistoryService.deleteBoardHistory(deleteHistory);
+
+			deletedFileIds.add(deleteHistory.getFile_id());
+			deleteHistoryNodePtrs.add(deleteHistory);
+
+			if (brothers.size() == 1 && parentHistory.isInvisibleRoot()) {	// 자신 밖에 없고 부모가 안보이는 루트면
+				boardHistoryService.deleteBoardHistory(parentHistory);
+
+				deletedFileIds.add(parentHistory.getFile_id());
+				deleteHistoryNodePtrs.add(parentHistory);
+			}
+			publisher.publishEvent(new AutoSaveDeleteRequestEvent(deleteHistoryNodePtrs, deletedFileIds));
+		} // 리프 노드일때 끝
+		else if (deleteHistory.isInvisibleRoot()) {
+			String json = JsonUtils.jsonStringIfExceptionToString(deleteHistory);
+			throw new RuntimeException("안보이는 루트는 삭제할 수 없습니다. delete : " + json);
+		} else {// 중간노드 일 경우
+			boardHistoryService.changeParent(deleteNodeChildren, parentPtr);
+			boardHistoryService.deleteBoardHistory(deleteHistory);
+			
+			deleteHistoryNodePtrs.add(deleteHistory);
+			deletedFileIds.add(deleteHistory.getFile_id());
+			publisher.publishEvent(new AutoSaveDeleteRequestEvent(deleteHistoryNodePtrs, deletedFileIds));
+		}
+		return rtnNewLeafPtr;
+	}
+	
 	/***
 	 * 한 게시글과 연관된 모든 게시글 이력을 반환합니다.
 	 * @param leafPtr 가져올 리프 노드 포인터.(board_id, version만 사용)
@@ -47,7 +190,7 @@ public class VersionManagementService {
 	 * @throws NotLeafNodeException 리프 노드가 아닌 것을 삭제할때 발생됩.
 	 */
 	public List<BoardHistory> getRelatedHistory(NodePtr leafPtr) throws NotLeafNodeException {
-		Board board = boardMapper.viewDetail(leafPtr.toMap());
+		Board board = boardService.selectArticle(leafPtr);
 		if (board == null) {
 			String leafPtrJson = JsonUtils.jsonStringIfExceptionToString(leafPtr);
 			throw new NotLeafNodeException("leaf node 정보" + leafPtrJson);
@@ -73,187 +216,4 @@ public class VersionManagementService {
 
 		return relatedHistoryList;
 	}
-
-	/***
-	 * 최초 기록 게시글을 등록합니다. 
-	 * @param article 게시글에 대한 정보.
-	 * @return 새로운 게시글의 이력
-	 */
-	@Transactional
-	public BoardHistory createArticle(Board article) {
-		article.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
-		article.setVersion(NodePtr.INVISIALBE_ROOT_BOARD_ID);
-		return createArticleAndHistory(article, BoardHistory.STATUS_CREATED, new NodePtr());
-	}
-
-	/**
-	 *  게시판 DB 와 이력 DB 에 둘다 등록합니다.
-	 *  루트를 만들거나, 충돌 관리시에 게시글 번호가 새로 발급됩니다. (DB의 자동 증가를 통해 증가)
-	 * @param article 등록할 게시물의 게시글 id, 버전, 제목, 내용, 첨부파일이 사용됩니다.
-	 * @param status 게시물 이력의 상태에 들어갈 내용
-	 * @param parentNodePtr 게시물의 부모 노드 포인터
-	 * @return 새롭게 생성된 게시글 이력 
-	 */
-	private BoardHistory createArticleAndHistory(Board article, final String status, final NodePtr parentNodePtr) {
-		if (article.getSubject().length() == 0) {
-			throw new RuntimeException("제목이 비어있을 수 없습니다.");
-		}
-		if (article.getContent() == null || article.getContent().length() == 0) {
-			throw new RuntimeException("내용이 null 이거나 비어 있습니다. content : " + article.getContent());
-		}
-		
-		BoardHistory createdHistory = boardHistoryService.createHistory(article, status, parentNodePtr);
-		
-		article.setNodePtr(createdHistory);
-		article.setCreated_time(createdHistory.getCreated_time());
-		
-		int insertedRowCnt = boardMapper.createBoard(article);
-		if (insertedRowCnt != 1) {
-			throw new RuntimeException("createArticle메소드에서 createBoard error" + createdHistory);
-		}
-		
-		return createdHistory;
-	}
-
-	/***
-	 * 버전 복구 기능입니다. board DB및  boardHistory 둘다 등록 됩니다.
-	 * @param recoverPtr 복구할 버전에 대한 포인터.
-	 * @param leafPtr 복구 후 부모가 될 리프 포인터. 리프 게시글인지 검사하지 않습니다.
-	 * @return 새롭게 등록된 버전에 대한 포인터.
-	 */
-	@Transactional
-	public NodePtr recoverVersion(final NodePtr recoverPtr, final NodePtr leafPtr) throws NotExistHistoryException{
-		BoardHistory recoverHistory = boardHistoryService.selectHistory(recoverPtr);
-		boardHistoryService.selectHistory(leafPtr);
-
-		Board recoveredBoard = BoardAdapter.from(recoverHistory);
-		String status = String.format("%s(%s)", BoardHistory.STATUS_RECOVERED, recoverPtr.toString());
-		return createVersionWithBranch(recoveredBoard, leafPtr, status);
-	}
-
-	/***
-	 * 새로운 버전을 등록합니다. 충돌 관리가 적용되어 있습니다.
-	 * 자동저장이 없을 수도 있으므로 자동저장 삭제를 확인하지 않습니다.
-	 * @param modifiedBoard 새롭게 등록될 게시글에 대한 정보. cookie_id가 존재하면 자동 저장 내역이 삭제 됩니다.
-	 * @param parentPtr 부모를 가리키는 노드 포인터.
-	 * @param cookieId 자신의 쿠키 id, 자동 저장에서 삭제 됩니다.
-	 * @return 새롭게 생성된 리프 노드를 가리킵니다.
-	 */
-	@Transactional
-	public NodePtr modifyVersion(Board modifiedBoard, NodePtr parentPtr, String cookieId) {
-		HashMap<String, Object> deleteParams = modifiedBoard.toMap();
-		deleteParams.put("cookie_id", cookieId);
-		boardTempService.deleteBoardTemp(deleteParams);
-		
-		return createVersionWithBranch(modifiedBoard, parentPtr, BoardHistory.STATUS_MODIFIED);
-	}
-
-	/***
-	 * 새로운 게시글 번호로 할당할지를 판단 하여 생성합니다.
-	 * 새로운 리프를 등록하기 때문에 리프 노드 경우엔 삭제 됩니다. 단, 자동저장 게시글은 삭제 되지 않습니다.
-	 * @param article 새로운 버전의 게시글의 내용
-	 * @param parentPtr 부모가 될 노드의 포인터
-	 * @param status 게시글 이력에 남길 상태
-	 * @return 생성된 게시글의 포인터
-	 */
-	private NodePtr createVersionWithBranch(Board article, NodePtr parentPtr, final String status) throws NotExistNodePtrException{
-		NodePtr dbParentPtr = boardHistoryService.selectHistory(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
-		List<BoardHistory> childrenList = boardHistoryMapper.selectChildren(dbParentPtr);
-		if (childrenList.size() == 0) {
-			boardService.deleteBoard(dbParentPtr.toMap());
-			article.setBoard_id(dbParentPtr.getBoard_id());
-		} else {
-			article.setBoard_id(NodePtr.ISSUE_NEW_BOARD_ID);
-		}
-		
-		article.setVersion(dbParentPtr.getVersion() + 1);
-		return createArticleAndHistory(article, status, dbParentPtr);
-	}
-
-	/***
-	 * 특정 버전에 대한 이력 1개를 삭제합니다. leaf노드이면 게시글도 삭제 됩니다. 
-	 * 부모의 이력은 삭제되지 않음을 유의 해야 합니다.
-	 * 자동 저장 게시글도 함께 삭제 됩니다.!!!!
-	 * @param deletePtr 삭제할 버전에 대한 정보.
-	 * @return 새로운 리프 노드의 주소. 새로운 리프노드를 생성하지 않았으면 null을 반환함.
-	 */
-	@Transactional
-	public NodePtr deleteVersion(final NodePtr deletePtr) {
-		BoardHistory deleteHistory = boardHistoryService.selectHistory(deletePtr);
-		NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
-		NodePtr rtnNewLeafPtr = null;
-
-		List<BoardHistory> deleteNodeChildren = boardHistoryMapper.selectChildren(deletePtr);
-
-		if (deleteNodeChildren.size() == 0) { // 리프 노드라면
-			// 이력 및 게시글을 지웁니다.
-			boardService.deleteBoardAndAutoSave(deletePtr);
-			boardService.deleteBoardHistoryAndAutoSave(deletePtr);
-			
-			BoardHistory parentHistory = boardHistoryService.selectHistory(parentPtr);
-			
-			List<BoardHistory> brothers = boardHistoryMapper.selectChildren(parentHistory);
-			
-			if (brothers.size() == 0) {
-				if (parentHistory.isInvisibleRoot()) {// 부모가 안보이는 루트만 존재있으면 삭제합니다.
-					boardService.deleteBoardHistoryAndAutoSave(parentHistory);
-				} else { // 부모가 안보이는 루트가 아닌 노드는 board테이블에 존재해야 함.
-					Board parent = BoardAdapter.from(parentHistory);
-					int createdCnt = boardMapper.createBoard(parent);
-					if (createdCnt == 0) {
-						throw new RuntimeException("deleteVersion메소드에서 DB의 board테이블 리프 노드를 갱신(board에서)시 발생" +
-							" createdCnt : " + createdCnt);
-					}
-					rtnNewLeafPtr = parent;
-				}
-			}
-		} // 리프 노드일때 끝
-		else if (deleteHistory.isInvisibleRoot()) {
-			throw new RuntimeException("루트는 삭제할 수 없습니다.");
-		} else {// 중간노드 일 경우
-			for (BoardHistory childHistory : deleteNodeChildren) {
-				childHistory.setParentNodePtrAndRoot(parentPtr);
-				int updatedCnt = boardHistoryMapper.updateHistoryParentAndRoot(childHistory);
-				if (updatedCnt != 1) {
-					String json = JsonUtils.jsonStringIfExceptionToString(childHistory);
-					throw new RuntimeException("updateRowCnt expected 1 but : " + updatedCnt + "\n" +
-						"in " + json);
-				}
-			}
-			boardService.deleteBoardHistoryAndAutoSave(deletePtr);
-		}
-		return rtnNewLeafPtr;
-	}
-
-	/**
-	 * 특정 게시글을 삭제합니다. 부모를 모두 삭제합니다. (단, 형제 노드가 존재 할때까지)
-	 * 자동 저장 게시글이 있다면 전부 삭제됩니다.!!!!
-	 * @param leafPtr 리프 노드만 주어야합니다.
-	 * @throws NotLeafNodeException 리프 노드가 아닌 것을 삭제할때 발생됨.
-	 */
-	@Transactional
-	public void deleteArticle(NodePtr leafPtr) throws NotLeafNodeException {
-		if (!boardService.isLeaf(leafPtr)) {
-			String leafPtrJson = JsonUtils.jsonStringIfExceptionToString(leafPtr);
-			throw new NotLeafNodeException("node 정보" + leafPtrJson);
-		}
-		
-		boardService.deleteBoardAndAutoSave(leafPtr);
-		
-		while (true) {
-			BoardHistory deleteHistory = boardHistoryService.selectHistory(leafPtr);
-			NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
-
-			boardService.deleteBoardHistoryAndAutoSave(leafPtr);
-
-			List<BoardHistory> brothers = boardHistoryMapper.selectChildren(parentPtr);
-
-			if (brothers.size() != 0 ||
-				deleteHistory.isInvisibleRoot()) {
-				break;
-			}
-			leafPtr = parentPtr;
-		}
-	}
-
 }

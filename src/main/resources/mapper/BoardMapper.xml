@@ -24,15 +24,37 @@
     	WHERE board_id = #{board_id} AND version = #{version};
     </select>
     
-	<!--  board_history와 동시에 넣어져야함. -->
+    <!-- 
+		게시글 최초에는 board_id = ISSUE_NEW_BOARD_ID = NULL
+				  root_board_id = 0
+	  충돌시에는 board_id = ISSUE_NEW_BOARD_ID = NULL
+				  root_board_id != 0
+     -->
     <insert id="createBoard" parameterType="com.worksmobile.assignment.model.Board">
         INSERT INTO board
-        (board_id,version,subject,content,created_time,file_id,root_board_id)
-        VALUES (#{board_id}, #{version},#{subject},#{content},#{created_time},#{file_id},#{root_board_id});
+        (board_id, version, subject, content, created_time, file_id,
+        root_board_id)
+        SELECT #{board_id}, #{version}, #{subject}, #{content}, CURRENT_TIMESTAMP, #{file_id}, 
+        <if test = "root_board_id == 0">
+        	(SELECT `AUTO_INCREMENT`
+			FROM  INFORMATION_SCHEMA.TABLES
+			WHERE TABLE_SCHEMA = 'intern_2018_1'
+			AND   TABLE_NAME   = 'board');
+        </if>
+        <if test = "root_board_id != 0">
+        	#{root_board_id};
+        </if>
 
-        <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
-     		SELECT created_time FROM board
-     		WHERE board_id = #{board_id} AND version = #{version};
+        <selectKey keyProperty="board_id,created_time,root_board_id" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
+     		SELECT board_id, created_time, root_board_id FROM board
+     		WHERE board_id =
+     		<if test = "board_id == null">
+     						LAST_INSERT_ID()
+     		</if>
+     		<if test = "board_id != null">
+     						#{board_id}
+     		</if>
+     										AND version = #{version};
      	</selectKey>
     </insert>
     
@@ -40,35 +62,20 @@
         DELETE FROM board 
         WHERE board_id = #{board_id} AND version = #{version} ;
     </delete>
-    
-    <!--  히스토리 먼저 처리하고 boardUpdate 실행됨 -->
-    <update id="boardUpdate" parameterType="hashmap">
-        UPDATE board 
-        SET 
-        subject = #{subject},
-        content = #{content},
-        created_time = CURRENT_TIMESTAMP,
-        file_id = #{file_id},
-        root_board_id = #{root_board_id}
-        WHERE board_id = #{board_id} AND version = #{version};
-        <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
+
+    <update id="updateArticle">
+    	UPDATE board
+		SET board_id = #{article.board_id}, version = #{article.version},
+			root_board_id = #{article.root_board_id},
+			subject = #{article.subject}, content = #{article.content},
+			created_time = CURRENT_TIMESTAMP, file_id = #{article.file_id} 
+		WHERE
+    		board_id = #{oldPtr.board_id} AND version = #{oldPtr.version};
+		<selectKey keyProperty="article.created_time" resultType="String" order="AFTER">
      		SELECT created_time FROM board
-     		WHERE board_id = #{board_id} AND version = #{version};
+     		WHERE board_id = #{article.board_id} AND version = #{article.version};
      	</selectKey>
-    </update>
-    
-     <update id="boardUpdateWithoutFile" parameterType="hashmap">
-        UPDATE board 
-        SET 
-        subject = #{subject},
-        content = #{content},
-        created_time = CURRENT_TIMESTAMP,
-        root_board_id = #{root_board_id}
-        WHERE board_id = #{board_id} AND version = #{version};
-        <selectKey keyProperty="created_time" resultType="com.worksmobile.assignment.model.Board" order="AFTER">
-     		SELECT created_time FROM board
-     		WHERE board_id = #{board_id} AND version = #{version};
-     	</selectKey>
+
     </update>
     
     <select id="boardFileDownload" parameterType="hashmap" resultType="com.worksmobile.assignment.model.File">

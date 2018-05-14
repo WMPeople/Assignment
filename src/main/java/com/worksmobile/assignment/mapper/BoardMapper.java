@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.File;
@@ -22,13 +23,9 @@ public interface BoardMapper {
 
 	public int boardUpdateWithoutFile(Board board);
 
-	public int boardUpdate(Board board);
-
 	public Board viewDetail(HashMap<String, Object> parmas);
 
 	public File boardFileDownload(HashMap<String, Integer> params);
-
-	public int getMaxCookieId();
 
 	/**
 	 * 
@@ -43,8 +40,8 @@ public interface BoardMapper {
 	 * @return
 	 */
 	public List<Board> getBoardList(NodePtr nodePtr);
-
-	public List<Board> autoList(HashMap<String, Integer> params);
+	
+	public int updateArticle(@Param("article")Board article, @Param("oldPtr")NodePtr oldPtr);
 
 	public int articleGetCount();
 

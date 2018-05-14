@@ -1,5 +1,7 @@
 ﻿package com.worksmobile.assignment.mapper;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -9,7 +11,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,6 +48,9 @@ public class BoardHistoryMapperTest {
 	
 	@Autowired
 	private FileMapper fileMapper;
+	
+	@Rule
+	public ErrorCollector collector = new ErrorCollector();
 
 	private static BoardHistory defaultHistory;
 	private static NodePtr defaultNodePtr;
@@ -57,7 +64,8 @@ public class BoardHistoryMapperTest {
 		defaultHistory.set_content_compressed(false);
 		defaultHistory.setVersion(defaultNodePtr.getVersion());
 		defaultHistory.setFile_id(0);
-
+		defaultHistory.setCreated_time("2018-05-12 0:00:00");
+		
 		defaultHistory.setStatus("Created");
 		defaultHistory.setHistory_subject("sub");
 	}
@@ -144,6 +152,33 @@ public class BoardHistoryMapperTest {
 		BoardHistory deletedHistory = null;
 		deletedHistory = boardHistoryMapper.selectHistory(defaultNodePtr);
 		assertNull(deletedHistory);
+	}
+	
+	@Test
+	public void testDeleteMultipleWithParentLinked() throws JsonProcessingException {
+		int deleteCnt = 10;
+		List<NodePtr> historyList = new ArrayList<>(deleteCnt);
+		
+		boardHistory = createBoardHistoryIfNotExists();
+		historyList.add(boardHistory);
+		
+		for(int i = 0; i < deleteCnt; i++) {
+			BoardHistory cloned = boardHistory.clone();
+			cloned.setParentNodePtrAndRoot(cloned);
+			cloned.setBoard_id(cloned.getBoard_id() + 1);
+			
+			boardHistoryMapper.createHistory(cloned);
+			historyList.add(cloned);
+			boardHistory = cloned;
+		}
+		
+		boardHistoryMapper.deleteHistories(historyList);
+		
+		for(NodePtr ele : historyList) {
+			BoardHistory boardHistory = boardHistoryMapper.selectHistory(ele);
+			String json = JsonUtils.jsonStringFromObject(ele);
+			collector.checkThat(json, boardHistory, is(nullValue()));
+		}
 	}
 	
 	@Test

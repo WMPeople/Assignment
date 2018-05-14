@@ -1,4 +1,4 @@
-package com.worksmobile.assignment.bo;
+﻿package com.worksmobile.assignment.bo;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,14 +25,15 @@ public class BoardHistoryService {
 	@Autowired
 	private BoardHistoryMapper boardHistoryMapper;
 
-	private BoardHistory createInvisibleRoot() {
-		NodePtr nodePtr = new NodePtr(NodePtr.ISSUE_NEW_BOARD_ID, NodePtr.INVISIBLE_ROOT_VERSION, NodePtr.INVISIALBE_ROOT_BOARD_ID);
+	private BoardHistory createInvisibleRoot(int boardId, String createdTime) {
+		NodePtr nodePtr = new NodePtr(boardId, NodePtr.INVISIBLE_ROOT_VERSION, NodePtr.INVISIALBE_ROOT_BOARD_ID);
 		BoardHistory rootHistory = new BoardHistory();
 		rootHistory.setNodePtr(nodePtr);
 		rootHistory.setStatus(BoardHistory.STATUS_INVISIBLE_ROOT);
-		rootHistory.setHistory_subject("InvisibleRootSub");
+		rootHistory.setHistory_subject("invisibleRoot");
 		rootHistory.setHistory_content("".getBytes());
 		rootHistory.set_content_compressed(false);
+		rootHistory.setCreated_time(createdTime);
 		int insertedRowCnt = boardHistoryMapper.createHistory(rootHistory);
 		if (insertedRowCnt != 1) {
 			String json = JsonUtils.jsonStringIfExceptionToString(rootHistory);
@@ -42,12 +43,12 @@ public class BoardHistoryService {
 		return rootHistory;
 	}
 
-	private BoardHistory createVisibleRoot(Board article, BoardHistory rootHistory, String status) {
+	private BoardHistory createVisibleRoot(Board article, NodePtr invisibleRoot, String status) {
 		BoardHistory boardHistory = BoardAdapter.from(article);
-		boardHistory.setParentNodePtrAndRoot(rootHistory);
+		boardHistory.setParentNodePtrAndRoot(invisibleRoot);
 		boardHistory.setStatus(status);
 		boardHistory.setVersion(NodePtr.VISIBLE_ROOT_VERSION);
-		boardHistory.setRoot_board_id(rootHistory.getBoard_id());
+		boardHistory.setRoot_board_id(invisibleRoot.getBoard_id());
 
 		int insertedRowCnt = boardHistoryMapper.createHistory(boardHistory);
 		if (insertedRowCnt != 1) {
@@ -58,12 +59,7 @@ public class BoardHistoryService {
 		return boardHistory;
 	}
 
-	private BoardHistory createLeafHistory(Board article, int version, String status, final NodePtr parentNodePtr) {
-		if (article.getBoard_id() != NodePtr.ISSUE_NEW_BOARD_ID) {
-			article.setBoard_id(parentNodePtr.getBoard_id());
-		}
-		
-		article.setVersion(version);
+	private BoardHistory createLeafHistory(Board article, String status, final NodePtr parentNodePtr) {
 		BoardHistory boardHistory = BoardAdapter.from(article);
 		boardHistory.setParentNodePtrAndRoot(parentNodePtr);
 		boardHistory.setStatus(status);
@@ -88,22 +84,54 @@ public class BoardHistoryService {
 	
 	public BoardHistory createHistory(Board article, final String status, final NodePtr parentNodePtr) {
 		BoardHistory createdHistory;
-		if (article.getVersion() == NodePtr.INVISIBLE_ROOT_VERSION) { // 루트 노드일 경우
-			BoardHistory rootHistory = createInvisibleRoot();
+		if (article.getVersion() == NodePtr.VISIBLE_ROOT_VERSION) { // 루트 노드일 경우
+			BoardHistory rootHistory = createInvisibleRoot(article.getBoard_id(), article.getCreated_time());
 			
 			createdHistory = createVisibleRoot(article, rootHistory, status);
 		} else {// 루트가 아닌 리프 노드일 경우 (중간 노드일 경우는 없음)
-			createdHistory = createLeafHistory(article, article.getVersion(), status, parentNodePtr);
+			createdHistory = createLeafHistory(article, status, parentNodePtr);
 		}
 		return createdHistory;
 	}
 	
-	public BoardHistory selectHistory(NodePtr nodePtr) throws NotExistHistoryException{
+	public BoardHistory selectHistory(final NodePtr nodePtr) throws NotExistNodePtrException{
 		BoardHistory boardHistory = boardHistoryMapper.selectHistory(nodePtr);
-		if(boardHistory == null) {
+		if (boardHistory == null) {
 			String json = JsonUtils.jsonStringIfExceptionToString(nodePtr);
-			throw new NotExistHistoryException(json);
+			throw new NotExistNodePtrException("존재하지 않는 이력 포인터 입니다. nodePtr : " + json);
 		}
 		return boardHistory;
+	}
+	
+	public void changeParent(List<BoardHistory> childrenHistoryList, NodePtr parentPtr) {
+		for (BoardHistory childHistory : childrenHistoryList) {
+			childHistory.setParentNodePtrAndRoot(parentPtr);
+			int updatedCnt = boardHistoryMapper.updateHistoryParentAndRoot(childHistory);
+			if (updatedCnt != 1) {
+				String json = JsonUtils.jsonStringIfExceptionToString(childHistory);
+				throw new RuntimeException("updateRowCnt expected 1 but : " + updatedCnt + "\n" +
+					"in " + json);
+			}
+		}
+	}
+	
+	public List<BoardHistory> selectChildren(NodePtr nodePtr) {
+		return boardHistoryMapper.selectChildren(nodePtr);
+	}
+
+	public void deleteBoardHistory(NodePtr leafPtr) {
+		int deletedCnt = boardHistoryMapper.deleteHistory(leafPtr);
+		if(deletedCnt != 1) {
+			String json = JsonUtils.jsonStringIfExceptionToString(leafPtr);
+			throw new RuntimeException("deletedCnt expected 1 but : " + json);
+		}
+	}
+	
+	public void deleteBoardHistory(List<NodePtr> ptrList) {
+		int deletedCnt = boardHistoryMapper.deleteHistories(ptrList);
+		if(deletedCnt != ptrList.size()) {
+			String json = JsonUtils.jsonStringIfExceptionToString(ptrList);
+			throw new RuntimeException("deletedCnt expected " + ptrList.size() + " but " + deletedCnt + " : " + json);
+		}
 	}
 }
