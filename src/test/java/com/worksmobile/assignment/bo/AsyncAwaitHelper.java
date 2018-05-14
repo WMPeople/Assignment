@@ -11,18 +11,19 @@ import org.springframework.stereotype.Component;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
-
+/**
+ * 
+ * @author khh
+ *
+ */
 @Component
 public class AsyncAwaitHelper{
 	@Autowired
 	private BoardHistoryMapper boardHistoryMapper;
 	
 	public BoardHistory waitAndSelectBoardHistory(NodePtr boardHistory) {
-		return waitAndGet(new AsyncAwaitHelper.StatementStrategy<BoardHistory>() {
-			@Override
-			public BoardHistory get() {
-				return boardHistoryMapper.selectHistory(boardHistory);
-			}
+		return waitAndGet(() -> {
+			return boardHistoryMapper.selectHistory(boardHistory);
 		});
 	}
 	

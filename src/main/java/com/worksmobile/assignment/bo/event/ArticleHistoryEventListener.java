@@ -82,7 +82,7 @@ public class ArticleHistoryEventListener {
 			leafPtr = parentPtr;
 		}
 		
-		boardHistoryService.deleteBoardHistory(deleteHistoryList);		// TODO : 첨부파일을 어떻게?
-		publisher.publishEvent(new AutoSaveDeleteRequestEvent(deleteHistoryList, fileIds));	// TODO : 첨부파일은?
+		boardHistoryService.deleteBoardHistory(deleteHistoryList);
+		publisher.publishEvent(new AutoSaveDeleteRequestEvent(deleteHistoryList, fileIds));
 	}
 }

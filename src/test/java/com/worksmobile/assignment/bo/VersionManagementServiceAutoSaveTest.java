@@ -1,8 +1,13 @@
 ﻿package com.worksmobile.assignment.bo;
 
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,6 +78,7 @@ public class VersionManagementServiceAutoSaveTest {
 	}
 
 	private NodePtr makeChild(NodePtr parentPtr) throws JsonProcessingException {
+		await().untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(parentPtr), not(nullValue())));
 		Board child = new Board();
 		child.setSubject("childSub");
 		child.setContent("childCont");
@@ -129,8 +135,7 @@ public class VersionManagementServiceAutoSaveTest {
 
 		versionManagementService.deleteArticle(leafPtr);
 
-		BoardTemp dbAutoSavedArticle = boardTempMapper.viewDetail(autoSave.toMap());
-		assertNull(dbAutoSavedArticle);
+		await().untilAsserted(() -> assertThat(boardTempMapper.viewDetail(autoSave.toMap()), is(nullValue())));
 	}
 
 	@Test
@@ -148,9 +153,8 @@ public class VersionManagementServiceAutoSaveTest {
 		NodePtr childParentPtr = childHistory.getParentPtrAndRoot();
 
 		assertEquals(rootPtr, childParentPtr);
-
-		BoardTemp dbAutoSaveArticle = boardTempMapper.viewDetail(autoSaveArticle.toMap());
-		assertNotNull(dbAutoSaveArticle);
+		
+		await().untilAsserted(() -> assertThat(boardTempMapper.viewDetail(autoSave.toMap()), is(nullValue())));
 		Board dbAtuoSave = boardMapper.viewDetail(autoSave.toMap());
 		assertNull(dbAtuoSave);
 	}

@@ -55,7 +55,7 @@ public class VersionManagementTest {
 	private BoardHistoryMapper boardHistoryMapper;
 	
 	@Autowired
-	AsyncAwaitHelper asyncAwaitHelper;
+	private AsyncAwaitHelper asyncAwaitHelper;
 	
 	@Rule
 	public ErrorCollector collector = new ErrorCollector();

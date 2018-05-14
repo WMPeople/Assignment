@@ -15,6 +15,11 @@ import org.junit.Test;
 
 import com.worksmobile.assignment.model.BoardHistory;
 
+/**
+ * 
+ * @author khh
+ *
+ */
 public class BoardHistoryCompressionTest {
 	private BoardHistory smallContentHistory;
 	private BoardHistory bigContentHistory;

@@ -1,8 +1,10 @@
 ﻿package com.worksmobile.assignment.bo;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -13,6 +15,7 @@ import com.worksmobile.assignment.bo.event.ArticleCreatedEvent;
 import com.worksmobile.assignment.bo.event.ArticleDeletedEvent;
 import com.worksmobile.assignment.bo.event.ArticleModifiedEvent;
 import com.worksmobile.assignment.bo.event.ArticleRevoeredEvent;
+import com.worksmobile.assignment.bo.event.AutoSaveDeleteRequestEvent;
 import com.worksmobile.assignment.mapper.BoardAdapter;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
@@ -111,7 +114,7 @@ public class VersionManagementService {
 		}
 		boardHistoryService.selectHistory(leafPtr);		// check null
 		
-		boardService.deleteBoardAndAutoSave(leafPtr);	// TODO : AutoSave는 Event로 빼야 합니다.
+		boardService.deleteBoard(leafPtr);
 		
 		publisher.publishEvent(new ArticleDeletedEvent(leafPtr));
 	}
@@ -135,10 +138,13 @@ public class VersionManagementService {
 		NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
 		NodePtr rtnNewLeafPtr = null;
 		
-		List<BoardHistory> deleteNodeChildren = boardHistoryService.selectChildren(deletePtr);
-		
-		if (deleteNodeChildren.size() == 0) { // 리프 노드라면
-			boardService.deleteBoardAndAutoSave(deletePtr);
+		List<BoardHistory> deleteNodeChildren = boardHistoryService.selectChildren(deleteHistory);
+
+		Set<Integer> deletedFileIds = new HashSet<>();
+		List<NodePtr> deleteHistoryNodePtrs = new ArrayList<>(2);	
+
+		if (boardService.isLeaf(deleteHistory)) { // 리프 노드라면
+			boardService.deleteBoard(deleteHistory);
 			
 			BoardHistory parentHistory = boardHistoryService.selectHistory(parentPtr);
 			List<BoardHistory> brothers = boardHistoryService.selectChildren(parentHistory);
@@ -150,17 +156,29 @@ public class VersionManagementService {
 				rtnNewLeafPtr = parent;
 			}
 			// 여기 부터 이력
-			boardService.deleteBoardHistoryAndAutoSave(deletePtr);
+			boardHistoryService.deleteBoardHistory(deleteHistory);
+
+			deletedFileIds.add(deleteHistory.getFile_id());
+			deleteHistoryNodePtrs.add(deleteHistory);
+
 			if (brothers.size() == 1 && parentHistory.isInvisibleRoot()) {	// 자신 밖에 없고 부모가 안보이는 루트면
-				boardService.deleteBoardHistoryAndAutoSave(parentHistory);
+				boardHistoryService.deleteBoardHistory(parentHistory);
+
+				deletedFileIds.add(parentHistory.getFile_id());
+				deleteHistoryNodePtrs.add(parentHistory);
 			}
+			publisher.publishEvent(new AutoSaveDeleteRequestEvent(deleteHistoryNodePtrs, deletedFileIds));
 		} // 리프 노드일때 끝
 		else if (deleteHistory.isInvisibleRoot()) {
 			String json = JsonUtils.jsonStringIfExceptionToString(deleteHistory);
 			throw new RuntimeException("안보이는 루트는 삭제할 수 없습니다. delete : " + json);
 		} else {// 중간노드 일 경우
 			boardHistoryService.changeParent(deleteNodeChildren, parentPtr);
-			boardService.deleteBoardHistoryAndAutoSave(deletePtr);
+			boardHistoryService.deleteBoardHistory(deleteHistory);
+			
+			deleteHistoryNodePtrs.add(deleteHistory);
+			deletedFileIds.add(deleteHistory.getFile_id());
+			publisher.publishEvent(new AutoSaveDeleteRequestEvent(deleteHistoryNodePtrs, deletedFileIds));
 		}
 		return rtnNewLeafPtr;
 	}
