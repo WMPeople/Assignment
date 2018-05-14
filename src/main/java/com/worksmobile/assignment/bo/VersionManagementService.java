@@ -142,10 +142,10 @@ public class VersionManagementService {
 			boardService.deleteBoard(deleteHistory);
 			
 			BoardHistory parentHistory = boardHistoryService.selectHistory(parentPtr);
-			List<BoardHistory> brothers = boardHistoryService.selectChildren(parentHistory);
+			List<BoardHistory> siblings = boardHistoryService.selectChildren(parentHistory);
 			
 			// 자신 밖에 없고 부모가 안보이는 루트가 아니면
-			if(brothers.size() == 1 && !parentHistory.isInvisibleRoot()) {
+			if(siblings.size() == 1 && !parentHistory.isInvisibleRoot()) {
 				Board parent = BoardAdapter.from(parentHistory);
 				boardService.createNewArticle(parent);
 				rtnNewLeafPtr = parent;
@@ -156,7 +156,7 @@ public class VersionManagementService {
 			deletedFileIds.add(deleteHistory.getFile_id());
 			deleteHistoryNodePtrs.add(deleteHistory);
 
-			if (brothers.size() == 1 && parentHistory.isInvisibleRoot()) {	// 자신 밖에 없고 부모가 안보이는 루트면
+			if (siblings.size() == 1 && parentHistory.isInvisibleRoot()) {	// 자신 밖에 없고 부모가 안보이는 루트면
 				boardHistoryService.deleteBoardHistory(parentHistory);
 
 				deletedFileIds.add(parentHistory.getFile_id());

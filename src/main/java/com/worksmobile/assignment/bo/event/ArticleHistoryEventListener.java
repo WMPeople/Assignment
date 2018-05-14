@@ -69,12 +69,12 @@ public class ArticleHistoryEventListener {
 			deleteHistoryList.add(deleteHistory);
 			fileIds.add(deleteHistory.getFile_id());
 			
-			List<BoardHistory> brothers = boardHistoryService.selectChildren(parentPtr);
+			List<BoardHistory> siblings = boardHistoryService.selectChildren(parentPtr);
 			
-			if (brothers.size() > 1 ||
+			if (siblings.size() > 1 ||
 				deleteHistory.isInvisibleRoot()) {
 				break;
-			} else if(brothers.size() == 0) {
+			} else if(siblings.size() == 0) {
 				String json = JsonUtils.jsonStringIfExceptionToString(parentPtr);
 				throw new RuntimeException("자기자신이 없습니다.(안보이는 루트 제외) nodePtr : " + json);
 			}
