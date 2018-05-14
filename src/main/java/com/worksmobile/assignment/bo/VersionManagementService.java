@@ -54,10 +54,6 @@ public class VersionManagementService {
 		return article;
 	}
 	
-	/*
-	 *  TODO : board update 쿼리문으로 변경해야 합니다. 
-	 *  delete create보다는 update가 비용 효율면에서 좋습니다.
-	 */
 	/***
 	 * 새로운 버전을 등록합니다. 충돌 관리가 적용되어 있습니다.
 	 * 자동저장이 없을 수도 있으므로 자동저장 삭제를 확인하지 않습니다.
@@ -119,7 +115,6 @@ public class VersionManagementService {
 		publisher.publishEvent(new ArticleDeletedEvent(leafPtr));
 	}
 	
-	// TODO : 위의 게시판에 대한 것을들 모두 BoardService로 옮겨야 함.
 	/*========================== 게시판에 대한 CUD 끝 ========================
 	 * 
 	 * ========================= 이력에 대한 RD 시작 ========================

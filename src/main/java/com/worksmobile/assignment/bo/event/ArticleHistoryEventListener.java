@@ -25,7 +25,6 @@ public class ArticleHistoryEventListener {
 	@Autowired
 	private ApplicationEventPublisher publisher;
 	
-	// TODO : 아래의 3개의 메소드는 유사합니다. 이를 합칠수 있을 수도?
 	@EventListener
 	@Async
 	public void addHistory(ArticleCreatedEvent articleCreatedEvent) {
@@ -53,7 +52,7 @@ public class ArticleHistoryEventListener {
 	}
 	
 
-	// TODO : check thread safe
+	// TODO : check thread safe, 삭제 중간에 삭제 대상의 자식을 만들 수 없게 하여야 합니다.
 	// TODO : 삭제 대상을 파악할 때 한번에 들고와서 판단할 수 있을 것으로 생각됨.
 	@EventListener
 	@Async
