@@ -200,7 +200,7 @@ public class VersionManagementService {
 			.getHistoryMap(board.getRoot_board_id());
 		List<BoardHistory> relatedHistoryList = new ArrayList<>(boardHisotryMap.size());
 
-		NodePtr curPosPtr = leafPtr;
+		NodePtr curPosPtr = board;
 		BoardHistory leafHistory;
 		do {
 			leafHistory = boardHisotryMap.get(curPosPtr.toBoardIdAndVersionEntry());

@@ -64,6 +64,9 @@ public class BoardTempService {
 	 */
 	public void copyBoardAndCreateTempBoard(BoardTemp tempArticle) {
 		Board board = boardMapper.viewDetail(tempArticle.toBoardKeyMap());
+		if (board == null || board.getBoard_id() == 0) {
+			throw new RuntimeException("board 정보를 가져올 수 없습니다.");
+		}
 		BoardTemp newBoardTemp = new BoardTemp();
 		newBoardTemp = tempArticle;
 		newBoardTemp.setBoard_id(board.getBoard_id());
