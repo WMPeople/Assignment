@@ -127,8 +127,12 @@ function m_over(target){
 function dialogFunction(crawling_category, url) {
 	$("#dialog").dialog({
 				open : function() {
-					$(this).load(url);
-					doWhenDialogLoad(this, category, crawling_text);
+					$(this).load(url,function(result){
+						if (result.search("total") != -1) {
+							doWhenDialogLoad(this, category, crawling_text);
+						}
+					});
+					
 				},
 				width : 400,
 				height : 600,

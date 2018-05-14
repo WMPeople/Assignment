@@ -46,7 +46,12 @@ public class ExternalAPIController {
 		modelAndView.addObject("jsonArray", param.get("items"));
 		modelAndView.addObject("type", param.get("type"));
 		modelAndView.addObject("total", param.get("total"));
-		modelAndView.setViewName("crawling");
+		if ((Long)param.get("total") == 0) {
+			modelAndView.setViewName("noData");
+		} else {
+			modelAndView.setViewName("crawling");
+		}
+		
 		return modelAndView;
 	}
 	
@@ -66,7 +71,11 @@ public class ExternalAPIController {
 		
 		modelAndView.addObject("type", category);
 		modelAndView.addObject("total", param.get("total"));
-		modelAndView.setViewName("crawling");
+		if ((Long)param.get("total") == 0) {
+			modelAndView.setViewName("noData");
+		} else {
+			modelAndView.setViewName("crawling");
+		}
 		return modelAndView;
 	}
 }

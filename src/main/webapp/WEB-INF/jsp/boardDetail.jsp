@@ -35,10 +35,10 @@
             <button class="btn btn-primary" style="float: right;" onclick="location.href='${path}/assignment'">홈으로</button>
         </div>
         <div class="infor _infor">
-            <span class="name">게시물 번호 : <span class="_group">${board.board_id}</span> <span class="_company"></span></span>
-            <span class="name">버전 : <span class="_group">${board.version}</span> <span class="_company"></span></span>
-            <span class="date">최종 수정시간 :  ${board.created_time}</span>
-            <span class="date">첨부 파일 :   <a href="${path}/assignment/boards/download/${file.file_id}" name="file">${file.file_name}     </a> (${file.file_size})</span>
+            <span>게시물 번호 : <span>${board.board_id}</span> <span></span></span>
+            <span>버전 : <span>${board.version}</span> <span></span></span>
+            <span>최종 수정시간 :  ${board.created_time}</span>
+            <span>첨부 파일 :   <a href="${path}/assignment/boards/download/${file.file_id}" name="file">${file.file_name}     </a> (${file.file_size})</span>
             <button class="btn btn-primary" id="btnAutoList" onclick="location.href='${path}/assignment/autos/${board.board_id}/${board.version}'">자동저장리스트</button>
         <div class="cont _content translateArea" id="contents">
                 <textarea name="content3" id="content_detail" style="min-height: 500px; min-width: 700px; display:none;" >${board.content}</textarea>

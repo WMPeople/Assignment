@@ -1,8 +1,6 @@
 package com.worksmobile.assignment.bo;
 
 import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 
 import org.json.simple.JSONArray;
@@ -21,13 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Service
 public class CrawlingService {
-	public static String getCurrentData() {
-
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-
-		return sdf.format(new Date());
-
-	}
 
 	/***
 	 * 네이버 브라우져 크롤링 결과를 hashmap을 이용하여 컨트롤러에 리턴합니다.
@@ -50,8 +41,13 @@ public class CrawlingService {
 
 			String dirtyTotal = totalCountElements.text();
 			String cleanTotal = dirtyTotal.replaceAll("[^0-9]", "");
-			int total = Integer.parseInt(cleanTotal);
-
+			int total = 0;
+			if ("".equals(cleanTotal)) {
+				total = 0;
+			} else {
+				total = Integer.parseInt(cleanTotal);
+			}
+			 
 			JSONArray items = new JSONArray();
 			JSONParser parser = new JSONParser();
 			Object obj;

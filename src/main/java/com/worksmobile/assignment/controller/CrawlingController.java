@@ -35,14 +35,15 @@ public class CrawlingController {
 			param = crawlingService.getNaverCrawlingResult(category, text, pageNo);
 		}
 
-		if ("[]".equals(param.get("items").toString()) || param.get("items") == null) {
-			return null;
-		}
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("jsonArray", param.get("items"));
 		modelAndView.addObject("type", param.get("type"));
 		modelAndView.addObject("total", param.get("total"));
-		modelAndView.setViewName("crawling");
+		if ((Integer)param.get("total") == 0) {
+			modelAndView.setViewName("noData");
+		} else {
+			modelAndView.setViewName("crawling");
+		}
 		return modelAndView;
 	}
 
