@@ -56,15 +56,6 @@ public class BoardService {
 		}
 	}
 	
-<<<<<<< HEAD
-	public boolean isLeaf(final NodePtr nodePtr) {
-		Board board = boardMapper.viewDetail(nodePtr.toMap());
-
-		if (board != null) {
-			return true;
-		} else {
-			return false;
-=======
 	public Board selectArticle(NodePtr nodePtr) {
 		return boardMapper.viewDetail(nodePtr.toMap());
 	}
@@ -84,7 +75,6 @@ public class BoardService {
 		int deletedCnt = boardMapper.deleteBoard(leafPtr.toMap());
 		if(deletedCnt != 1) {
 			throw new RuntimeException("삭제가 개수가 맞지 않습니다. cnt : " + deletedCnt);
->>>>>>> observerPattern
 		}
 	}
 }
