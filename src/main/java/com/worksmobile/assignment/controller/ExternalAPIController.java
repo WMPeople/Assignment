@@ -68,7 +68,6 @@ public class ExternalAPIController {
 
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("jsonArray", param.get("items"));
-		
 		modelAndView.addObject("type", category);
 		modelAndView.addObject("total", param.get("total"));
 		if ((Long)param.get("total") == 0) {

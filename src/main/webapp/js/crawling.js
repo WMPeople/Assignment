@@ -16,42 +16,39 @@ $(document).ready(function() {
 	
 	//메타 데이터 제공을 위한 태그 생성
 	function createTag (sContent){
-		 var copyContent = sContent;
-		 var realContent = sContent;
-		    var nameList = ["위치", "영화", "책", "도서" , "맛집", "뉴스", "쇼핑", "음식점", "영어단어", "구매", "지도"];
-		    var englishNameList = ["geocode", "movie", "book", "book" , "local", "news", "shop", "local", "dictionary", "shop", "geocode"];
-		    var nbsp = "&nbsp;"
-		    for(var i =0; i< nameList.length ; i++){
-		        var searchIndex = 0;
-		        var copyContentArray = copyContent.split(nameList[i]+nbsp+"'");
-		        var copyContentArrayLength = copyContentArray.length;
-		        if (copyContentArrayLength >= 2) {
-		        	for(var j = 0 ; j< copyContentArrayLength - 1 ; j++){
-		        		 var searchIndex = copyContent.search(nameList[i]+nbsp+"'");
-				            if(searchIndex!= -1){
-				                var spaceIndex = searchIndex + nameList[i].length + nbsp.length - 1;
-				                var firstQuoteIndex = spaceIndex + 1;
-				                if(copyContent.charAt(spaceIndex) == ';' && copyContent.charAt(firstQuoteIndex) == "'"){
-				                    var startIndex = firstQuoteIndex + 1;
-				                    var secondQuoteIndex = '';
-				                    var text = '';
-				                    if(copyContent.charAt(startIndex) == "'"){
-				                    	secondQuoteIndex = copyContent.substring(startIndex).search("'") + startIndex;
-				                    } else {
-				                    	secondQuoteIndex = copyContent.substring(startIndex).search("'") + startIndex + 1;
-				                    	text = copyContent.substring(firstQuoteIndex + 1,secondQuoteIndex - 1);
-				                    }
-				                    if (text == "" || text == "''" || text == "'") {
-				                    	copyContent = copyContent.replace(nameList[i]+nbsp+"'"+text+"'",'<span> '+nameList[i]+" '"+text +"'"+'</span>');
-				                    } else {
-				                    	copyContent = copyContent.replace(nameList[i]+nbsp+"'"+text+"'",'<b id= '+englishNameList[i]+' class="'+ text +'" onmouseover="m_over(this)">'+nameList[i]+" '"+text +"'"+'</b>');
-				                    }
-				                }
-				            }  
-		        		
-		        	}
-		        }
-		    }
+		var copyContent = sContent;
+		var realContent = sContent;
+	    var nameList = ["위치", "영화", "책", "도서" , "맛집", "뉴스", "쇼핑", "음식점", "영어단어", "구매", "지도"];
+	    var englishNameList = ["geocode", "movie", "book", "book" , "local", "news", "shop", "local", "dictionary", "shop", "geocode"];
+	    var nbsp = "&nbsp;"
+	    for(var i =0; i< nameList.length ; i++){
+	        var searchIndex = 0;
+	        var substringStartIndex = 0;	
+	        while(searchIndex != -1){
+	        	 var searchIndex = copyContent.substring(substringStartIndex).search(nameList[i]+nbsp+"'");
+	        	 var temp = copyContent.substring(substringStartIndex);
+	        	 if(searchIndex!= -1){
+		                var spaceIndex = searchIndex + nameList[i].length + nbsp.length - 1;
+		                var firstQuoteIndex = spaceIndex + 1;
+		                if(temp.charAt(spaceIndex) == ';' && temp.charAt(firstQuoteIndex) == "'"){
+		                    var startIndex = firstQuoteIndex + 1;
+		                    var secondQuoteIndex = '';
+		                    var text = '';
+	                    	secondQuoteIndex = temp.substring(startIndex).search("'") + startIndex;
+	                    	text = temp.substring(firstQuoteIndex + 1,secondQuoteIndex);
+	                    	firstArg = nameList[i]+nbsp+"'"+text+"'";
+	                    	if (text == "" || text == "''" || text == "'") {
+		                    	secondArg = '<span> '+nameList[i]+" '"+text +"'"+'</span>';
+		                    } else {
+		                    	secondArg = '<b id= '+englishNameList[i]+' class="'+ text +'" onmouseover="m_over(this)">'+nameList[i]+" '"+text +"'"+'</b>';
+		                    }
+	                    	copyContent = copyContent.replace(firstArg,secondArg);
+	                    	substringStartIndex = substringStartIndex + searchIndex + secondArg.length;
+		                }
+		            } 
+	            }
+	    	}
+		    
 		    return copyContent;
 	}
 	
@@ -68,11 +65,11 @@ $(document).ready(function() {
 	        }
 	        
 	        if (sTemp !== null && sTemp !== "") {
-	            oContent +='<P>';
+	            oContent +='<p>';
 	            oContent += arrayContent[i];
-	            oContent += '</P>';
+	            oContent += '</p>';
 	        } else {
-	            oContent += '<P><BR></P>';
+	            oContent += '<p><br></p>';
 	        }
 	    }
 	    

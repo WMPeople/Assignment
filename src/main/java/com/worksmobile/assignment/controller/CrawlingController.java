@@ -39,7 +39,7 @@ public class CrawlingController {
 		modelAndView.addObject("jsonArray", param.get("items"));
 		modelAndView.addObject("type", param.get("type"));
 		modelAndView.addObject("total", param.get("total"));
-		if ((Integer)param.get("total") == 0) {
+		if ((Long)param.get("total") == 0) {
 			modelAndView.setViewName("noData");
 		} else {
 			modelAndView.setViewName("crawling");

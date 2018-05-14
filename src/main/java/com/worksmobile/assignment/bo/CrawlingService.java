@@ -41,7 +41,7 @@ public class CrawlingService {
 
 			String dirtyTotal = totalCountElements.text();
 			String cleanTotal = dirtyTotal.replaceAll("[^0-9]", "");
-			int total = 0;
+			long total = 0;
 			if ("".equals(cleanTotal)) {
 				total = 0;
 			} else {
