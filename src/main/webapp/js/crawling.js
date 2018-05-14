@@ -21,7 +21,6 @@ $(document).ready(function() {
 		    var nameList = ["위치", "영화", "책", "도서" , "맛집", "뉴스", "쇼핑", "음식점", "영어단어", "구매", "지도"];
 		    var englishNameList = ["geocode", "movie", "book", "book" , "local", "news", "shop", "local", "dictionary", "shop", "geocode"];
 		    var nbsp = "&nbsp;"
-		    console.log(nbsp.length);
 		    for(var i =0; i< nameList.length ; i++){
 		        var searchIndex = 0;
 		        var copyContentArray = copyContent.split(nameList[i]+nbsp+"'");
@@ -32,21 +31,16 @@ $(document).ready(function() {
 				            if(searchIndex!= -1){
 				                var spaceIndex = searchIndex + nameList[i].length + nbsp.length - 1;
 				                var firstQuoteIndex = spaceIndex + 1;
-				                console.log(copyContent.charAt(spaceIndex));
-				                console.log(copyContent.charAt(firstQuoteIndex));
 				                if(copyContent.charAt(spaceIndex) == ';' && copyContent.charAt(firstQuoteIndex) == "'"){
 				                    var startIndex = firstQuoteIndex + 1;
-				                    console.log(copyContent.charAt(startIndex));
 				                    var secondQuoteIndex = '';
 				                    var text = '';
 				                    if(copyContent.charAt(startIndex) == "'"){
 				                    	secondQuoteIndex = copyContent.substring(startIndex).search("'") + startIndex;
 				                    } else {
-				                    	console.log(copyContent.substring(startIndex).search("'"));
 				                    	secondQuoteIndex = copyContent.substring(startIndex).search("'") + startIndex + 1;
 				                    	text = copyContent.substring(firstQuoteIndex + 1,secondQuoteIndex - 1);
 				                    }
-				                    console.log(copyContent.charAt(secondQuoteIndex));
 				                    if (text == "" || text == "''" || text == "'") {
 				                    	copyContent = copyContent.replace(nameList[i]+nbsp+"'"+text+"'",'<span> '+nameList[i]+" '"+text +"'"+'</span>');
 				                    } else {
@@ -57,7 +51,6 @@ $(document).ready(function() {
 		        		
 		        	}
 		        }
-
 		    }
 		    return copyContent;
 	}
@@ -132,8 +125,6 @@ function m_over(target){
 }  
 
 function dialogFunction(crawling_category, url) {
-	console.log(category);
-	console.log(crawling_text);
 	$("#dialog").dialog({
 				open : function() {
 					$(this).load(url);

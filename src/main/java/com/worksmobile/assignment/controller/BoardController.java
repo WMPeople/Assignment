@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -88,8 +89,11 @@ public class BoardController {
 	 */
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public ModelAndView boardList(HttpServletRequest req, HttpServletResponse res) throws Exception {
-		if (cookieService.getCookie(req) == null || req.getCookies() == null || req.getCookies().length == 0) {
-			cookieService.creteCookie(res);
+		Cookie cookie;
+		if (req.getCookies() == null || cookieService.getCookie(req) == null ||  cookieService.getCookie(req).getValue() == null) {
+			cookie = cookieService.creteCookie(res);
+		} else {
+			cookie = cookieService.getCookie(req);
 		}
 
 		Page page = pageService.getPage(req.getParameter("pages"));
@@ -108,7 +112,7 @@ public class BoardController {
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("board", board);
 		modelAndView.addObject("paging", page);
-		modelAndView.addObject("cookie_id", cookieService.getCookie(req).getValue());
+		modelAndView.addObject("cookie_id", cookie.getValue());
 		modelAndView.setViewName("boardList");
 
 		return modelAndView;

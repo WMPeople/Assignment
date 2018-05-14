@@ -125,7 +125,7 @@ function optionAutoSave() {
 					console.log('사소한 변경 개수 : ' + minorCount + ' ');
 					console.log('추가된 문자열 길이 : ' + addLength + ' , '+addLengthCondition+'이상'); // 추가된 문자열의 길이를 뜻한다. diff 알고리즘 return 값에서 1의 길이의 합을 뜻한다.
 					
-					testFunction(addCount, newLineCount, stringSizeDifference,
+					versionUpFunction(addCount, newLineCount, stringSizeDifference,
 							addLength, addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition, 1);
 				}
 				launch();
@@ -144,7 +144,7 @@ function optionAutoSave() {
 		obj.start();
 	})(autoSave);
 }
-function testFunction(addCount, newLineCount, stringSizeDifference, addLength,
+function versionUpFunction(addCount, newLineCount, stringSizeDifference, addLength,
 		data1, data2, data3, data4, urlData) {
 	if (addCount >= data1 || newLineCount >= data2
 			|| stringSizeDifference <= data3 || addLength >= data4) {
