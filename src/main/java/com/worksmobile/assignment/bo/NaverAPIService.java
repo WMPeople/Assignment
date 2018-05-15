@@ -31,7 +31,7 @@ public class NaverAPIService {
 
 		try {
 			String encodedText = URLEncoder.encode(text, "UTF-8");
-			String apiURL = "https://openapi.naver.com/v1/" + apiName + "/" + category + "?start=" + startCnt +"&query=" + encodedText; // json 결과
+			String apiURL = "https://openapi.naver.com/v1/" + apiName + "/" + category + "?start=" + startCnt +"&query=" + encodedText;
 			URL url = new URL(apiURL);
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
 			con.setRequestMethod("GET");

@@ -112,7 +112,7 @@ function getUrl(category, crawling_text, startCnt, pageNo) {
 
 var category;
 var crawling_text;
-pageNo = 1;
+var pageNo;
 
 function m_over(target){
 	category = target.id;
@@ -126,6 +126,7 @@ function dialogFunction(crawling_category, url) {
 				open : function() {
 					$(this).load(url,function(result){
 						if (result.search("total") != -1) {
+							pageNo = 1;
 							doWhenDialogLoad(this, category, crawling_text);
 						}
 					});

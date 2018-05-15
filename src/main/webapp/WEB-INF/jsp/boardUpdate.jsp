@@ -48,7 +48,7 @@
                     </li>
                     <li class="opt_file">
                         <h3 class="tx">파일첨부</h3> <c:if test="${param.file_name != ''}">
-                            <span class="date" id="test">첨부 파일 : <a
+                            <span class="date" id="op_file">첨부 파일 : <a
                                 href="${path}/assignment/boards/download/${param.file_id}/"
                                 name="file">${param.file_name} </a> (${param.file_size})
                                 <button type="button" id="fileUpdate" class="btn tx_point _save">파일
@@ -60,7 +60,6 @@
 
                     </li>
                     <li>
-
                         <h3 class="tx">자동 저장 옵션</h3> <span class="wrap_sbj"> <input
                             type="checkbox" id="autoSaveChkBox" />
                     </span>

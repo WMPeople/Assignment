@@ -29,11 +29,9 @@ $(function() {
 		}
 	});
 });
-
+//자동 저장 옵션 체크시 판단 조건이 보인다.
 function optionAutoSave() {
 
-	
-	//자동 저장 옵션 체크시 판단 조건이 보인다.
 	var span = document.createElement('span');
 	span.innerHTML = document.getElementById('pre_set').innerHTML;
 	document.getElementById('conditionList').appendChild(span);
@@ -71,9 +69,7 @@ function optionAutoSave() {
 
 				var dmp = new diff_match_patch();
 				function launch() {
-					var originalContent = document.getElementById('content').defaultValue; // 원본
-					// 내용
-					console.log(originalContent);
+					var originalContent = document.getElementById('content').defaultValue; // 원본 내용
 					dmp.Diff_Timeout = parseFloat(2);
 					dmp.Diff_EditCost = parseFloat(4);
 					dmp.Diff_Sensitive = false;
@@ -88,12 +84,11 @@ function optionAutoSave() {
 
 					dmp.diff_cleanupSemantic(diff);
 
-					var addCount = 0; // 추가된 배열 카운트. 단, 배열 길이가 3이상인 것만
-					// 카운트한다. 즉, 사소한 추가는 제외.
+					var addCount = 0; // 추가된 배열 카운트. 단, 배열 길이가 3이상인 것만 카운트한다. 즉, 사소한 추가는 제외.
 					var addLength = 0; // 추가된 내용의 길이
 					var minorCount = 0; // 사소한 변경 카운트
 					var newLineCount = 0; // 개행 개수 카운트
-					var originalContentLength = originalContent.length; // 원본
+					var originalContentLength = originalContent.length; // 원본 데이터 길이
 					// 원본 문자열 길이가 너무 짧으면 40이라고 생각한다. 너무 잦은 버전업을 막기 위해.
 					if (originalContentLength <= 40) {
 						originalContentLength = 40;
@@ -117,16 +112,7 @@ function optionAutoSave() {
 							}
 						}
 					}
-					console.log(diff);
-					console.log(' 1 개수 : ' + addCount + ' , '+addCountCondition+'까지'); // addCount 새롭게 추가된 부분(수정된 부분)을 카운트 한다.
-					console.log('개행 수 : ' + newLineCount + ' , '+newLineCountCondition+'까지'); // newLineCount 개행이 추가된 부분을 카운트 한다.
-					console.log('o-t/o : ' + stringSizeDifference
-							+ ' , '+stringSizeDifferenceCondition+'까지'); // stringSizeDifference (원본 내용 - 현재 내용) / 원본내용 으로 원본내용이 적을 수록 수치가 올라간다. 문자열 크기에 반비례하도록 적용
-					console.log('사소한 변경 개수 : ' + minorCount + ' ');
-					console.log('추가된 문자열 길이 : ' + addLength + ' , '+addLengthCondition+'이상'); // 추가된 문자열의 길이를 뜻한다. diff 알고리즘 return 값에서 1의 길이의 합을 뜻한다.
-					
-					versionUpFunction(addCount, newLineCount, stringSizeDifference,
-							addLength, addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition, 1);
+					versionUpFunction(addCount, newLineCount, stringSizeDifference,addLength, addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition);
 				}
 				launch();
 			} else if (!window.localStorage) {
@@ -145,19 +131,16 @@ function optionAutoSave() {
 	})(autoSave);
 }
 function versionUpFunction(addCount, newLineCount, stringSizeDifference, addLength,
-		data1, data2, data3, data4, urlData) {
-	if (addCount >= data1 || newLineCount >= data2
-			|| stringSizeDifference <= data3 || addLength >= data4) {
+		addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition, urlData) {
+	if (addCount >= addCountCondition || newLineCount >= newLineCountCondition
+			|| stringSizeDifference <= stringSizeDifferenceCondition || addLength >= addLengthCondition) {
 		var file_name = '<%=request.getParameter("file_name")%>';
 		if (file_name != '') {
 			file_name = '<%=request.getParameter("file_name")%>';
 		}
 		var formData = new FormData($("#fileForm")[0]);
-		if (urlData == 1) {
-			formData.set("board_id", $('#board_id').val());
-			formData.set("version", $('#version').val());
-		}
-
+		formData.set("board_id", $('#board_id').val());
+		formData.set("version", $('#version').val());
 		var urlStr;
 		// 원본 게시물에 파일이 있지만 수정하지 않았을 때
 		if (file_name != null && $("#fileUp").val() == null) {
@@ -165,70 +148,53 @@ function versionUpFunction(addCount, newLineCount, stringSizeDifference, addLeng
 		} else {
 			urlStr = "/assignment/boards/updatewithoutattachment";
 		}
-		$
-				.ajax({
-					type : "POST",
-					contentType : "application/json; charset=UTF-8",
-					data : formData,
-					processData : false,
-					contentType : false,
-					url : urlStr,
-					async : false,
-					success : function(result) {
-						if (result.result == "success") {
-							if (urlData == 1) {
-								$('#board_id')
-										.val(result.updatedBoard.board_id);
-								$('#version').val(result.updatedBoard.version);
-								document.getElementById('content').defaultValue = document
-										.getElementById('content').value;
-								document.getElementById('currentBoard').innerText = 'board_id : '
-										+ $('#board_id').val()
-										+ ' version : '
-										+ $('#version').val();
-								document.getElementById('notice').innerText = new Date()
-										.toGMTString()
-										+ " 버전업 완료.";
-
-							}
-						} else {
-							alert(result.result);
-						}
-					},
-					error : function(xhr, status, error) {
-						alert('버전업 실패');
+		$.ajax({
+				type : "POST",
+				contentType : "application/json; charset=UTF-8",
+				data : formData,
+				processData : false,
+				contentType : false,
+				url : urlStr,
+				async : false,
+				success : function(result) {
+					if (result.result == "success") {
+						$('#board_id').val(result.updatedBoard.board_id);
+						$('#version').val(result.updatedBoard.version);
+						document.getElementById('content').defaultValue = document.getElementById('content').value;
+						document.getElementById('currentBoard').innerText = 'board_id : '+ $('#board_id').val()+ ' version : '+ $('#version').val();
+						document.getElementById('notice').innerText = new Date().toGMTString()+ " 버전업 완료.";
+					} else {
+						alert(result.result);
 					}
-				});
+				},
+				error : function(xhr, status, error) {
+					alert('버전업 실패');
+				}
+			});
 
 	} else {
 		var formData = new FormData($("#fileForm")[0]);
-
-		formData = new FormData($("#fileForm")[0]);
-		if (urlData == 1) {
-			formData.set("board_id", $('#board_id').val());
-			formData.set("version", $('#version').val());
-			$
-					.ajax({
-						type : "POST",
-						contentType : "application/json; charset=UTF-8",
-						data : formData,
-						processData : false,
-						contentType : false,
-						url : "/assignment/autos/autosavewithoutfile",
-						success : function(result) {
-							if (result.result == 'success') {
-								document.getElementById('notice').innerText = new Date()
-										.toGMTString()
-										+ " 자동 저장 완료.";
-							} else {
-								alert("자동 저장 실패");
-							}
-						},
-						error : function(xhr, status, error) {
-							alert('자동 저장 실패');
-						}
-					});
-		}
+		formData.set("board_id", $('#board_id').val());
+		formData.set("version", $('#version').val());
+		$.ajax({
+				type : "POST",
+				contentType : "application/json; charset=UTF-8",
+				data : formData,
+				processData : false,
+				contentType : false,
+				url : "/assignment/autos/autosavewithoutfile",
+				success : function(result) {
+					if (result.result == 'success') {
+						document.getElementById('notice').innerText = new Date().toGMTString()+ " 자동 저장 완료.";
+					} else {
+						alert("자동 저장 실패");
+					}
+				},
+				error : function(xhr, status, error) {
+					alert('자동 저장 실패');
+				}
+			});
+		
 	}
 
 }

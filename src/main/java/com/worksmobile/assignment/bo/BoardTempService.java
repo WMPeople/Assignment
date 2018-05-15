@@ -38,18 +38,14 @@ public class BoardTempService {
 				int articleUpdatedCnt = boardTempMapper.boardTempUpdate(tempArticle);
 				if (articleUpdatedCnt != 1) {
 					String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
-					throw new RuntimeException(
-						"createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
-							"articleUpdatedCnt : " + articleUpdatedCnt);
+					throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" + "articleUpdatedCnt : " + articleUpdatedCnt);
 				}
 
 			} else {
 				int articleUpdatedCnt = boardTempMapper.boardTempUpdateWithoutFile(tempArticle);
 				if (articleUpdatedCnt != 1) {
 					String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
-					throw new RuntimeException(
-						"createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" +
-							"articleUpdatedCnt : " + articleUpdatedCnt);
+					throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" + "articleUpdatedCnt : " + articleUpdatedCnt);
 				}
 			}
 		} else {
@@ -71,6 +67,7 @@ public class BoardTempService {
 		newBoardTemp = tempArticle;
 		newBoardTemp.setBoard_id(board.getBoard_id());
 		newBoardTemp.setVersion(board.getVersion());
+		newBoardTemp.setFile_id(board.getFile_id());
 		int insertedRowCnt = boardTempMapper.createBoardTemp(newBoardTemp);
 		if (insertedRowCnt != 1) {
 			throw new RuntimeException("createTempArticleOverwrite메소드에서 createBoard error");
@@ -120,5 +117,4 @@ public class BoardTempService {
 		return true;
 
 	}
-
 }

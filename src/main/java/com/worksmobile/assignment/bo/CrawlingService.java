@@ -84,7 +84,6 @@ public class CrawlingService {
 				json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapForJson);
 				obj = parser.parse(json);
 				items.add(obj);
-				System.out.println(json);
 			}
 			param.put("total", total);
 			param.put("items", items);
