@@ -23,6 +23,15 @@ public class BoardService {
 		}
 	}
 	
+	public NodePtr createArticle(Board article) {
+		int createdCnt = boardMapper.createBoard(article);
+		if(createdCnt != 1) {
+			String json = JsonUtils.jsonStringIfExceptionToString(article);
+			throw new RuntimeException("게시글 생성 실패! cnt : " + createdCnt + "article : " + json);
+		}
+		return new NodePtr(article);
+	}
+	
 	public NodePtr createNewArticle(Board article) {
 		if (article.getSubject().length() == 0) {
 			throw new RuntimeException("제목이 비어있을 수 없습니다.");

@@ -2,6 +2,8 @@ package com.worksmobile.assignment.bo;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -76,7 +78,7 @@ public class DBIntegrityTest {
 		for(BoardHistory ele : historyList) {
 			if(isLeafByBoardHistory(ele)) {
 				Board dbBoard = boardMapper.viewDetail(ele.toMap());
-				collector.checkThat(null, not(dbBoard));
+				collector.checkThat(JsonUtils.jsonStringFromObject(ele), dbBoard, is(notNullValue()));
 			}
 		}
 
@@ -88,9 +90,11 @@ public class DBIntegrityTest {
 	 * 게시판의 게시글들은 이력에서 리프여야 합니다.
 	 */
 	@Test
-	public void testArticleIsHistoryLeaf() {
+	public void testArticleIsHistoryLeaf() throws JsonProcessingException {
 		List<Board> articleList = selectAllArticle();
 		for(Board articleEle : articleList) {
+			BoardHistory boardHistory = boardHistoryMapper.selectHistory(articleEle);
+			collector.checkThat(JsonUtils.jsonStringFromObject(articleEle), boardHistory, is(notNullValue()));
 			boolean isLeaf = isLeafByBoardHistory(articleEle);
 			collector.checkThat(isLeaf, is(true));
 		}
@@ -122,6 +126,7 @@ public class DBIntegrityTest {
 		
 		for(Board ele : allBoadList) {
 			BoardHistory history = boardHistoryMapper.selectHistory(ele);
+			collector.checkThat(history, not(nullValue()));
 			collector.checkThat(JsonUtils.jsonStringFromObject(ele), ele.getCreated_time(), is(history.getCreated_time()));
 		}
 	}

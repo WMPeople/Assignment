@@ -203,7 +203,7 @@ Restore.prototype._isHaveChangePos = function(idx, matchArr, startPos, diffStr) 
  * @param {Number} insertDiffStatus 비교 변환 결과 값이 들어 옵니다. (같다, 삭제, 삽입)
  * @return {Number} 현재 블럭에서 치환이 진행된 위치를 반환합니다. 
  */
-Restore.prototype._restoreWithReplaceChar = function(matchArr, matchIdx, curTextLength) {
+Restore.prototype._restoreWithReplaceCharHelper = function(matchArr, matchIdx, curTextLength) {
 	var diffStatus = this._diffs[this._diffsIdx][0];
 	var diffStr = this._diffs[this._diffsIdx][1];
 	
@@ -298,7 +298,7 @@ Restore.prototype._restoreWithReplaceChar = function() {
 				curTextLengths[1] += diffStr.length;
 				continue;
 			} else {
-				var length = this._restoreWithReplaceChar(this._text2Match, text2MatchIdx, curTextLengths[1]);
+				var length = this._restoreWithReplaceCharHelper(this._text2Match, text2MatchIdx, curTextLengths[1]);
 				curTextLengths[1] += length;
 				this._diffsIdx--;
 				text2MatchIdx++;
@@ -309,7 +309,7 @@ Restore.prototype._restoreWithReplaceChar = function() {
 				curTextLengths[0] += diffStr.length;
 				continue;
 			} else {
-				var length = this._restoreWithReplaceChar(this._text1Match, text1MatchIdx, curTextLengths[0]);
+				var length = this._restoreWithReplaceCharHelper(this._text1Match, text1MatchIdx, curTextLengths[0]);
 				curTextLengths[0] += length;
 				this._diffsIdx--;
 				text1MatchIdx++;
@@ -329,7 +329,7 @@ Restore.prototype._restoreWithReplaceChar = function() {
  * @param {Number} insertDiffStatus 비교 변환 결과 값이 들어 옵니다. (같다, 삭제, 삽입)
  * @return {Number} 현재 블럭에서 치환이 진행된 위치를 반환합니다. 
  */
-Restore.prototype._restoreWithoutReplaceChar = function(matchArr, matchIdx, curTextLength, insertDiffStatus) {
+Restore.prototype._restoreWithoutReplaceCharHelper = function(matchArr, matchIdx, curTextLength, insertDiffStatus) {
 	var diffStatus = this._diffs[this._diffsIdx][0];
 	var diffStr = this._diffs[this._diffsIdx][1];
 	
@@ -400,13 +400,13 @@ Restore.prototype._resotreWithoutReplaceChar = function() {
 					isLeftTurn = false;
 				}
 				if(isLeftTurn){
-					var length = this._restoreWithoutReplaceChar(this._text1Match, text1MatchIdx, curTextLengths[0], window.DIFF_DELETE * 2);
+					var length = this._restoreWithoutReplaceCharHelper(this._text1Match, text1MatchIdx, curTextLengths[0], window.DIFF_DELETE * 2);
 					curTextLengths[0] += length;
 					curTextLengths[1] += length;
 					this._diffsIdx--;		// 이전 블럭을 꺼낸다.
 					text1MatchIdx++;
 				} else {
-					var length = this._restoreWithoutReplaceChar(this._text2Match, text2MatchIdx, curTextLengths[1], window.DIFF_INSERT * 2);
+					var length = this._restoreWithoutReplaceCharHelper(this._text2Match, text2MatchIdx, curTextLengths[1], window.DIFF_INSERT * 2);
 					curTextLengths[0] += length;
 					curTextLengths[1] += length;
 					this._diffsIdx--;
@@ -418,7 +418,7 @@ Restore.prototype._resotreWithoutReplaceChar = function() {
 			if(!this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr)){
 				curTextLengths[1] += diffStr.length;
 			} else {
-				var length = this._restoreWithoutReplaceChar(this._text2Match, text2MatchIdx, curTextLengths[1], diffStatus);
+				var length = this._restoreWithoutReplaceCharHelper(this._text2Match, text2MatchIdx, curTextLengths[1], diffStatus);
 				curTextLengths[1] += length;
 				this._diffsIdx--;
 				text2MatchIdx++;
@@ -428,7 +428,7 @@ Restore.prototype._resotreWithoutReplaceChar = function() {
 			if(!this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr)) {
 				curTextLengths[0] += diffStr.length;
 			} else {
-				var length = this._restoreWithoutReplaceChar(this._text1Match, text1MatchIdx, curTextLengths[0], diffStatus);
+				var length = this._restoreWithoutReplaceCharHelper(this._text1Match, text1MatchIdx, curTextLengths[0], diffStatus);
 				curTextLengths[0] += length;
 				this._diffsIdx--;
 				text1MatchIdx++;

@@ -134,34 +134,33 @@ public class VersionManagementService {
 		NodePtr rtnNewLeafPtr = null;
 		
 		List<BoardHistory> deleteNodeChildren = boardHistoryService.selectChildren(deleteHistory);
-
+		
 		Set<Integer> deletedFileIds = new HashSet<>();
 		List<NodePtr> deleteHistoryNodePtrs = new ArrayList<>(2);	
-
-		if (boardService.isLeaf(deleteHistory)) { // 리프 노드라면
+		
+		if (deleteNodeChildren.size() == 0) { // 리프 노드라면
 			boardService.deleteBoard(deleteHistory);
+			boardHistoryService.deleteBoardHistory(deleteHistory);
 			
 			BoardHistory parentHistory = boardHistoryService.selectHistory(parentPtr);
 			List<BoardHistory> siblings = boardHistoryService.selectChildren(parentHistory);
 			
 			// 자신 밖에 없고 부모가 안보이는 루트가 아니면
-			if(siblings.size() == 1 && !parentHistory.isInvisibleRoot()) {
-				Board parent = BoardAdapter.from(parentHistory);
-				boardService.createNewArticle(parent);
-				rtnNewLeafPtr = parent;
+			if(siblings.size() == 0) {
+				if(parentHistory.isInvisibleRoot()) {
+					boardHistoryService.deleteBoardHistory(parentHistory);
+					
+					deletedFileIds.add(parentHistory.getFile_id());
+					deleteHistoryNodePtrs.add(parentHistory);
+				} else {
+					Board parent = BoardAdapter.from(parentHistory);
+					boardService.createArticle(parent);
+					rtnNewLeafPtr = parent;
+				}
 			}
-			// 여기 부터 이력
-			boardHistoryService.deleteBoardHistory(deleteHistory);
-
 			deletedFileIds.add(deleteHistory.getFile_id());
 			deleteHistoryNodePtrs.add(deleteHistory);
-
-			if (siblings.size() == 1 && parentHistory.isInvisibleRoot()) {	// 자신 밖에 없고 부모가 안보이는 루트면
-				boardHistoryService.deleteBoardHistory(parentHistory);
-
-				deletedFileIds.add(parentHistory.getFile_id());
-				deleteHistoryNodePtrs.add(parentHistory);
-			}
+			
 			publisher.publishEvent(new AutoSaveDeleteRequestEvent(deleteHistoryNodePtrs, deletedFileIds));
 		} // 리프 노드일때 끝
 		else if (deleteHistory.isInvisibleRoot()) {

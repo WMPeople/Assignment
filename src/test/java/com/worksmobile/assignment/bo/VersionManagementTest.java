@@ -219,15 +219,42 @@ public class VersionManagementTest {
 		assertEquals(parentPtr.getRoot_board_id(), child2.getRoot_board_id());
 	}
 	
+	/**
+	 * 보이지 않는 루트 - 루트 - 자식
+	 * 자식을 삭제합니다. 
+	 */
 	@Test
 	public void testDeleteleafNode() throws JsonProcessingException {
 		NodePtr rootPtr = defaultCreated;
-
+		
 		NodePtr deletePtr = makeChild(rootPtr);
 		versionManagementService.deleteVersion(deletePtr);
-
+		
+		Board deletedArticle = boardMapper.viewDetail(deletePtr.toMap());
+		assertNull(deletedArticle);
+		BoardHistory deletedHistory = boardHistoryMapper.selectHistory(deletePtr);
+		assertNull(deletedHistory);
 		List<BoardHistory> children = boardHistoryMapper.selectChildren(rootPtr);
 		assertEquals(0, children.size());
+	}
+	
+	/**
+	 * 보이지 않는 루트 - 루트
+	 * 루트를 삭제하면, 둘다 삭제되어야 합니다.
+	 */
+	@Test
+	public void testDeleteAloneRoot() {
+		Board rootArticle = boardMapper.viewDetail(defaultCreated.toMap());
+		assertNotNull(rootArticle);
+		
+		versionManagementService.deleteVersion(rootArticle);
+		rootArticle = boardMapper.viewDetail(defaultCreated.toMap());
+		assertNull(rootArticle);
+		BoardHistory rootHistory = boardHistoryMapper.selectHistory(defaultCreated);
+		assertNull(rootHistory);
+		NodePtr invisibleNodePtr = new NodePtr(defaultCreated.getBoard_id(), NodePtr.INVISIBLE_ROOT_VERSION, NodePtr.INVISIALBE_ROOT_BOARD_ID);
+		BoardHistory invisibleRoot = boardHistoryMapper.selectHistory(invisibleNodePtr);
+		assertNull(invisibleRoot);
 	}
 	
 	@Test

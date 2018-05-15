@@ -32,9 +32,16 @@
      -->
     <insert id="createBoard" parameterType="com.worksmobile.assignment.model.Board">
         INSERT INTO board
-        (board_id, version, subject, content, created_time, file_id,
+        (board_id, version, subject, content, file_id,
+        created_time,
         root_board_id)
-        SELECT #{board_id}, #{version}, #{subject}, #{content}, CURRENT_TIMESTAMP, #{file_id}, 
+        SELECT #{board_id}, #{version}, #{subject}, #{content}, #{file_id}, 
+        <if test = "created_time == null">
+        CURRENT_TIMESTAMP,
+        </if>
+        <if test = "created_time != null">
+        #{created_time},
+        </if>
         <if test = "root_board_id == 0">
         	(SELECT `AUTO_INCREMENT`
 			FROM  INFORMATION_SCHEMA.TABLES
