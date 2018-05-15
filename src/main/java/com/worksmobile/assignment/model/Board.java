@@ -3,15 +3,17 @@ package com.worksmobile.assignment.model;
 import java.util.HashMap;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@Data
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 public class Board extends NodePtr{
-	@Setter @Getter private String subject;
-	@Setter @Getter private String content;
-	@Setter @Getter private String created_time;
-	@Setter @Getter private int file_id;
+	private String subject;
+	private String content;
+	private String created_time;
+	private int file_id;
 
 	public Board() {}
 

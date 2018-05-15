@@ -43,8 +43,7 @@ public class NodePtr {
 		return map;
 	}
 
-	@Override
-	public String toString() {
+	public String getBoardVersion() {
 		return String.format("%d-%d", board_id, version);
 	}
 

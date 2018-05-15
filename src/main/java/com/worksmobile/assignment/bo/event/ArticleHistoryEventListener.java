@@ -42,7 +42,7 @@ public class ArticleHistoryEventListener {
 	
 	@EventListener
 	@Async
-	public void addHistory(ArticleRevoeredEvent event) {
+	public void addHistory(ArticleRecoveredEvent event) {
 		BoardHistory recoverHistory = event.getRecoverHistory();
 		Board recoveredArticle = event.getArticle();
 		NodePtr parentPtr = event.getParentPtr();

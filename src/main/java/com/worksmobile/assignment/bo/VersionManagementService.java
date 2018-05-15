@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.worksmobile.assignment.bo.event.ArticleCreatedEvent;
 import com.worksmobile.assignment.bo.event.ArticleDeletedEvent;
 import com.worksmobile.assignment.bo.event.ArticleModifiedEvent;
-import com.worksmobile.assignment.bo.event.ArticleRevoeredEvent;
+import com.worksmobile.assignment.bo.event.ArticleRecoveredEvent;
 import com.worksmobile.assignment.bo.event.AutoSaveDeleteRequestEvent;
 import com.worksmobile.assignment.mapper.BoardAdapter;
 import com.worksmobile.assignment.model.Board;
@@ -91,7 +91,7 @@ public class VersionManagementService {
 
 		NodePtr newPtr = boardService.modifyArticle(recoveredBoard, dbParentPtr);
 		
-		publisher.publishEvent(new ArticleRevoeredEvent(recoveredBoard, recoverHistory, dbParentPtr));
+		publisher.publishEvent(new ArticleRecoveredEvent(recoveredBoard, recoverHistory, dbParentPtr));
 		
 		return newPtr;
 	}

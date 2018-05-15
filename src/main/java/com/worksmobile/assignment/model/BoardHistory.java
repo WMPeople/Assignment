@@ -1,21 +1,23 @@
 ﻿package com.worksmobile.assignment.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@Data
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 public class BoardHistory extends NodePtr{
-	@Getter @Setter private String created_time;
-	@Getter @Setter private String status;
-	@Getter @Setter private String history_subject;
-	@Getter @Setter private byte[] history_content;
-	@Getter @Setter private boolean is_content_compressed;
+	private String created_time;
+	private String status;
+	private String history_subject;
+	private byte[] history_content;
+	private boolean is_content_compressed;
 
-	@Getter @Setter private Integer parent_board_id = null;
-	@Getter @Setter private Integer parent_version = null;
+	private Integer parent_board_id = null;
+	private Integer parent_version = null;
 
-	@Setter @Getter private int file_id;
+	private int file_id;
 	
 	public static final String STATUS_CREATED = "Created";
 	public static final String STATUS_MODIFIED = "Modified";
