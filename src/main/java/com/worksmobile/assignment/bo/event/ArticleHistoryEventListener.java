@@ -16,12 +16,11 @@ import com.worksmobile.assignment.bo.BoardHistoryService;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
-import com.worksmobile.assignment.util.JsonUtils;
 
 @Component
 public class ArticleHistoryEventListener {
 	@Autowired
-	BoardHistoryService boardHistoryService;
+	private BoardHistoryService boardHistoryService;
 	
 	@Autowired
 	private ApplicationEventPublisher publisher;
@@ -54,9 +53,6 @@ public class ArticleHistoryEventListener {
 		boardHistoryService.updateHistoryLock(parentPtr, true, false);
 	}
 	
-
-	// TODO : check thread safe, 삭제 중간에 삭제 대상의 자식을 만들 수 없게 하여야 합니다.
-	// TODO : 삭제 대상을 파악할 때 한번에 들고와서 판단할 수 있을 것으로 생각됨.
 	@EventListener
 	@Async
 	public void deleteHistories(ArticleDeletedEvent event) {

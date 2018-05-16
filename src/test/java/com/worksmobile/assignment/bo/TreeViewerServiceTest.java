@@ -1,7 +1,13 @@
 package com.worksmobile.assignment.bo;
 
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 
+import org.awaitility.Awaitility;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,8 +19,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.model.Board;
+import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
+import com.worksmobile.assignment.util.BoardUtil;
 
 /**
  * 
@@ -31,15 +40,18 @@ public class TreeViewerServiceTest {
 	@Autowired
 	private VersionManagementService versionManagementService;
 	
+	@Autowired
+	private BoardHistoryMapper boardHistoryMapper;
+	
 	private Board article;
 	
 	@Before
 	public void createTestTree() {
-		article = new Board();
-		article.setSubject("testCreateTree");
-		article.setContent("test");
+		article = BoardUtil.makeArticle("testCreateTree", "test");
 		NodePtr nodePtr = versionManagementService.createArticle(article);
 		article.setNodePtr(nodePtr);
+		
+		await().untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(article), is(notNullValue())));
 	}
 	
 	/*

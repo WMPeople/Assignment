@@ -2,7 +2,7 @@
 
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -30,6 +30,7 @@ import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.BoardTemp;
 import com.worksmobile.assignment.model.NodePtr;
+import com.worksmobile.assignment.util.BoardUtil;
 import com.worksmobile.assignment.util.JsonUtils;
 
 /**
@@ -56,19 +57,22 @@ public class VersionManagementServiceAutoSaveTest {
 	@Autowired
 	private VersionManagementService versionManagementService;
 	
+	@Autowired
+	private BoardUtil boardUtil;
+	
 	private Board defaultCreated;
 	private static final String DEFAULT_JUNIT_COOKIE_ID = "JunitCookieId";
 	private static final String DEFAULT_CREATED_TIME = "2018-04-26 오전 11:10:32";
-	private BoardTemp autoSaveArticle = new BoardTemp();
+	private BoardTemp autoSaveArticle;
 
 	@Before
 	public void createDefault() throws InterruptedException, ExecutionException {
-		defaultCreated = new Board();
-		defaultCreated.setSubject("versionTestSub");
-		defaultCreated.setContent("versionTestCont");
-
+		defaultCreated = BoardUtil.makeArticle("versionTestSub", "versionTestCont");
+		
 		defaultCreated = versionManagementService.createArticle(defaultCreated);
-
+		await().untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(defaultCreated), is(notNullValue())));
+		
+		autoSaveArticle = new BoardTemp();
 		autoSaveArticle.setSubject("자동 저장중...");
 		autoSaveArticle.setContent("temp article content");
 		autoSaveArticle.setNodePtr(defaultCreated);
@@ -76,26 +80,7 @@ public class VersionManagementServiceAutoSaveTest {
 
 		boardTempService.makeTempBoard(defaultCreated.getBoard_id(), defaultCreated.getVersion(), DEFAULT_JUNIT_COOKIE_ID, DEFAULT_CREATED_TIME, autoSaveArticle.getContent(), autoSaveArticle.getFile_id(), autoSaveArticle.getSubject());
 	}
-
-	private NodePtr makeChild(NodePtr parentPtr) throws JsonProcessingException {
-		await().untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(parentPtr), not(nullValue())));
-		Board child = new Board();
-		child.setSubject("childSub");
-		child.setContent("childCont");
-
-		NodePtr childPtr = versionManagementService.modifyVersion(child, parentPtr, DEFAULT_JUNIT_COOKIE_ID);
-		child.setNodePtr(childPtr);
-
-		Board leafBoard = boardMapper.viewDetail(childPtr.toMap());
-		assertNotNull(leafBoard);
-		int parentVersion = parentPtr.getVersion() == null ? 0 : parentPtr.getVersion();
-		assertEquals((Integer)(parentVersion + 1), childPtr.getVersion());
-
-		JsonUtils.assertConvertToJsonObject(child, leafBoard);
-
-		return childPtr;
-	}
-
+	
 	private BoardTemp makeAutoSave(final NodePtr nodePtr) {
 		BoardTemp autoSave = new BoardTemp();
 		autoSave.setSubject("autoSaveSub");
@@ -120,16 +105,16 @@ public class VersionManagementServiceAutoSaveTest {
 	public void testDeleteArticleHasAutoSave() throws JsonProcessingException, NotLeafNodeException {
 		NodePtr rootPtr = defaultCreated;
 
-		NodePtr hasChildrenPtr = makeChild(rootPtr);
+		NodePtr hasChildrenPtr = boardUtil.makeChild(rootPtr);
 
 		int childrenCnt = 2;
 		List<NodePtr> childrenList = new ArrayList<>(childrenCnt);
 		for (int i = 0; i < childrenCnt; i++) {
-			childrenList.add(makeChild(hasChildrenPtr));
+			childrenList.add(boardUtil.makeChild(hasChildrenPtr));
 		}
 
 		NodePtr hasChildPtr = childrenList.get(0);
-		NodePtr leafPtr = makeChild(hasChildPtr);
+		NodePtr leafPtr = boardUtil.makeChild(hasChildPtr);
 
 		BoardTemp autoSave = makeAutoSave(leafPtr);
 
@@ -142,8 +127,8 @@ public class VersionManagementServiceAutoSaveTest {
 	public void testDeleteWhenHasChildNodeAndAutoSave() throws JsonProcessingException {
 		NodePtr rootPtr = defaultCreated;
 
-		NodePtr middlePtr = makeChild(rootPtr);
-		NodePtr childPtr = makeChild(middlePtr);
+		NodePtr middlePtr = boardUtil.makeChild(rootPtr);
+		NodePtr childPtr = boardUtil.makeChild(middlePtr);
 
 		BoardTemp autoSave = makeAutoSave(middlePtr);
 
@@ -152,7 +137,7 @@ public class VersionManagementServiceAutoSaveTest {
 		BoardHistory childHistory = boardHistoryMapper.selectHistory(childPtr);
 		NodePtr childParentPtr = childHistory.getParentPtrAndRoot();
 
-		assertEquals(rootPtr, childParentPtr);
+		assertEquals(new NodePtr(rootPtr), childParentPtr);
 		
 		await().untilAsserted(() -> assertThat(boardTempMapper.viewDetail(autoSave.toMap()), is(nullValue())));
 		Board dbAtuoSave = boardMapper.viewDetail(autoSave.toMap());
@@ -163,13 +148,13 @@ public class VersionManagementServiceAutoSaveTest {
 	public void testDeleteHasChildrenNodeAndAutoSave() throws JsonProcessingException {
 		NodePtr rootPtr = new NodePtr(defaultCreated);
 
-		NodePtr middlePtr = makeChild(rootPtr);
+		NodePtr middlePtr = boardUtil.makeChild(rootPtr);
 
 		int childrenCnt = 10;
 		List<NodePtr> childrenList = new ArrayList<>(childrenCnt);
 		List<NodePtr> autoSavedList = new ArrayList<>(childrenCnt);
 		for (int i = 0; i < childrenCnt; i++) {
-			childrenList.add(makeChild(middlePtr));
+			childrenList.add(boardUtil.makeChild(middlePtr));
 			autoSavedList.add(makeAutoSave(middlePtr));
 		}
 

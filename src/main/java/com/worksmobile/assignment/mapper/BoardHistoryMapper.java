@@ -29,7 +29,8 @@ public interface BoardHistoryMapper {
 
 	public int updateHistoryParentAndRoot(BoardHistory boardHistory);
 
-	public int updateHistoryLock(@Param("nodePtr") NodePtr nodePtr, @Param("old_is_locked") boolean old_is_locked, @Param("new_is_locked") boolean new_is_locked);
+	public int updateHistoryLock(@Param("nodePtr") NodePtr nodePtr,
+		@Param("old_is_locked") boolean old_is_locked, @Param("new_is_locked") boolean new_is_locked);
 
 	public List<BoardHistory> selectChildren(NodePtr nodePtr);
 

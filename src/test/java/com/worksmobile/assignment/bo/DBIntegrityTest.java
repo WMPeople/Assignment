@@ -8,7 +8,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,6 +27,7 @@ import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.File;
 import com.worksmobile.assignment.model.NodePtr;
+import com.worksmobile.assignment.util.BoardUtil;
 import com.worksmobile.assignment.util.JsonUtils;
 
 /**
@@ -48,6 +48,9 @@ public class DBIntegrityTest {
 	@Autowired
 	private FileMapper fileMapper;
 	
+	@Autowired
+	private BoardUtil boardUtil;
+	
 	@Rule
 	public ErrorCollector collector = new ErrorCollector();
 	
@@ -58,13 +61,6 @@ public class DBIntegrityTest {
 		} else {
 			return false;
 		}
-	}
-	
-	private List<Board> selectAllArticle() {
-		HashMap<String, Integer> articleParams = new HashMap<>();
-		articleParams.put("offset", 0);
-		articleParams.put("noOfRecords", Integer.MAX_VALUE);
-		return boardMapper.articleList(articleParams);	
 	}
 	
 	/*
@@ -91,7 +87,7 @@ public class DBIntegrityTest {
 	 */
 	@Test
 	public void testArticleIsHistoryLeaf() throws JsonProcessingException {
-		List<Board> articleList = selectAllArticle();
+		List<Board> articleList = boardUtil.selectAllArticles();
 		for(Board articleEle : articleList) {
 			BoardHistory boardHistory = boardHistoryMapper.selectHistory(articleEle);
 			collector.checkThat(JsonUtils.jsonStringFromObject(articleEle), boardHistory, is(notNullValue()));
@@ -105,7 +101,7 @@ public class DBIntegrityTest {
 	 */
 	@Test
 	public void testLeafContentIntegrity() throws IOException {
-		List<Board> allBoadList = selectAllArticle();
+		List<Board> allBoadList = boardUtil.selectAllArticles();
 		
 		for(Board ele : allBoadList) {
 			BoardHistory history = boardHistoryMapper.selectHistory(ele);
@@ -122,7 +118,7 @@ public class DBIntegrityTest {
 	 */
 	@Test
 	public void testLeafCreatedTimeIntegrity() throws JsonProcessingException {
-		List<Board> allBoadList = selectAllArticle();
+		List<Board> allBoadList = boardUtil.selectAllArticles();
 		
 		for(Board ele : allBoadList) {
 			BoardHistory history = boardHistoryMapper.selectHistory(ele);
@@ -136,7 +132,7 @@ public class DBIntegrityTest {
 	 */
 	@Test
 	public void testLeafFileIdIntegrity() throws JsonProcessingException {
-		List<Board> allBoardList = selectAllArticle();
+		List<Board> allBoardList = boardUtil.selectAllArticles();
 		
 		for(Board ele : allBoardList) {
 			BoardHistory history = boardHistoryMapper.selectHistory(ele);
@@ -152,7 +148,7 @@ public class DBIntegrityTest {
 	public void testFileIdIntegrity() throws JsonProcessingException {
 		List<File> allFileList = fileMapper.getAllFile();
 
-		List<Board> allBoardList = selectAllArticle();
+		List<Board> allBoardList = boardUtil.selectAllArticles();
 		List<Integer> allFileIdInBoardList = new ArrayList<>(allBoardList.size());
 		for(Board ele : allBoardList) {
 			allFileIdInBoardList.add(ele.getBoard_id());
@@ -200,6 +196,7 @@ public class DBIntegrityTest {
 				assertEquals(null, ele.getParent_board_id());
 				assertEquals(null, ele.getParent_version());
 				assertEquals(BoardHistory.INVISIALBE_ROOT_BOARD_ID, ele.getRoot_board_id());
+				assertEquals(true, ele.isInvisibleRoot());
 			}
 		}
 	}
