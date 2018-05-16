@@ -125,8 +125,10 @@ $(function(){
 				}
 			});
 		
-		});    
-    $('#span_fileSize')[0].innerText= changeFileSize($('#span_fileSize')[0].innerText);
+		});
+	if($('#span_fileSize')[0] != undefined){
+		$('#span_fileSize')[0].innerText= changeFileSize($('#span_fileSize')[0].innerText);
+	}
 
 });
 
