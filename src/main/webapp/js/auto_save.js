@@ -16,6 +16,12 @@ var addCountCondition = 6;
 var newLineCountCondition = 6;
 var stringSizeDifferenceCondition = -0.8;
 var addLengthCondition = 200;
+var chartList = ['chart1','chart2','chart3','chart4'];
+var chartConditionList = [addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition];
+var chart1;
+var chart2;
+var chart3;
+var chart4;
 	
 $(function() {
 	$("#autoSaveChkBox").change(function() {
@@ -23,6 +29,7 @@ $(function() {
 		// 체크되어 있지 않으면 보이지 않음
 		if (!autoSaveChkBox) {
 			document.getElementById('conditionList').innerHTML='';
+			chartUnload();
 			return;
 		} else {
 			optionAutoSave();
@@ -39,7 +46,8 @@ function optionAutoSave() {
 	$('#newLineCountCondition').val(newLineCountCondition);
 	$('#stringSizeDifferenceCondition').val(stringSizeDifferenceCondition);
 	$('#addLengthCondition').val(addLengthCondition);
-	
+	chartGenerate();
+    
 	var autoSave = new Object();
 	(function(obj) {
 		obj.configuration = {
@@ -112,6 +120,8 @@ function optionAutoSave() {
 							}
 						}
 					}
+					
+					chartChange("current",addCount, newLineCount, stringSizeDifference, addLength);
 					versionUpFunction(addCount, newLineCount, stringSizeDifference,addLength, addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition);
 				}
 				launch();
@@ -163,6 +173,7 @@ function versionUpFunction(addCount, newLineCount, stringSizeDifference, addLeng
 						document.getElementById('content').defaultValue = document.getElementById('content').value;
 						document.getElementById('currentBoard').innerText = 'board_id : '+ $('#board_id').val()+ ' version : '+ $('#version').val();
 						document.getElementById('notice').innerText = new Date().toGMTString()+ " 버전업 완료.";
+						
 					} else {
 						alert(result.result);
 					}
@@ -217,4 +228,43 @@ function applyChange(){
 	$('#newLineCountCondition').val(newLineCountCondition);
 	$('#stringSizeDifferenceCondition').val(stringSizeDifferenceCondition);
 	$('#addLengthCondition').val(addLengthCondition);
+	
+	chartChange("condition",addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition);
+	
+}
+
+function chartChange(dataName, addCount, newLineCount, stringSizeDifference, addLength){
+	var valueList = [addCount, newLineCount, stringSizeDifference, addLength];
+	
+	for(var i = 0 ; i < chartList.length ; i++){
+		chartList[i].load({
+			columns: [
+				[dataName, valueList[i]]
+			]
+		});
+	}	
+}
+
+function chartUnload(){
+	for(var i = 0 ; i < chartList.length ; i++){
+		chartList[i].unload();
+		$("#chart".concat(i + 1))[0].innerHTML = '';
+	}	
+}
+
+function chartGenerate(){
+	
+	for(var i = 0 ; i < chartList.length ; i++){
+		chartList[i] = bb.generate({
+	        bindto: "#chart".concat(i + 1),
+	        data: {
+	            type: "bar",
+	            columns:[
+	            	["current",0],
+	            	["condition", chartConditionList[i]]
+	            ]
+	        }
+	    });
+	}
+	
 }

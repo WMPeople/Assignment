@@ -5,6 +5,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
+
 <link rel="stylesheet"
     href="${pageContext.request.contextPath}/css/jquery-ui-1.11.0.css">
 <link rel="stylesheet" type="text/css"
@@ -13,13 +14,15 @@
     href="${pageContext.request.contextPath}/css/common_ncs.css">
 <link rel="stylesheet" type="text/css"
     href="${pageContext.request.contextPath}/css/home_editor.min.css">
-
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/billboard.css">
+<script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js"></script>
 <script src="${pageContext.request.contextPath}/js/auto.js"></script>
 <script src="${pageContext.request.contextPath}/js/auto_save.js"></script>
 <script src="${pageContext.request.contextPath}/js/diff_match_patch.js"></script>
+<script src = "${pageContext.request.contextPath}/js/billboard.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>게시글 수정</title>
@@ -67,8 +70,29 @@
                     </li>
                 </ul>
                 <textarea name="content" id="content"
-                    style="margin: 8px; min-height: 500px; min-width: 700px; padding: 0px;">${param.content}</textarea>
-
+                    style="resize: none; margin: 8px; min-height: 300px; min-width: 99%; padding: 0px;">${param.content}</textarea>
+                    <style>
+                    .chart_container {
+                        width: 25%;
+                        float: left;
+                    }
+                    </style>
+             <div>
+                <div class="chart_container">
+                <span id="chart1">
+                <span id="chart1_name" style = "width:70%; display:none;" ></span>
+                </span>
+                </div>
+                <div class="chart_container">
+                <span id="chart2" style="width:25%"></span>
+                </div>
+                <div class="chart_container">
+                <span id="chart3" style="width:25%"></span>
+                </div>
+                <div class="chart_container">
+                <span id="chart4" style="width:25%"></span>
+                </div>
+             </div>
                 <div class="btn_area _btn_area">
                     <input type="text" name="board_id" id="board_id"
                         style="display: none;"
@@ -82,7 +106,6 @@
                     </button>
                 </div>
                 <div id="pre_set" style="display: none">
-                    
                     <label title = "사소한 변경, 즉  띄어쓰기나 3글자 이내에 변경은  카운트 하지 않고 변경된 부분을 카운트 합니다. 값범위 : 1 ~ 100" for="addCountCondition">수정된 부분 개수 : </label><input type="number" min="1" max="100" id="addCountCondition" name="addCountCondition" value="0" style="width: 50px">
                     <label title = "개행 수를 카운트합니다. 값범위 : 1 ~ 50" for="newLineCountCondition">추가된 개행개수 : </label><input type="number" min="1" max="50" id="newLineCountCondition" name="newLineCountCondition" value="0" style="width: 50px">
                     <label title = "원본 내용의 크기에서 현재 내용의 크기를 뺀 값을 다시 원본 내용킈 크기로 나눕니다. 값이 낮을 수록 둔감하게 버전업이 됩니다. 값범위 : -2 ~ -0.2" for="stringSizeDifferenceCondition">(원본 내용 크기 - 현재 내용 크기) / 원본 내용 크기 : </label><input type="number" min="-2" max="-0.2" id="stringSizeDifferenceCondition" name="stringSizeDifferenceCondition" value="0" style="width: 50px">
