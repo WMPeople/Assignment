@@ -36,9 +36,6 @@ $(function(){
 	    	}
 	        
 	    }
-	    var s = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
-	    var e = Math.floor(Math.log(fileSize) / Math.log(1024));
-	    var transformedFileSize = (fileSize / Math.pow(1024, e)).toFixed(2) + " " + s[e];
 
 	    if(fileSize > maxSize) {
 	        alert("첨부파일 사이즈는 5MB 이내로 등록 가능합니다.    ");
@@ -128,7 +125,9 @@ $(function(){
 				}
 			});
 		
-		});
+		});    
+    $('#needTun')[0].innerText= addTun($('#needTun')[0].innerText);
+
 });
 
 function btnDelete(board_id,version){
@@ -160,6 +159,13 @@ function btnDelete(board_id,version){
 function goPage(pages, lines) {
 	pages = Math.ceil(pages);
     location.href = '?' + "pages=" + pages;
+}
+
+function addTun(fileSize) {
+    var s = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+    var e = Math.floor(Math.log(fileSize) / Math.log(1024));
+    var transformedFileSize = (fileSize / Math.pow(1024, e)).toFixed(2) + " " + s[e];
+    return transformedFileSize;
 }
 
 
