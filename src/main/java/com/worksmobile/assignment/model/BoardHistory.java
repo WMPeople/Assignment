@@ -3,9 +3,11 @@
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper=true)
 @AllArgsConstructor
 public class BoardHistory extends NodePtr{
 	private String created_time;

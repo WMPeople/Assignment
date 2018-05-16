@@ -43,7 +43,7 @@ public class NodePtr {
 		return map;
 	}
 
-	public String getBoardVersion() {
+	public String getNodePtrStr() {
 		return String.format("%d-%d", board_id, version);
 	}
 
