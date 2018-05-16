@@ -269,7 +269,7 @@ public class VersionManagementTest {
 		BoardHistory childHistory = asyncAwaitHelper.waitAndSelectBoardHistory(childPtr);
 		NodePtr childParentPtr = childHistory.getParentPtrAndRoot();
 		
-		assertEquals(rootPtr, childParentPtr);
+		assertEquals(new NodePtr(rootPtr), childParentPtr);
 	}
 	
 	/*

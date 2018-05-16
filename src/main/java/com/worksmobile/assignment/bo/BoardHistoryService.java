@@ -97,8 +97,7 @@ public class BoardHistoryService {
 	public BoardHistory selectHistory(final NodePtr nodePtr) throws NotExistNodePtrException{
 		BoardHistory boardHistory = boardHistoryMapper.selectHistory(nodePtr);
 		if (boardHistory == null) {
-			String json = JsonUtils.jsonStringIfExceptionToString(nodePtr);
-			throw new NotExistNodePtrException("존재하지 않는 이력 포인터 입니다. nodePtr : " + json);
+			throw new NotExistNodePtrException("존재하지 않는 이력 포인터 입니다. nodePtr : " + nodePtr);
 		}
 		return boardHistory;
 	}

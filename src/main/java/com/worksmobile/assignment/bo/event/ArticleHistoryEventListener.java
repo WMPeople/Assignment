@@ -47,7 +47,7 @@ public class ArticleHistoryEventListener {
 		Board recoveredArticle = event.getArticle();
 		NodePtr parentPtr = event.getParentPtr();
 		
-		String status = String.format("%s(%s)", BoardHistory.STATUS_RECOVERED, recoverHistory.toString());
+		String status = String.format("%s(%s)", BoardHistory.STATUS_RECOVERED, recoverHistory.getNodePtrStr());
 		boardHistoryService.createHistory(recoveredArticle, status, parentPtr);
 	}
 	

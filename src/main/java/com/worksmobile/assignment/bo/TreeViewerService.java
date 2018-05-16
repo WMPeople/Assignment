@@ -84,7 +84,7 @@ public class TreeViewerService {
 		ObjectNode node = mapper.createObjectNode();
 		
 		ObjectNode text = mapper.createObjectNode();
-		String name = nodePtr.getBoardVersion();
+		String name = nodePtr.getNodePtrStr();
 		if(children.size() == 0) {
 			name += "(leaf)";
 		}
