@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.nhncorp.lucy.security.xss.XssPreventer;
 import com.worksmobile.assignment.bo.BoardTempService;
 import com.worksmobile.assignment.bo.CookieService;
 import com.worksmobile.assignment.bo.FileService;
@@ -28,6 +27,7 @@ import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.File;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.model.Page;
+import com.worksmobile.assignment.util.FilterUtils;
 import com.worksmobile.assignment.util.JsonUtils;
 
 /***
@@ -75,7 +75,8 @@ public class BoardController {
 	 */
 	@RequestMapping(value = "/boards/update", method = RequestMethod.POST)
 	public ModelAndView updateForm(Board board, HttpServletRequest req) throws Exception {
-
+		board.setSubject(FilterUtils.dirtyToClean(board.getSubject()));
+		board.setContent(FilterUtils.dirtyToClean(board.getContent()));
 		boardTempService.makeTempBoard(board.getBoard_id(), board.getVersion(), cookieService.getCookie(req).getValue(),
 			board.getCreated_time(), board.getContent(), board.getFile_id(), board.getSubject());
 		return new ModelAndView("boardUpdate");
@@ -135,9 +136,6 @@ public class BoardController {
 			String json = JsonUtils.jsonStringIfExceptionToString(board);
 			throw new RuntimeException("show 메소드에서 viewDetail 메소드 실행 에러" + json);
 		}
-		String dirty = board.getContent();
-		String clean = XssPreventer.escape(dirty);
-		board.setContent(clean);
 
 		File file = fileMapper.getFile(board.getFile_id());
 
@@ -180,6 +178,8 @@ public class BoardController {
 			fileMapper.createFile(file);
 			board.setFile_id(file.getFile_id());
 		}
+		board.setSubject(FilterUtils.dirtyToClean(board.getSubject()));
+		board.setContent(FilterUtils.dirtyToClean(board.getContent()));
 		versionManagementService.createArticle(board);
 		resultMap.put("result", "success");
 
@@ -201,7 +201,8 @@ public class BoardController {
 			fileMapper.createFile(file);
 			board.setFile_id(file.getFile_id());
 		}
-
+		board.setSubject(FilterUtils.dirtyToClean(board.getSubject()));
+		board.setContent(FilterUtils.dirtyToClean(board.getContent()));
 		NodePtr leapPtr = new NodePtr(board.getBoard_id(), board.getVersion());
 		NodePtr newNode = versionManagementService.modifyVersion(board, leapPtr,
 			cookieService.getCookie(req).getValue());
@@ -233,7 +234,8 @@ public class BoardController {
 				throw new RuntimeException("updatemaintainattachment 메소드에서 viewDetail 메소드 실행 에러" + json);
 			}
 			board.setFile_id(pastBoard.getFile_id());
-
+			board.setSubject(FilterUtils.dirtyToClean(board.getSubject()));
+			board.setContent(FilterUtils.dirtyToClean(board.getContent()));
 			NodePtr leapPtr = new NodePtr(board.getBoard_id(), board.getVersion());
 			NodePtr newNode = versionManagementService.modifyVersion(board, leapPtr,
 				cookieService.getCookie(req).getValue());

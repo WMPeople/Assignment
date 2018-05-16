@@ -79,18 +79,16 @@
                     </style>
              <div>
                 <div class="chart_container">
-                <span id="chart1">
-                <span id="chart1_name" style = "width:70%; display:none;" ></span>
-                </span>
+                <span id="chart1"></span>
                 </div>
                 <div class="chart_container">
-                <span id="chart2" style="width:25%"></span>
+                <span id="chart2"></span>
                 </div>
                 <div class="chart_container">
-                <span id="chart3" style="width:25%"></span>
+                <span id="chart3"></span>
                 </div>
                 <div class="chart_container">
-                <span id="chart4" style="width:25%"></span>
+                <span id="chart4"></span>
                 </div>
              </div>
                 <div class="btn_area _btn_area">

@@ -26,6 +26,7 @@ import com.worksmobile.assignment.model.BoardTemp;
 import com.worksmobile.assignment.model.File;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.model.Page;
+import com.worksmobile.assignment.util.FilterUtils;
 import com.worksmobile.assignment.util.JsonUtils;
 
 /***
@@ -75,7 +76,8 @@ public class AutoController {
 			fileMapper.createFile(file);
 			boardTemp.setFile_id(file.getFile_id());
 		}
-
+		boardTemp.setSubject(FilterUtils.dirtyToClean(boardTemp.getSubject()));
+		boardTemp.setContent(FilterUtils.dirtyToClean(boardTemp.getContent()));
 		boardTemp.setCookie_id((cookieService.getCookie(req).getValue()));
 		boardTempService.createTempArticleOverwrite(boardTemp, "withfile");
 		resultMap.put("result", "success");
@@ -89,6 +91,8 @@ public class AutoController {
 
 		Map<String, Object> resultMap = new HashMap<>();
 		boardTemp.setCookie_id((cookieService.getCookie(req).getValue()));
+		boardTemp.setSubject(FilterUtils.dirtyToClean(boardTemp.getSubject()));
+		boardTemp.setContent(FilterUtils.dirtyToClean(boardTemp.getContent()));
 		boardTempService.createTempArticleOverwrite(boardTemp, "withoutfile");
 		resultMap.put("result", "success");
 
@@ -116,9 +120,6 @@ public class AutoController {
 			String json = JsonUtils.jsonStringIfExceptionToString(boardTemp);
 			throw new RuntimeException("show 메소드에서 viewDetail 메소드 실행 에러" + json);
 		}
-		String dirty = boardTemp.getContent();
-		String clean = XssPreventer.escape(dirty);
-		boardTemp.setContent(clean);
 
 		File file = fileMapper.getFile(boardTemp.getFile_id());
 
