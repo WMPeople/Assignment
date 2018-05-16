@@ -38,7 +38,9 @@
             <span>게시물 번호 : <span>${board.board_id}</span> <span></span></span>
             <span>버전 : <span>${board.version}</span> <span></span></span>
             <span>최종 수정시간 :  ${board.created_time}</span>
-            <span>첨부 파일 :   <a href="${path}/assignment/boards/download/${file.file_id}" name="file">${file.file_name}     </a> (${file.file_size})</span>
+            <span>첨부 파일 :   <a href="${path}/assignment/boards/download/${file.file_id}" name="file">${file.file_name}</a></span>
+            <span>파일 용량 : </span>
+            <span id="span_fileSize">${file.file_size}</span>
             <button class="btn btn-primary" id="btnAutoList" onclick="location.href='${path}/assignment/autos/${board.board_id}/${board.version}'">자동저장리스트</button>
         <div class="cont _content translateArea" id="contents">
                 <textarea name="content3" id="content_detail" style="min-height: 500px; min-width: 700px; display:none;" >${board.content}</textarea>

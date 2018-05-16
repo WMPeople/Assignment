@@ -20,36 +20,45 @@ $(document).ready(function() {
 		var realContent = sContent;
 	    var nameList = ["위치", "영화", "책", "도서" , "맛집", "뉴스", "쇼핑", "음식점", "영어단어", "구매", "지도"];
 	    var englishNameList = ["geocode", "movie", "book", "book" , "local", "news", "shop", "local", "dictionary", "shop", "geocode"];
+	    var divisionList = [["'","'"], ['"','"'], ["[","]"], ["(",")"], ["{","}"]];
 	    var nbsp = "&nbsp;"
-	    for(var i =0; i< nameList.length ; i++){
-	        var searchIndex = 0;
-	        var substringStartIndex = 0;	
-	        while(searchIndex != -1){
-	        	 var searchIndex = copyContent.substring(substringStartIndex).search(nameList[i]+nbsp+"'");
-	        	 var temp = copyContent.substring(substringStartIndex);
-	        	 if(searchIndex!= -1){
+	    	
+	    for (var z = 0 ; z < divisionList.length ; z++) {
+	    	for(var i =0; i< nameList.length ; i++){
+		        var searchIndex = 0;
+		        var substringStartIndex = 0;	
+		        while(searchIndex != -1){
+		        	 var searchIndex = copyContent.substring(substringStartIndex).indexOf(nameList[i]+nbsp+divisionList[z][0]);
+		        	 var temp = copyContent.substring(substringStartIndex);
+		        	 console.log(temp);
+		        	 if(searchIndex!= -1){
 		                var spaceIndex = searchIndex + nameList[i].length + nbsp.length - 1;
 		                var firstQuoteIndex = spaceIndex + 1;
-		                if(temp.charAt(spaceIndex) == ';' && temp.charAt(firstQuoteIndex) == "'"){
+		                console.log(temp.charAt(spaceIndex));
+		                console.log(temp.charAt(firstQuoteIndex));
+		                if(temp.charAt(spaceIndex) == ';' && temp.charAt(firstQuoteIndex) == divisionList[z][0]){
 		                    var startIndex = firstQuoteIndex + 1;
 		                    var secondQuoteIndex = '';
 		                    var text = '';
-	                    	secondQuoteIndex = temp.substring(startIndex).search("'") + startIndex;
+	                    	secondQuoteIndex = temp.substring(startIndex).indexOf(divisionList[z][1]) + startIndex;
 	                    	text = temp.substring(firstQuoteIndex + 1,secondQuoteIndex);
-	                    	firstArg = nameList[i]+nbsp+"'"+text+"'";
-	                    	if (text == "" || text == "''" || text == "'") {
-		                    	secondArg = '<span> '+nameList[i]+" '"+text +"'"+'</span>';
+	                    	console.log(temp.charAt(secondQuoteIndex));
+	                    	console.log(text);
+	                    	firstArg = nameList[i]+nbsp+divisionList[z][0]+text+divisionList[z][1];
+	                    	console.log(firstArg);
+	                    	if (text == "" || text == divisionList[z][0] || text == divisionList[z][0]+divisionList[z][1]) {
+		                    	secondArg = '<span> '+nameList[i]+" "+divisionList[z][0]+text +divisionList[z][1]+'</span>';
 		                    } else {
-		                    	secondArg = '<b id= '+englishNameList[i]+' class="'+ text +'" onmouseover="m_over(this)">'+nameList[i]+" '"+text +"'"+'</b>';
+		                    	secondArg = '<Strong id= '+englishNameList[i]+' class="'+ text +'" onmouseover="m_over(this)">'+nameList[i]+" "+divisionList[z][0]+text +divisionList[z][1]+'</Strong>';
 		                    }
 	                    	copyContent = copyContent.replace(firstArg,secondArg);
 	                    	substringStartIndex = substringStartIndex + searchIndex + secondArg.length;
 		                }
-		            } 
-	            }
-	    	}
-		    
-		    return copyContent;
+			        } 
+		        }
+		    }
+	    }   
+		return copyContent;
 	}
 	
 	//라인을 나눕니다.
