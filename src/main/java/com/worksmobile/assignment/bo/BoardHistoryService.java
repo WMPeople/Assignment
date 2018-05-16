@@ -122,8 +122,7 @@ public class BoardHistoryService {
 	public void deleteBoardHistory(NodePtr leafPtr) {
 		int deletedCnt = boardHistoryMapper.deleteHistory(leafPtr);
 		if(deletedCnt != 1) {
-			String json = JsonUtils.jsonStringIfExceptionToString(leafPtr);
-			throw new RuntimeException("deletedCnt expected 1 but : " + json);
+			throw new RuntimeException("deletedCnt expected 1 but : " + deletedCnt + "nodePtr : " + leafPtr);
 		}
 	}
 	

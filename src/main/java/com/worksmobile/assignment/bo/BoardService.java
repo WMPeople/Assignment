@@ -83,7 +83,7 @@ public class BoardService {
 	public void deleteBoard(NodePtr leafPtr) {
 		int deletedCnt = boardMapper.deleteBoard(leafPtr.toMap());
 		if(deletedCnt != 1) {
-			throw new RuntimeException("삭제가 개수가 맞지 않습니다. cnt : " + deletedCnt);
+			throw new RuntimeException("삭제가 개수가 맞지 않습니다. cnt : " + deletedCnt + "nodePtr : " + leafPtr);
 		}
 	}
 }
