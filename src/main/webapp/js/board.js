@@ -126,7 +126,7 @@ $(function(){
 			});
 		
 		});    
-    $('#needTun')[0].innerText= addTun($('#needTun')[0].innerText);
+    $('#span_fileSize')[0].innerText= changeFileSize($('#span_fileSize')[0].innerText);
 
 });
 
@@ -161,7 +161,10 @@ function goPage(pages, lines) {
     location.href = '?' + "pages=" + pages;
 }
 
-function addTun(fileSize) {
+function changeFileSize(fileSize) {
+	if (fileSize == 0 || fileSize == null || fileSize == undefined) {
+		return 0;
+	}
     var s = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
     var e = Math.floor(Math.log(fileSize) / Math.log(1024));
     var transformedFileSize = (fileSize / Math.pow(1024, e)).toFixed(2) + " " + s[e];

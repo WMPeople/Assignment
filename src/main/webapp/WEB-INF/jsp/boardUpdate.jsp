@@ -50,7 +50,7 @@
                         <h3 class="tx">파일첨부</h3> <c:if test="${param.file_name != ''}">
                             <span class="date" id="op_file">첨부 파일 : <a
                                 href="${path}/assignment/boards/download/${param.file_id}/"
-                                name="file">${param.file_name} </a></span> <span id="needTun">${param.file_size}</span>
+                                name="file">${param.file_name} </a></span> <span id="span_fileSize">${param.file_size}</span>
                                 <button type="button" id="fileUpdate" class="btn tx_point _save">파일
                                     수정</button>
  
