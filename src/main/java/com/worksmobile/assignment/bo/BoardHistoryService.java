@@ -102,6 +102,13 @@ public class BoardHistoryService {
 		return boardHistory;
 	}
 	
+	public void updateHistoryLock(NodePtr nodePtr, boolean oldIsLock, boolean newIsLock) {
+		int updatedCnt = boardHistoryMapper.updateHistoryLock(nodePtr, oldIsLock, newIsLock);
+		if(updatedCnt != 1) {
+			throw new NotExistNodePtrException("존재 하지 않는 이력 포인터 입니다. nodePtr : " + nodePtr + " locked : " + oldIsLock);
+		}
+	}
+	
 	public void changeParent(List<BoardHistory> childrenHistoryList, NodePtr parentPtr) {
 		for (BoardHistory childHistory : childrenHistoryList) {
 			childHistory.setParentNodePtrAndRoot(parentPtr);
@@ -122,14 +129,6 @@ public class BoardHistoryService {
 		int deletedCnt = boardHistoryMapper.deleteHistory(leafPtr);
 		if(deletedCnt != 1) {
 			throw new RuntimeException("deletedCnt expected 1 but : " + deletedCnt + "nodePtr : " + leafPtr);
-		}
-	}
-	
-	public void deleteBoardHistory(List<NodePtr> ptrList) {
-		int deletedCnt = boardHistoryMapper.deleteHistories(ptrList);
-		if(deletedCnt != ptrList.size()) {
-			String json = JsonUtils.jsonStringIfExceptionToString(ptrList);
-			throw new RuntimeException("deletedCnt expected " + ptrList.size() + " but " + deletedCnt + " : " + json);
 		}
 	}
 }

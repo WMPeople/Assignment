@@ -21,6 +21,8 @@ public class BoardHistory extends NodePtr{
 
 	private int file_id;
 	
+	private boolean is_locked;
+	
 	public static final String STATUS_CREATED = "Created";
 	public static final String STATUS_MODIFIED = "Modified";
 	public static final String STATUS_RECOVERED = "Recovered";

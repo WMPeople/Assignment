@@ -65,9 +65,8 @@ public class VersionManagementService {
 	@Transactional
 	public NodePtr modifyVersion(Board modifiedArticle, NodePtr parentPtr, String cookieId) {
 		NodePtr dbParentPtr = boardService.selectArticle(parentPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
-		if(dbParentPtr == null) {
-			dbParentPtr = boardHistoryService.selectHistory(parentPtr);
-		}
+		dbParentPtr = boardHistoryService.selectHistory(parentPtr);
+		boardHistoryService.updateHistoryLock(dbParentPtr, false, true);
 		
 		NodePtr newPtr = boardService.modifyArticle(modifiedArticle, dbParentPtr);
 		
@@ -86,6 +85,7 @@ public class VersionManagementService {
 	public NodePtr recoverVersion(final NodePtr recoverPtr, final NodePtr leafPtr) throws NotExistHistoryException{
 		BoardHistory recoverHistory = boardHistoryService.selectHistory(recoverPtr);
 		NodePtr dbParentPtr = boardHistoryService.selectHistory(leafPtr); // 클라이언트에서 root_board_id를 주지 않았을때를 위함.(또는 존재하지 않는 값을 줬을때)
+		boardHistoryService.updateHistoryLock(dbParentPtr, false, true);
 		
 		Board recoveredBoard = BoardAdapter.from(recoverHistory);
 

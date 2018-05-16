@@ -29,8 +29,8 @@ public class BoardHistoryCompressionTest {
 	
 	@Before
 	public void before() {
-		smallContentHistory = new BoardHistory("2018CREATED", BoardHistory.STATUS_CREATED, "smallSub", new byte[0], false, 1, 2, 3);
-		bigContentHistory = new BoardHistory("20182CREATED", BoardHistory.STATUS_MODIFIED, "bigSub", new byte[1], true, 4, 5, 6);
+		smallContentHistory = new BoardHistory("2018CREATED", BoardHistory.STATUS_CREATED, "smallSub", new byte[0], false, 1, 2, 3, false);
+		bigContentHistory = new BoardHistory("20182CREATED", BoardHistory.STATUS_MODIFIED, "bigSub", new byte[1], true, 4, 5, 6, false);
 		
 		StringBuilder builder = new StringBuilder(smallContent);
 		for(int i = 0; i < 1000; i++) {

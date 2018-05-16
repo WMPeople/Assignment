@@ -8,7 +8,8 @@
     resultType="com.worksmobile.assignment.model.BoardHistory">
         SELECT board_id, version, created_time, status,
         		history_subject, history_content, is_content_compressed,
-        		file_id, parent_board_id, parent_version, root_board_id
+        		file_id, parent_board_id, parent_version, root_board_id,
+        		is_locked
 		FROM board_history
 		WHERE root_board_id = #{root_board_id};
     </select>
@@ -17,7 +18,8 @@
     resultType="com.worksmobile.assignment.model.BoardHistory">
         SELECT board_id, version, created_time, status, 
         		history_subject, history_content, is_content_compressed,
-        		file_id, parent_board_id, parent_version, root_board_id
+        		file_id, parent_board_id, parent_version, root_board_id,
+        		is_locked
 		FROM board_history
 		WHERE board_id = #{board_id} AND version = #{version};
     </select>
@@ -26,13 +28,14 @@
     resultType="com.worksmobile.assignment.model.BoardHistory">
     	SELECT board_id, version, created_time, status, 
         		history_subject, history_content, is_content_compressed,
-        		file_id, parent_board_id, parent_version, root_board_id
+        		file_id, parent_board_id, parent_version, root_board_id,
+        		is_locked
         FROM board_history
     </select>
     
     <delete id="deleteHistory" parameterType="int">
 		DELETE FROM board_history
-		WHERE board_id = #{board_id} AND version = #{version};
+		WHERE board_id = #{board_id} AND version = #{version} AND is_locked = 0;
     </delete>
     
     <delete id="deleteHistories">
@@ -48,9 +51,12 @@
      <insert id="createHistory" parameterType="com.worksmobile.assignment.model.BoardHistory">
         INSERT INTO board_history(board_id, version, status, is_content_compressed, created_time,
         						history_subject, history_content, file_id,
-        						parent_board_id, parent_version, root_board_id)
-		VALUES(#{board_id}, #{version}, #{status}, #{is_content_compressed}, #{created_time}, #{history_subject},
-				#{history_content}, #{file_id}, #{parent_board_id}, #{parent_version}, #{root_board_id});
+        						parent_board_id, parent_version, root_board_id,
+        						is_locked)
+		VALUES(#{board_id}, #{version}, #{status}, #{is_content_compressed}, #{created_time},
+				#{history_subject}, #{history_content}, #{file_id},
+				#{parent_board_id}, #{parent_version}, #{root_board_id},
+				false);
     </insert>
 
     <update id="updateHistoryParentAndRoot" parameterType="com.worksmobile.assignment.model.BoardHistory">
@@ -58,9 +64,17 @@
 		SET
 		  parent_board_id = #{parent_board_id}, parent_version = #{parent_version}, root_board_id = #{root_board_id}
 		WHERE
-		  board_id = #{board_id} AND version = #{version};
+		  board_id = #{board_id} AND version = #{version} AND is_locked = 0;
     </update>
 
+    <update id="updateHistoryLock">
+		UPDATE board_history
+		SET
+		  is_locked = #{new_is_locked}
+		WHERE
+		  board_id = #{nodePtr.board_id} AND version = #{nodePtr.version} AND is_locked = #{old_is_locked};
+    </update>
+    
      <select id="selectChildren" 
     resultType="com.worksmobile.assignment.model.BoardHistory">
         SELECT board_id, version, created_time, status,

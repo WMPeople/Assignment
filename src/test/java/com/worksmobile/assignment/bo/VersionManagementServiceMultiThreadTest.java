@@ -1,7 +1,11 @@
 package com.worksmobile.assignment.bo;
 
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +43,7 @@ public class VersionManagementServiceMultiThreadTest {
 	private VersionManagementService versionManagementService;
 	
 	@Autowired
-	private  BoardMapper boardMapper;
+	private BoardMapper boardMapper;
 	
 	@Autowired
 	private BoardHistoryMapper boardHistoryMapper;
@@ -100,6 +104,9 @@ public class VersionManagementServiceMultiThreadTest {
 					Board dbBoard = boardMapper.viewDetail(nodePtr.toMap());
 					assertEquals(copyedBoard, dbBoard);
 				}
+				catch(NotExistNodePtrException | org.apache.ibatis.exceptions.PersistenceException e) {
+					
+				}
 				catch(Exception e) {
 					collector.addError(e);
 				}
@@ -108,8 +115,8 @@ public class VersionManagementServiceMultiThreadTest {
 		}
 	}
 	
-	public static NodePtr makeChild(VersionManagementService versionManagementService, BoardMapper boardMapper,
-			NodePtr parentPtr) throws JsonProcessingException {
+	public NodePtr makeChild( NodePtr parentPtr) throws JsonProcessingException {
+		await().untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(parentPtr), is(notNullValue())));
 		Board child = new Board();
 		child.setSubject("childSub");
 		child.setContent("childCont");
@@ -134,8 +141,7 @@ public class VersionManagementServiceMultiThreadTest {
 				try {
 					for(int j = 0; j < 10; j++) {
 						@SuppressWarnings("unused")
-						NodePtr child = VersionManagementServiceMultiThreadTest.makeChild(versionManagementService,
-								boardMapper, defaultCreated);
+						NodePtr child = makeChild(defaultCreated);
 					}
 				} catch(Exception e) {
 					collector.addError(e);
@@ -152,14 +158,11 @@ public class VersionManagementServiceMultiThreadTest {
 		generation.add(defaultCreated);
 		for(int i = 1; i < generationCnt; i++) {
 			NodePtr parentPtr = generation.get(i - 1);
-			NodePtr child = VersionManagementServiceMultiThreadTest.makeChild(versionManagementService, boardMapper,
-					parentPtr);
+			NodePtr child = makeChild(parentPtr);
 			generation.add(child);
 		}
 		
-
 		int i = 0;
-		
 		for(; i < THREAD_COUNT / 3; i++) {
 			Thread modifyThread = new Thread(()-> {
 				try {
@@ -171,7 +174,12 @@ public class VersionManagementServiceMultiThreadTest {
 					modifiedBoard.setSubject("modifiedSub");
 					modifiedBoard.setContent("modifiedContent");
 					versionManagementService.modifyVersion(modifiedBoard, nodePtr, null);
+				}
+				catch(NotExistNodePtrException | org.apache.ibatis.exceptions.PersistenceException e) {
+						
 				} catch(Exception e) {
+					e.printStackTrace();
+					System.err.println(e.getStackTrace());
 					collector.addError(e);
 				}
 			});
@@ -186,15 +194,18 @@ public class VersionManagementServiceMultiThreadTest {
 		for(; i < THREAD_COUNT / 3 * 2; i++) {
 			Thread deleteVersionThread = new Thread(()-> {
 				try {
-					List<Board> sameRoot = boardMapper.articleList(articleListParams);
-					sameRoot.removeIf(item -> { return item.getRoot_board_id() != root_board_id; } );
+					List<BoardHistory> sameRoot = boardHistoryMapper.selectHistoryByRootBoardId(defaultCreated.getRoot_board_id());
 					int maxIdx = sameRoot.size() - 1;
 					int randIdx = (int) (Math.random() * maxIdx);
 
 					NodePtr deletePtr = sameRoot.get(randIdx);
 					
 					versionManagementService.deleteVersion(deletePtr);
+				}catch(NotExistNodePtrException | org.apache.ibatis.exceptions.PersistenceException e) {
+					
 				} catch(Exception e) {
+					e.printStackTrace();
+					System.err.println(e.getStackTrace());
 					collector.addError(e);
 				}
 			});
@@ -204,6 +215,7 @@ public class VersionManagementServiceMultiThreadTest {
 		for(; i < THREAD_COUNT; i++) {
 			Thread deleteArticleThread = new Thread(()-> {
 				try {
+					Thread.sleep(1000);
 					List<Board> sameRoot = boardMapper.articleList(articleListParams);
 					sameRoot.removeIf(item -> {return item.getRoot_board_id() != root_board_id; } );
 					int maxIdx = sameRoot.size() - 1;
@@ -212,6 +224,8 @@ public class VersionManagementServiceMultiThreadTest {
 					NodePtr deletePtr = sameRoot.get(randIdx);
 					
 					versionManagementService.deleteArticle(deletePtr);
+				}
+				catch(NotExistNodePtrException | org.apache.ibatis.exceptions.PersistenceException e) {
 					
 				} catch(Exception e) {
 					collector.addError(e);
@@ -219,5 +233,15 @@ public class VersionManagementServiceMultiThreadTest {
 			});
 			threadList.add(deleteArticleThread);
 		}
+	}
+	
+	@Test(expected=Exception.class)
+	public void testSelectLock() {
+		Board modifiedBoard = new Board();
+		modifiedBoard.setSubject("modifiedSub");
+		modifiedBoard.setContent("modifiedContent");
+		
+		versionManagementService.modifyVersion(modifiedBoard, defaultCreated, null);
+		versionManagementService.deleteVersion(defaultCreated);
 	}
 }

@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.worksmobile.assignment.bo.BoardHistoryService;
 import com.worksmobile.assignment.model.Board;
@@ -25,22 +26,23 @@ public class ArticleHistoryEventListener {
 	@Autowired
 	private ApplicationEventPublisher publisher;
 	
-	@EventListener
+	@TransactionalEventListener
 	@Async
 	public void addHistory(ArticleCreatedEvent articleCreatedEvent) {
 		Board article = articleCreatedEvent.getArticle();
 		boardHistoryService.createHistory(article, BoardHistory.STATUS_CREATED, new NodePtr());
 	}
 	
-	@EventListener
+	@TransactionalEventListener
 	@Async
 	public void addHistory(ArticleModifiedEvent event) {
 		Board article = event.getArticle();
 		NodePtr parentPtr = event.getParentPtr();
 		boardHistoryService.createHistory(article, BoardHistory.STATUS_MODIFIED, parentPtr);
+		boardHistoryService.updateHistoryLock(parentPtr, true, false);
 	}
 	
-	@EventListener
+	@TransactionalEventListener
 	@Async
 	public void addHistory(ArticleRecoveredEvent event) {
 		BoardHistory recoverHistory = event.getRecoverHistory();
@@ -49,6 +51,7 @@ public class ArticleHistoryEventListener {
 		
 		String status = String.format("%s(%s)", BoardHistory.STATUS_RECOVERED, recoverHistory.getNodePtrStr());
 		boardHistoryService.createHistory(recoveredArticle, status, parentPtr);
+		boardHistoryService.updateHistoryLock(parentPtr, true, false);
 	}
 	
 
@@ -66,22 +69,19 @@ public class ArticleHistoryEventListener {
 			BoardHistory deleteHistory = boardHistoryService.selectHistory(leafPtr);
 			NodePtr parentPtr = deleteHistory.getParentPtrAndRoot();
 			
+			boardHistoryService.deleteBoardHistory(deleteHistory);
+			List<BoardHistory> siblings = boardHistoryService.selectChildren(parentPtr);
+			
 			deleteHistoryList.add(deleteHistory);
 			fileIds.add(deleteHistory.getFile_id());
 			
-			List<BoardHistory> siblings = boardHistoryService.selectChildren(parentPtr);
-			
-			if (siblings.size() > 1 ||
+			if (siblings.size() != 0 ||
 				deleteHistory.isInvisibleRoot()) {
 				break;
-			} else if(siblings.size() == 0) {
-				String json = JsonUtils.jsonStringIfExceptionToString(parentPtr);
-				throw new RuntimeException("자기자신이 없습니다.(안보이는 루트 제외) nodePtr : " + json);
-			}
+			} 
 			leafPtr = parentPtr;
 		}
 		
-		boardHistoryService.deleteBoardHistory(deleteHistoryList);
 		publisher.publishEvent(new AutoSaveDeleteRequestEvent(deleteHistoryList, fileIds));
 	}
 }

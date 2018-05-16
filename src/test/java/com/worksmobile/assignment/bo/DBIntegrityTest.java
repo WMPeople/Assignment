@@ -74,16 +74,16 @@ public class DBIntegrityTest {
 	public void testLeafIntegrity() throws JsonProcessingException {
 		List<BoardHistory> notFoundList = new LinkedList<>();
 		List<BoardHistory> historyList = boardHistoryMapper.selectAllHistory();
-
+		
 		for(BoardHistory ele : historyList) {
 			if(isLeafByBoardHistory(ele)) {
 				Board dbBoard = boardMapper.viewDetail(ele.toMap());
 				collector.checkThat(JsonUtils.jsonStringFromObject(ele), dbBoard, is(notNullValue()));
 			}
 		}
-
-		System.err.println(JsonUtils.jsonStringFromObject(notFoundList));
+		
 		assertEquals(0, notFoundList.size());
+		System.err.println(JsonUtils.jsonStringFromObject(notFoundList));
 	}
 	
 	/*

@@ -14,7 +14,7 @@ public interface BoardHistoryMapper {
 	public List<BoardHistory> selectHistoryByRootBoardId(@Param("root_board_id") int root_board_id);
 
 	public BoardHistory selectHistory(NodePtr nodePtr);
-
+	
 	/**
 	 * board_history의 모든 것을 반환합니다. 디버깅 용도입니다.
 	 * @return
@@ -28,6 +28,8 @@ public interface BoardHistoryMapper {
 	public int createHistory(BoardHistory boardHistory);
 
 	public int updateHistoryParentAndRoot(BoardHistory boardHistory);
+
+	public int updateHistoryLock(@Param("nodePtr") NodePtr nodePtr, @Param("old_is_locked") boolean old_is_locked, @Param("new_is_locked") boolean new_is_locked);
 
 	public List<BoardHistory> selectChildren(NodePtr nodePtr);
 
