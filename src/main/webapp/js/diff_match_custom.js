@@ -297,20 +297,20 @@ function launch() {
 		}
 		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExpArr, isWhiteCharFirst);
 	} else {
-		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt);
+		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, [], false);
 	}
 }
 
 // ================= 이벤트 핸들러를 위한 함수들 시작 ====================
 
 function chagnePriorityDisabled() {
-	var regularChkBox = document.getElementById("regularExpChkBox");
+	var regularList = document.getElementById("regularList");
 	var ignoreWhiteSpaceCnt = document.getElementById("ignoreWhiteCharCnt").value;
 	
 	var priorityOpt = document.getElementById("whiteCharPriorityOpt");
 	var priorityOpt2 = document.getElementById("regularExpPriorityOpt");
 
-	if(regularChkBox.checked == true && parseInt(ignoreWhiteSpaceCnt, 10) > 0) {
+	if(regularList.children.length != 0 && parseInt(ignoreWhiteSpaceCnt, 10) > 0) {
 		priorityOpt.disabled = false;
 		priorityOpt2.disabled = false;
 	} else {
@@ -323,10 +323,12 @@ function add_item() {
 	var span = document.createElement('span');
 	span.innerHTML = document.getElementById('pre_set').innerHTML;
     document.getElementById('regularList').appendChild(span);
+    chagnePriorityDisabled();
 }
 
 function remove_item(obj) {
 	document.getElementById('regularList').removeChild(obj.parentNode);
+	chagnePriorityDisabled();
 }
 
 function isNumeric(n) {
@@ -350,4 +352,7 @@ function onIgnoreWhiteSpaceChagned() {
 	chagnePriorityDisabled();
 }
 
+window.onload = function() {
+	chagnePriorityDisabled();
+}
 // ===================== 이벤트 핸들러를 위한 함수들 끝 =======================

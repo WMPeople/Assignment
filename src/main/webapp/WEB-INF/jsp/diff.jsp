@@ -55,12 +55,12 @@
 	<label for="ignoreWhiteCharCnt">무시할 공백 및 개행의 최소 개수</label><input type="number" min="0" id="ignoreWhiteCharCnt" value="1" onchange="onIgnoreWhiteSpaceChagned()"/>
 	<br>
 	우선순위 옵션 <span class="toolTip">
-			<input type="radio" id="whiteCharPriorityOpt" name="priOpt" value="whitePri" checked="checked"/>
+			<input type="radio" id="whiteCharPriorityOpt" name="priOpt" value="whitePri"/>
 			<label for="whiteCharPriorityOpt">공백 및 개행 무시 우선</label>
 				<span class="tooltiptext">공백 문자 -> 정규식 -> 비교 알고리즘</span>
 			</span>
 			<span class="toolTip">
-			<input type="radio" id="regularExpPriorityOpt" name="priOpt" value="regularPri" />
+			<input type="radio" id="regularExpPriorityOpt" name="priOpt" value="regularPri" checked="checked"/>
 			<label for="regularExpPriorityOpt">정규식 무시 우선</label>
 				<span class="tooltiptext">정규식 -> 공백 문자 -> 비교 알고리즘</span>
 			</span>

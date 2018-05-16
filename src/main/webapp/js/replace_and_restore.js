@@ -14,7 +14,7 @@ function Replace(regularExpression, isHaveReplaceChar, text1, text2) {
 	this._text1Match = [];
 	this._text2Match = [];
 	this._regularExp = regularExpression;
-	this._isHaveReplaceChar = isHaveReplaceChar;
+	this._replacedChar = isHaveReplaceChar;
 	this._replaceChar;
 	this.taskQueue = new Array();
 	this._text = [text1, text2];
@@ -35,21 +35,24 @@ Replace.prototype.getReplacedChar = function() {
 
 /**
  * 중복되지 않는 랜덤한 텍스트를 반환합니다
- * @param {String} text1 중복되지 않을 텍스트의 대상
- * @param {String} text2 중복되지 않을 텍스트의 대상
+ * @param {Array<String>} redundancyCheckList 중복 검사를 할 텍스트 리스트
  * @return {Character} 중복되지 않는 랜덤한 문자
  */
-Replace.prototype.getRandomReplaceChar = function(text1, text2) {
+Replace.prototype.getRandomReplaceChar = function(redundancyCheckList) {
 	const MAX_UTF_16_CODE = 65535;
 	while(true) {
 		var char = String.fromCharCode(Math.floor(Math.random() * MAX_UTF_16_CODE));
 		if(char == '\r' || char == '\n') {
 			continue;
 		}
-		if(	text1.indexOf(char) == -1 &&
-			text2.indexOf(char) == -1) {
-			return char;
+		var i = 0;
+		for(i = 0; i < redundancyCheckList.length; i++) {
+			const ele = redundancyCheckList[i];
+			if(ele.indexOf(char) != -1) {
+				continue;
+			}
 		}
+		return char;
 	}
 	throw "charCode할당 실패";
 }
@@ -62,8 +65,9 @@ Replace.prototype.doQueueTask = function(thisPtr) {
 			task(thisPtr);
 		}
 		window.setTimeout(thisPtr.doQueueTask.bind(null, thisPtr), 10);
+	} else {
+		window.queueCnt = 0;
 	}
-	window.queueCnt = 0;
 }
 
 /**
@@ -96,8 +100,8 @@ Replace.prototype._doReplaceTask = function(thisPtr, match, replaceDiffLength, t
  * 치환하는 작업의 함수를 queue에 넣어서 실행합니다.
  */
 Replace.prototype.doReplaceAsync = function() {
-	if(this._isHaveReplaceChar) {
-		this._replaceChar = this.getRandomReplaceChar(this._text[0], this._text[1]);
+	if(this._replacedChar) {
+		this._replaceChar = this.getRandomReplaceChar(this._text);
 	} else {
 		this._replaceChar = '';
 	}
@@ -129,8 +133,8 @@ Replace.prototype.doReplaceAsync = function() {
  * @return {!Array.<String>} 치환된 내용들입니다.
  */
 Replace.prototype.doReplace = function(text1, text2) {
-	if(this._isHaveReplaceChar) {
-		this._replaceChar = this.getRandomReplaceChar(text1, text2);
+	if(this._replacedChar) {
+		this._replaceChar = this.getRandomReplaceChar([text1, text2]);
 	} else {
 		this._replaceChar = '';
 	}
@@ -158,16 +162,16 @@ Replace.prototype.doReplace = function(text1, text2) {
 	return [text1, text2];
 }
 
-function Restore(text1Match, text2Match, diffs, isHaveReplaceChar) {
+function Restore(text1Match, text2Match, diffs, replacedChar) {
 	this._text1Match = text1Match;
 	this._text2Match = text2Match;
 	this._diffs = diffs;
 	this._diffsIdx;
-	this._isHaveReplaceChar = isHaveReplaceChar;
+	this._replacedChar = replacedChar;
 }
 
 Restore.prototype.doRestore = function() {
-	if(this._isHaveReplaceChar.length == 0) {
+	if(this._replacedChar.length == 0) {
 		return this._resotreWithoutReplaceChar();
 	} else {
 		return this._restoreWithReplaceChar();
@@ -217,7 +221,7 @@ Restore.prototype._restoreWithReplaceCharHelper = function(matchArr, matchIdx, c
 	
 	this._diffs.splice(this._diffsIdx++, 0, [ diffStatus, matchBlock[0] ]);
 	
-	var lastReplaceBeginPos = replacePos + this._isHaveReplaceChar.length;
+	var lastReplaceBeginPos = replacePos + this._replacedChar.length;
 	if(lastReplaceBeginPos !== diffStr.length) {
 		var afterReplacedStr = diffStr.substr(lastReplaceBeginPos);
 		this._diffs.splice(this._diffsIdx, 0, [ diffStatus, afterReplacedStr ]);
@@ -280,14 +284,14 @@ Restore.prototype._restoreWithReplaceChar = function() {
 				this._diffs.splice(this._diffsIdx++, 0, [ window.DIFF_INSERT * 2, this._text2Match[text2MatchIdx][0] ]);
 				text2MatchIdx++;
 				
-				var lastReplaceBeginPos = replacePos + this._isHaveReplaceChar.length;
+				var lastReplaceBeginPos = replacePos + this._replacedChar.length;
 				if(lastReplaceBeginPos !== diffStr.length) {
 					var afterReplacedStr = diffStr.substr(lastReplaceBeginPos);
 					this._diffs.splice(this._diffsIdx, 0, [ diffStatus, afterReplacedStr ]);
 				}
 				
 				curTextLengths[0] += lastReplaceBeginPos;
-				curTextLengths[1] += this._text2Match[text2MatchIdx - 1].index - curTextLengths[1] + this._isHaveReplaceChar.length;
+				curTextLengths[1] += this._text2Match[text2MatchIdx - 1].index - curTextLengths[1] + this._replacedChar.length;
 
 				this._diffsIdx--; // 이전 블록을 꺼낸다.
 			}
@@ -347,7 +351,7 @@ Restore.prototype._restoreWithoutReplaceCharHelper = function(matchArr, matchIdx
 
 	this._diffs.splice(this._diffsIdx++, 0, [ insertDiffStatus, matchBlock[0] ]);
 	
-	var lastReplaceBeginPos = replacePos + this._isHaveReplaceChar.length;
+	var lastReplaceBeginPos = replacePos + this._replacedChar.length;
 	if(lastReplaceBeginPos !== diffStr.length) {
 		var afterReplacedStr = diffStr.substr(lastReplaceBeginPos);
 		this._diffs.splice(this._diffsIdx, 0, [ diffStatus, afterReplacedStr ]);
