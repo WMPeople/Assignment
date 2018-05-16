@@ -277,6 +277,10 @@ function launch() {
 	var ignoreWhiteCharCnt = $("#ignoreWhiteCharCnt").val();
 	var whiteCharFirst = $('#whiteCharPriorityOpt').prop("checked");
 	var regExpFirst = $('#regularExpPriorityOpt').prop("checked");
+	var efficiencyCleanupOpt = $('#efficiencyCleanupOpt').prop("checked");
+	if(efficiencyCleanupOpt) {
+		efficiencyCleanupOpt = cleanupOpt.efficiencyCleanup;
+	}
 	var isWhiteCharFirst;
 	if(whiteCharFirst) {
 		isWhiteCharFirst = true;
@@ -295,9 +299,9 @@ function launch() {
 			var re = new RegExp(regularExp, regularExpOpt);
 			regularExpArr.push(re);
 		}
-		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, regularExpArr, isWhiteCharFirst);
+		diffMatchCustom.startAsync(efficiencyCleanupOpt, ignoreWhiteCharCnt, regularExpArr, isWhiteCharFirst);
 	} else {
-		diffMatchCustom.startAsync(cleanupOpt.efficiencyCleanup, ignoreWhiteCharCnt, [], false);
+		diffMatchCustom.startAsync(efficiencyCleanupOpt, ignoreWhiteCharCnt, [], false);
 	}
 }
 

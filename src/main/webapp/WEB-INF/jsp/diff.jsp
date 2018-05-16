@@ -54,6 +54,7 @@
 	<br>
 	<label for="ignoreWhiteCharCnt">무시할 공백 및 개행의 최소 개수</label><input type="number" min="0" id="ignoreWhiteCharCnt" value="1" onchange="onIgnoreWhiteSpaceChagned()"/>
 	<br>
+	<div>
 	우선순위 옵션 <span class="toolTip">
 			<input type="radio" id="whiteCharPriorityOpt" name="priOpt" value="whitePri"/>
 			<label for="whiteCharPriorityOpt">공백 및 개행 무시 우선</label>
@@ -64,6 +65,12 @@
 			<label for="regularExpPriorityOpt">정규식 무시 우선</label>
 				<span class="tooltiptext">정규식 -> 공백 문자 -> 비교 알고리즘</span>
 			</span>
+	</div>
+	<br>
+	<div>
+		<label for="efficiencyCleanupOpt">비교 결과를 보기 좋게 하기(이 작업은 오래 걸릴 수 있습니다.!)</label>
+		<input type="checkbox" id="efficiencyCleanupOpt" class="cleanupOpt"/>
+	</div>
 	<form action="#" onsubmit="return false">
 		<table width="100%">
 			<tr>
