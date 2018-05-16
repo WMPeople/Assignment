@@ -57,47 +57,7 @@ $(document).ready(function() {
 			        } 
 		        }
 		    }
-	    }
-	    
-//	    console.log(copyContent);
-//	    console.log(copyContent.split('</p>'));
-//	    console.log(copyContent.split('영화&nbsp;'));
-//	    console.log(copyContent.split('&nbsp;'));
-//	    console.log(copyContent.substring(copyContent.indexOf('영화&nbsp;')+'영화&nbsp;'.length));
-//	    for(var i =0; i< nameList.length ; i++){
-//	        var searchIndex = 0;
-//	        var substringStartIndex = 0;	
-//	        while(searchIndex != -1){
-//	        	 var searchIndex = copyContent.substring(substringStartIndex).indexOf(nameList[i]+nbsp);
-//	        	 var temp = copyContent.substring(substringStartIndex);
-//	        	 console.log(temp);
-//	        	 var temp2 = searchIndex + nameList[i].length + nbsp.length;
-//	        	 if(searchIndex!= -1){
-//	                
-//	        		console.log(temp.charAt(temp2+substringStartIndex));
-//                    var startIndex = firstQuoteIndex + 1;
-//                    var secondQuoteIndex = '';
-//                    var text = '';
-//                	secondQuoteIndex = temp.substring(startIndex).indexOf(divisionList[z][1]) + startIndex;
-//                	text = temp.substring(firstQuoteIndex + 1,secondQuoteIndex);
-//                	console.log(temp.charAt(secondQuoteIndex));
-//                	console.log(text);
-//                	firstArg = nameList[i]+nbsp+divisionList[z][0]+text+divisionList[z][1];
-//                	console.log(firstArg);
-//                	if (text == "" || text == divisionList[z][0] || text == divisionList[z][0]+divisionList[z][1]) {
-//                    	secondArg = '<span> '+nameList[i]+" "+divisionList[z][0]+text +divisionList[z][1]+'</span>';
-//                    } else {
-//                    	secondArg = '<Strong id= '+englishNameList[i]+' class="'+ text +'" onmouseover="m_over(this)">'+nameList[i]+" "+divisionList[z][0]+text +divisionList[z][1]+'</Strong>';
-//                    }
-//                	copyContent = copyContent.replace(firstArg,secondArg);
-//                	substringStartIndex = substringStartIndex + searchIndex + secondArg.length;
-//	                
-//		        } 
-//	        }
-//	    }
-	    
-	    
-	    
+	    }   
 		return copyContent;
 	}
 	
