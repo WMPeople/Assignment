@@ -21,7 +21,7 @@ public interface BoardTempMapper {
 
 	/**
 	 * 관련된 자동 저장 게시글도 같이 삭제됩니다.
-	 * @param parmas HashMap(board_id, version)
+	 * @param parmas HashMap(board_id, version, cookie_id)
 	 * @return
 	 */
 	public int deleteBoardTemp(HashMap<String, Object> parmas);

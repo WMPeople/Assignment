@@ -1,13 +1,13 @@
 package com.worksmobile.assignment.bo;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.worksmobile.assignment.bo.event.AttachmentChangedEvent;
 import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.mapper.BoardTempMapper;
 import com.worksmobile.assignment.model.Board;
@@ -23,7 +23,7 @@ public class BoardTempService {
 	private BoardTempMapper boardTempMapper;
 
 	@Autowired
-	private FileService fileService;
+	private ApplicationEventPublisher publisher;
 
 	// TODO : 함수명이 임시 게시글을 만든다 이지만, 만들고 있지 않습니다.
 	// TODO : 매개 변수명 type의 의미를 파악하기 힘듭니다. 또한 type이 "withfile"일 경우만 분기를 나뉘는데, 그러한 목적이면 String일 필요가 없을것 같습니다.
@@ -40,7 +40,7 @@ public class BoardTempService {
 					String json = JsonUtils.jsonStringIfExceptionToString(tempArticle);
 					throw new RuntimeException("createTempArticleOverwrite메소드에서 임시 게시글 수정 에러 tempArticle : " + json + "\n" + "articleUpdatedCnt : " + articleUpdatedCnt);
 				}
-
+				publisher.publishEvent(new AttachmentChangedEvent(dbTempArticle.getFile_id()));
 			} else {
 				int articleUpdatedCnt = boardTempMapper.boardTempUpdateWithoutFile(tempArticle);
 				if (articleUpdatedCnt != 1) {
@@ -60,17 +60,25 @@ public class BoardTempService {
 	 */
 	public void copyBoardAndCreateTempBoard(BoardTemp tempArticle) {
 		Board board = boardMapper.viewDetail(tempArticle.toBoardKeyMap());
-		if (board == null || board.getBoard_id() == 0) {
-			throw new RuntimeException("board 정보를 가져올 수 없습니다.");
-		}
-		BoardTemp newBoardTemp = new BoardTemp();
-		newBoardTemp = tempArticle;
-		newBoardTemp.setBoard_id(board.getBoard_id());
-		newBoardTemp.setVersion(board.getVersion());
-		newBoardTemp.setFile_id(board.getFile_id());
-		int insertedRowCnt = boardTempMapper.createBoardTemp(newBoardTemp);
-		if (insertedRowCnt != 1) {
-			throw new RuntimeException("createTempArticleOverwrite메소드에서 createBoard error");
+		if (tempArticle.getVersion().equals(board.getVersion()) ) {
+			int insertedRowCnt = boardTempMapper.createBoardTemp(tempArticle);
+			if (insertedRowCnt != 1) {
+				throw new RuntimeException("createTempArticleOverwrite메소드에서 createBoard error");
+			}
+		} else {
+			
+			if (board == null || board.getBoard_id() == 0) {
+				throw new RuntimeException("board 정보를 가져올 수 없습니다.");
+			}
+			BoardTemp newBoardTemp = new BoardTemp();
+			newBoardTemp = tempArticle;
+			newBoardTemp.setBoard_id(board.getBoard_id());
+			newBoardTemp.setVersion(board.getVersion());
+			newBoardTemp.setFile_id(board.getFile_id());
+			int insertedRowCnt = boardTempMapper.createBoardTemp(newBoardTemp);
+			if (insertedRowCnt != 1) {
+				throw new RuntimeException("createTempArticleOverwrite메소드에서 createBoard error");
+			}
 		}
 	}
 
@@ -97,7 +105,7 @@ public class BoardTempService {
 	}
 
 	/***
-	 * 하나의 임시게시글을 삭제 하는 것이 아니라 board_id와 version에 해당하는 모든 임시 게시글을 삭제합니다.
+	 * 하나의 임시게시글을 삭제.
 	 * @param deleteParams
 	 * @return 
 	 */
@@ -106,14 +114,13 @@ public class BoardTempService {
 		if (dbBoardTemp == null) {
 			return false;
 		}
-		Set<Integer> fileIdSet = new HashSet<>();
-		fileIdSet.add(dbBoardTemp.getFile_id());
 
 		int deletedCnt = boardTempMapper.deleteBoardTemp(deleteParams);
-		if (deletedCnt != 0) {
-			fileService.deleteNoMoreUsingFile(fileIdSet);
+		if (deletedCnt == 0) {
+			return false;
 		}
-
+		publisher.publishEvent(new AttachmentChangedEvent(dbBoardTemp.getFile_id()));
+		
 		return true;
 
 	}
