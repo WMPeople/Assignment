@@ -5,19 +5,18 @@
 
 /**
  * 치환을 담당하는 클래스 입니다.
- * @param {RegularExp} regularExpression 치환할 정규식 객체
+ * @param {Array<RegularExp>} regularExpression 치환할 정규식 객체의 리스트
  * @param {Boolean} isHaveReplaceChar 치환을 문자로 할지 정합니다.(안할시 치환되지 않고 삭제됨)
  * @param {String} text1 비교할 텍스트1 입니다.
  * @param {String} text2 비교할 텍스트2 입니다.
  */
-function Replace(regularExpression, isHaveReplaceChar, text1, text2) {
-	this._text1Match = [];
-	this._text2Match = [];
-	this._regularExp = regularExpression;
+function Replace(regularExpressionArr, isHaveReplaceChar, text1, text2) {
+	this._regularExpArr = regularExpressionArr;
 	this._replacedChar = isHaveReplaceChar;
 	this._replaceChar;
 	this.taskQueue = new Array();
 	this._text = [text1, text2];
+	this._replacedText = ['',''];
 	this._textMatch = [[], []];
 }
 
@@ -26,7 +25,7 @@ Replace.prototype.getTextMatchArr = function() {
 }
 
 Replace.prototype.getTextArr = function() {
-	return this._text;
+	return this._replacedText;
 }
 
 Replace.prototype.getReplacedChar = function() {
@@ -38,7 +37,7 @@ Replace.prototype.getReplacedChar = function() {
  * @param {Array<String>} redundancyCheckList 중복 검사를 할 텍스트 리스트
  * @return {Character} 중복되지 않는 랜덤한 문자
  */
-Replace.prototype.getRandomReplaceChar = function(redundancyCheckList) {
+Replace.prototype.getRandomReplaceChar = function(redundancyCheckList, redundancyRegExpList) {
 	const MAX_UTF_16_CODE = 65535;
 	while(true) {
 		var char = String.fromCharCode(Math.floor(Math.random() * MAX_UTF_16_CODE));
@@ -49,6 +48,13 @@ Replace.prototype.getRandomReplaceChar = function(redundancyCheckList) {
 		for(i = 0; i < redundancyCheckList.length; i++) {
 			const ele = redundancyCheckList[i];
 			if(ele.indexOf(char) != -1) {
+				continue;
+			}
+		}
+		for(i = 0; i < redundancyRegExpList.length; i++) {
+			const regExp = redundancyCheckList[i];
+			var found = char.match(regExp);
+			if(found != null && found.length != 0) {
 				continue;
 			}
 		}
@@ -70,28 +76,80 @@ Replace.prototype.doQueueTask = function(thisPtr) {
 	}
 }
 
+Replace.prototype._isRegExpAllDone = function(matchRtnArr) {
+	for(var i = 0; i < matchRtnArr.length; i++) {
+		if(matchRtnArr[i] !== null) {
+			return false;
+		}
+	}
+	return true;
+}
+
 /**
  * 
  * @param {Replace} thisPtr
- * @param {Match} match nullable
- * @param {Number} replaceDiffLength 치환하면서 어긋난 위치 보정값 
+ * @param {Array<RegExpMachRtn>} matchArr nullable
+ * @param {Number} replaceBeginPos 치환을 시작할 위치
+ * @param {Number} replaceDiffLength 치환하면서 원본과 어긋난 길이의 값
  * @param {Number} textIdx 왼쪽이면 0, 오른쪽으면 1
  */
-Replace.prototype._doReplaceTask = function(thisPtr, match, replaceDiffLength, textIdx) {
+Replace.prototype._doReplaceTask = function(thisPtr, matchArr, replaceBeginPos, replaceDiffLength, textIdx) {
 	window.queueCnt = 2;
-	var idx = 0;
+	const MAX_LOOP_CNT = 100;
+	var loopCnt = 0;
 	
-	var RegularExp = thisPtr._regularExp;
-	while(( match = RegularExp.exec(thisPtr._text[textIdx])) !== null) {
-		match.index -= replaceDiffLength;
-		replaceDiffLength += (match[0].length - thisPtr._replaceChar.length);
-		thisPtr._textMatch[textIdx].push(match);
-		idx++;
-		if(idx > 100) {
-			window.setTimeout(thisPtr._doReplaceTask(thisPtr, match, replaceDiffLength, textIdx), 10);
-			return;
+	const curAreaText = thisPtr._text[textIdx];
+	
+	var RegularExpArr = thisPtr._regularExpArr;
+	for(var i = 0; i < RegularExpArr.length; i++) {
+		var regExp = RegularExpArr[i];
+		matchArr[i] = regExp.exec(curAreaText);
+	}
+	
+	if(!thisPtr._isRegExpAllDone(matchArr)) {
+		while(true) {
+			var minMatchIdx = 0;
+			for(var i = 1; i < RegularExpArr.length; i++) {
+				const minReg = matchArr[minMatchIdx];
+				if( !minReg ||
+					(matchArr[i] && minReg.index > matchArr[i].index) ){
+					minMatchIdx = i;
+				}
+			}
+			
+			const minReg = matchArr[minMatchIdx];
+			
+			const appendStr = curAreaText.substr(replaceBeginPos, minReg.index - replaceBeginPos);
+			thisPtr._replacedText[textIdx] += appendStr;
+			thisPtr._replacedText[textIdx] += thisPtr._replaceChar;
+			
+			replaceBeginPos = minReg.index + minReg[0].length;
+			
+			// 복원을 위한 위치 보정
+			minReg.index -= replaceDiffLength;
+			replaceDiffLength += (minReg[0].length - thisPtr._replaceChar.length);
+			thisPtr._textMatch[textIdx].push(minReg);
+			// 복원을 위한 위치 보정 끝
+			
+			matchArr[minMatchIdx] = RegularExpArr[minMatchIdx].exec(curAreaText);
+			
+			if(!matchArr[minMatchIdx]) {
+				if(thisPtr._isRegExpAllDone(matchArr)) {
+					break;
+				}
+			}
+			
+			loopCnt++;
+			if(loopCnt > MAX_LOOP_CNT) {
+				window.setTimeout(thisPtr._doReplaceTask(thisPtr, matchArr, replaceBeginPos, replaceDiffLength, textIdx), 10);
+				return;
+			}
 		}
 	}
+	
+	// 치환하고 남은 텍스트를 넣습니다.
+	var remainText = curAreaText.substr(replaceBeginPos);
+	thisPtr._replacedText[textIdx] += remainText;
 	
 	window.queueCnt = 1;
 }
@@ -101,27 +159,22 @@ Replace.prototype._doReplaceTask = function(thisPtr, match, replaceDiffLength, t
  */
 Replace.prototype.doReplaceAsync = function() {
 	if(this._replacedChar) {
-		this._replaceChar = this.getRandomReplaceChar(this._text);
+		this._replaceChar = this.getRandomReplaceChar(this._text, this._regularExpArr);
 	} else {
 		this._replaceChar = '';
 	}
 	
-	const makeFunc = function getReplaceTaskFunc(match, replaceDiffLength, textIdx) {
+	const LEFT_TEXT_AREA_NUM = 0;
+	const RIGHT_TEXT_AREA_NUM = 1;
+	
+	const makeFunc = function getReplaceTaskFunc(matchArr, textIdx) {
 		return function replaceOneSection(thisPtr) {
-			thisPtr._doReplaceTask(thisPtr, match, replaceDiffLength, textIdx);
+			thisPtr._doReplaceTask(thisPtr, matchArr, 0, 0, textIdx);
 		}
 	}
-	this.taskQueue.push(makeFunc(undefined, 0, 0));
+	this.taskQueue.push(makeFunc([], LEFT_TEXT_AREA_NUM));
 	
-	this.taskQueue.push(function replaceLeft(thisPtr) {
-		thisPtr._text[0] = thisPtr._text[0].replace(thisPtr._regularExp, thisPtr._replaceChar);
-	});
-	
-	this.taskQueue.push(makeFunc(undefined, 0, 1));
-	
-	this.taskQueue.push(function replaceRight(thisPtr) {
-		thisPtr._text[1] = thisPtr._text[1].replace(thisPtr._regularExp, thisPtr._replaceChar);
-	});
+	this.taskQueue.push(makeFunc([], RIGHT_TEXT_AREA_NUM));
 	
 	this.doQueueTask(this);
 }

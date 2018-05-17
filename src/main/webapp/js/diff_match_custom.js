@@ -133,7 +133,6 @@ DiffMatchCustom.prototype.doReplace = function(regExp, withReplaceChar) {
 	return this.replace;
 }
 
-
 DiffMatchCustom.prototype.applyTextAndPush = function(replace) {
 	var matchRtn = replace.getTextArr();
 	this.text1 = matchRtn[0];
@@ -142,50 +141,43 @@ DiffMatchCustom.prototype.applyTextAndPush = function(replace) {
 	this._replaceStack.push(replace);
 }
 
-DiffMatchCustom.prototype.restoreWhiteSpace = function(diffs, text1Match, text2Match) {
-	var replacedChar = '';
-	var restore = new Restore(text1Match, text2Match, diffs, '');
-	return restore.doRestore();
-}
-
-DiffMatchCustom.prototype.restoreRegularExp = function(diffs, text1Match, text2Match) {
-	var replacedChar = '\0';	
-	var restore = new Restore(text1Match, text2Match, diffs, replacedChar);
+DiffMatchCustom.prototype.restore= function(diffs, text1Match, text2Match, replacedStr) {
+	var restore = new Restore(text1Match, text2Match, diffs, replacedStr);
 	return restore.doRestore();
 }
 
 /***
  * @param {cleanupOpt} cleanupOption diff 알고리즘의 옵션입니다. cleanupOpt의 sementic, efficiency, no 중에 설정 가능합니다.
  * @param {Number} ignoreWhiteCharCnt 개수 이상으로 반복되는 공백문자를 무시합니다. (0이면 실행하지 않습니다.)
- * @param {Number} isWhitespaceFirst 공백 및 개행 무시 우선이면 true, 정규식 무시 우선이면 false 입니다.
+ * @param {Array<RegularExp>} regularExpArr 치환할 정규식 배열
+ * @param {Boolean} isWhitespaceFirst 공백 및 개행 무시 우선이면 true, 정규식 무시 우선이면 false 입니다.
  */
 DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCnt, regularExpArr, isWhitespaceFirst) {
 	this.ms_start = (new Date()).getTime();
 	
 	// 변경 무시 옵션에 따른 무시 사전 필터 시작
-	if(typeof ignoreWhiteCharCnt != 'undefined' &&
+	if(ignoreWhiteCharCnt&&
 			ignoreWhiteCharCnt > 0 &&
 			isWhitespaceFirst) {
 		this.taskQueue.push(function whiteChar(thisPtr) {
 			var regExp = thisPtr.getWhiteCharacterRegExp(ignoreWhiteCharCnt);
-			thisPtr.doReplace(regExp, false);
+			thisPtr.doReplace([regExp], false);
 		});
 		this.taskQueue.push(function applyTextAndPush(thisPtr) {
 			thisPtr.applyTextAndPush(thisPtr.replace);
 		});
 	}
-	if(typeof regularExpArr != 'undefined') {
-		for(var i = 0; i < regularExpArr.length; i++) {
-			var pushEle = function (regExp) {
-				return function (thisPtr) {
-					thisPtr.doReplace(regExp, true);
-				}
+	if(regularExpArr &&
+		regularExpArr.length > 0) {
+		var pushEle = function (regExpArr) {
+			return function (thisPtr) {
+				thisPtr.doReplace(regularExpArr, true);
 			}
-			this.taskQueue.push(pushEle(regularExpArr[i]));
-			this.taskQueue.push(function applyTextAndPush(thisPtr) {
-				thisPtr.applyTextAndPush(thisPtr.replace);
-			});
 		}
+		this.taskQueue.push(pushEle(regularExpArr));
+		this.taskQueue.push(function applyTextAndPush(thisPtr) {
+			thisPtr.applyTextAndPush(thisPtr.replace);
+		});
 	}
 	// 변경 무시 옵션에 따른 사전 필터 끝
 	
@@ -210,28 +202,27 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 	});
 	
 	// 변경 무시 옵션에 따른 사전 필터 복원 시작
-	if(typeof regularExpArr != 'undefined') {
-		for(var i = 0; i < regularExpArr.length; i++) {
-			this.taskQueue.push(function recoverRegExp(thisPtr) {
-				var replace = thisPtr._replaceStack.pop();
-				var matchArr = replace.getTextMatchArr();
-				thisPtr.diffRtn = thisPtr.restoreRegularExp(thisPtr.diffRtn, matchArr[0], matchArr[1]);
-			});
-		}
+	if(regularExpArr &&
+		regularExpArr.length > 0) {
+		this.taskQueue.push(function recoverRegExp(thisPtr) {
+			var replace = thisPtr._replaceStack.pop();
+			var matchArr = replace.getTextMatchArr();
+			thisPtr.diffRtn = thisPtr.restore(thisPtr.diffRtn, matchArr[0], matchArr[1], replace.getReplacedChar());
+		});
 	}
-	if(typeof ignoreWhiteCharCnt != 'undefined' &&
+	if(ignoreWhiteCharCnt &&
 			ignoreWhiteCharCnt > 0 &&
 			isWhitespaceFirst) {
 		this.taskQueue.push(function recoverWhiteSpace(thisPtr) {
 			var replace = thisPtr._replaceStack.pop();
 			var matchArr = replace.getTextMatchArr();
-			thisPtr.diffRtn = thisPtr.restoreWhiteSpace(thisPtr.diffRtn, matchArr[0], matchArr[1]);
+			thisPtr.diffRtn = thisPtr.restore(thisPtr.diffRtn, matchArr[0], matchArr[1], replace.getReplacedChar());
 		});
 	}
 	// 사전 필터 복원 끝
 
 	// 공백문자 후처리 필터
-	if(typeof ignoreWhiteCharCnt != 'undefined' &&
+	if(ignoreWhiteCharCnt &&
 			ignoreWhiteCharCnt > 0 &&
 			!isWhitespaceFirst) {
 		this.taskQueue.push(function ignoreWhiteCharacter(thisPtr) {
