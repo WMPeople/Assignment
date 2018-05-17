@@ -39,13 +39,7 @@ $(function() {
 //자동 저장 옵션 체크시 판단 조건이 보인다.
 function optionAutoSave() {
 
-	var span = document.createElement('span');
-	span.innerHTML = document.getElementById('pre_set').innerHTML;
-	document.getElementById('conditionList').appendChild(span);
-	$('#addCountCondition').val(addCountCondition);
-	$('#newLineCountCondition').val(newLineCountCondition);
-	$('#stringSizeDifferenceCondition').val(stringSizeDifferenceCondition);
-	$('#addLengthCondition').val(addLengthCondition);
+	conditionListGenerate();
 	chartGenerate();
     
 	var autoSave = new Object();
@@ -72,59 +66,11 @@ function optionAutoSave() {
 				window.localStorage.setItem('textval-01', encodedTextVal);
 				window.localStorage.setItem('textval-02', ref1);
 				window.localStorage.setItem('textval-03', ref2);
-
+				
 				var tempContent = textVal;
-
-				var dmp = new diff_match_patch();
-				function launch() {
-					var originalContent = document.getElementById('content').defaultValue; // 원본 내용
-					dmp.Diff_Timeout = parseFloat(2);
-					dmp.Diff_EditCost = parseFloat(4);
-					dmp.Diff_Sensitive = false;
-					var diff = dmp.diff_main(originalContent, tempContent);
-					/**
-					 * diff 구조는 길이가 2인 배열을 인덱스로 갖는 배열이다.
-					 * [Array(2),Array(2),Array(2),Array(2)...]
-					 * 
-					 * Array(2)의 0번째 인덱스는 -1, 0, 1의 값을 갖는데 -1은 삭제, 0은 일치, 1은 추가를
-					 * 뜻한다. 1번째 인덱스에는 0번째 인덱스의 값에 따른 text가 들어간다.
-					 */
-
-					dmp.diff_cleanupSemantic(diff);
-
-					var addCount = 0; // 추가된 배열 카운트. 단, 배열 길이가 3이상인 것만 카운트한다. 즉, 사소한 추가는 제외.
-					var addLength = 0; // 추가된 내용의 길이
-					var minorCount = 0; // 사소한 변경 카운트
-					var newLineCount = 0; // 개행 개수 카운트
-					var originalContentLength = originalContent.length; // 원본 데이터 길이
-					// 원본 문자열 길이가 너무 짧으면 40이라고 생각한다. 너무 잦은 버전업을 막기 위해.
-					if (originalContentLength <= 40) {
-						originalContentLength = 40;
-					}
-
-					var tempContentLength = tempContent.length;
-					var stringSizeDifference = (originalContentLength - tempContentLength)/ originalContentLength; // 문자열 크기
-					for (var i = 0; i < diff.length; i++) {
-						if (diff[i][0] == 1) {
-							if (diff[i][1].length >= 3) {
-								addCount++;
-							} else {
-								minorCount++;
-							}
-							addLength += diff[i][1].length;
-							while (diff[i][1].search('\n') != -1) {
-								newLineCount++;
-								diff[i][1] = diff[i][1].substring(diff[i][1]
-										.search('\n') + 2);
-
-							}
-						}
-					}
-					
-					chartChange("current",addCount, newLineCount, stringSizeDifference, addLength);
-					versionUpFunction(addCount, newLineCount, stringSizeDifference,addLength, addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition);
-				}
-				launch();
+				var originalContent = document.getElementById('content').defaultValue;
+				launch(tempContent, originalContent);
+				
 			} else if (!window.localStorage) {
 				console.log('Error' + ': Your browser not support')
 				return false;
@@ -140,7 +86,73 @@ function optionAutoSave() {
 		obj.start();
 	})(autoSave);
 }
-function versionUpFunction(addCount, newLineCount, stringSizeDifference, addLength,
+
+
+function conditionListGenerate(){
+	var span = document.createElement('span');
+	span.innerHTML = document.getElementById('pre_set').innerHTML;
+	document.getElementById('conditionList').appendChild(span);
+	$('#addCountCondition').val(addCountCondition);
+	$('#newLineCountCondition').val(newLineCountCondition);
+	$('#stringSizeDifferenceCondition').val(stringSizeDifferenceCondition);
+	$('#addLengthCondition').val(addLengthCondition);
+}
+
+function launch(tempContent, originalContent) {
+	var dmp = new diff_match_patch();
+	dmp.Diff_Timeout = parseFloat(2);
+	dmp.Diff_EditCost = parseFloat(4);
+	dmp.Diff_Sensitive = false;
+	
+	/**
+	 * diff 구조는 길이가 2인 배열을 인덱스로 갖는 배열이다.
+	 * [Array(2),Array(2),Array(2),Array(2)...]
+	 * 
+	 * Array(2)의 0번째 인덱스는 -1, 0, 1의 값을 갖는데 -1은 삭제, 0은 일치, 1은 추가를
+	 * 뜻한다. 1번째 인덱스에는 0번째 인덱스의 값에 따른 text가 들어간다.
+	 */
+	
+	var diff = dmp.diff_main(originalContent, tempContent);
+	dmp.diff_cleanupSemantic(diff);
+	var countList = getCurrentCount(diff, tempContent);
+	chartChange("current",countList[0], countList[1], countList[2], countList[3]);
+	discriminateVersionUp(countList[0], countList[1], countList[2], countList[3], addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition);
+}
+
+function getCurrentCount(diff, tempContent){
+	var addCount = 0; // 추가된 배열 카운트. 단, 배열 길이가 3이상인 것만 카운트한다. 즉, 사소한 추가는 제외.
+	var addLength = 0; // 추가된 내용의 길이
+	var minorCount = 0; // 사소한 변경 카운트
+	var newLineCount = 0; // 개행 개수 카운트
+	var originalContent = document.getElementById('content').defaultValue;
+	var originalContentLength = originalContent.length; // 원본 데이터 길이
+	
+	if (originalContentLength <= 40) { // 원본 문자열 길이가 너무 짧으면 40이라고 생각한다. 너무 잦은 버전업을 막기 위해.
+		originalContentLength = 40;
+	}
+	
+	var tempContentLength = tempContent.length;
+	var stringSizeDifference = (originalContentLength - tempContentLength)/ originalContentLength; // 문자열 크기
+	for (var i = 0; i < diff.length; i++) {
+		if (diff[i][0] == 1) {
+			if (diff[i][1].length >= 3) {
+				addCount++;
+			} else {
+				minorCount++;
+			}
+			addLength += diff[i][1].length;
+			while (diff[i][1].search('\n') != -1) {
+				newLineCount++;
+				diff[i][1] = diff[i][1].substring(diff[i][1]
+						.search('\n') + 2);
+
+			}
+		}
+	}
+	var countList = [addCount,newLineCount, stringSizeDifference, addLength];
+	return countList;
+}
+function discriminateVersionUp(addCount, newLineCount, stringSizeDifference, addLength,
 		addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition, urlData) {
 	if (addCount >= addCountCondition || newLineCount >= newLineCountCondition
 			|| stringSizeDifference <= stringSizeDifferenceCondition || addLength >= addLengthCondition) {
@@ -211,16 +223,15 @@ function versionUpFunction(addCount, newLineCount, stringSizeDifference, addLeng
 }
 
 function applyChange(){
-	if(($('#addCountCondition').val() >= 1 && $('#addCountCondition').val() <= 100) &&
-		($('#newLineCountCondition').val() >= 1 && $('#newLineCountCondition').val() <= 50) &&
-		($('#stringSizeDifferenceCondition').val() >= -2 && $('#stringSizeDifferenceCondition').val() <= -0.2) &&
-		($('#addLengthCondition').val() >= 100 && $('#addLengthCondition').val() <= 1000) ){
-		
-		addCountCondition = Math.floor($('#addCountCondition').val());
-		newLineCountCondition =  Math.floor($('#newLineCountCondition').val());
-		stringSizeDifferenceCondition = $('#stringSizeDifferenceCondition').val();
-		addLengthCondition =  Math.floor($('#addLengthCondition').val());
-		
+	var aCC = $('#addCountCondition').val();
+	var nLCC = $('#newLineCountCondition').val();
+	var sSDC = $('#stringSizeDifferenceCondition').val();
+	var aLC = $('#addLengthCondition').val();
+	if(isAvailableChange(aCC, nLCC, sSDC, aLC) ){
+		addCountCondition = Math.floor(aCC);
+		newLineCountCondition =  Math.floor(nLCC);
+		stringSizeDifferenceCondition =sSDC;
+		addLengthCondition =  Math.floor(aLC);
 	} else {
 		alert('값을 확인해주세요');
 	}
@@ -233,9 +244,20 @@ function applyChange(){
 	
 }
 
+function isAvailableChange(aCC, nLCC, sSDC, aLC){
+	if ((aCC >= 1 && aCC <= 100) &&
+	(nLCC >= 1 && nLCC <= 50) &&
+	(sSDC >= -2 && sSDC <= -0.2) &&
+	(aLC >= 100 && aLC <= 1000)){
+		return true;
+	} else {
+		return false;
+	}
+	
+}
+
 function chartChange(dataName, addCount, newLineCount, stringSizeDifference, addLength){
 	var valueList = [addCount, newLineCount, stringSizeDifference, addLength];
-	
 	for(var i = 0 ; i < chartList.length ; i++){
 		chartList[i].load({
 			columns: [
@@ -253,7 +275,6 @@ function chartUnload(){
 }
 
 function chartGenerate(){
-	
 	for(var i = 0 ; i < chartList.length ; i++){
 		chartList[i] = bb.generate({
 	        bindto: "#chart".concat(i + 1),

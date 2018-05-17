@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.nhncorp.lucy.security.xss.XssPreventer;
 import com.worksmobile.assignment.bo.BoardTempService;
 import com.worksmobile.assignment.bo.CookieService;
 import com.worksmobile.assignment.bo.FileService;
