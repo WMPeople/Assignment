@@ -253,9 +253,10 @@ DiffMatchCustom.prototype.doTask = function(thisPtr) {
 	if(thisPtr.taskQueue.length > 0) {
 		if(queueCnt == 0) {
 			var task = thisPtr.taskQueue.shift();
-			task(thisPtr);
 			
 			progressBar.increseProgress(1, task.name);
+			
+			window.setTimeout(task.bind(null, thisPtr), 50);
 		}
 		window.setTimeout(thisPtr.doTask.bind(null, thisPtr), 100);
 	}

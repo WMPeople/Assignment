@@ -140,12 +140,17 @@ Replace.prototype._doReplaceTask = function(thisPtr, matchArr, replaceBeginPos, 
 			thisPtr._textMatch[textIdx].push(minReg);
 			// 복원을 위한 위치 보정 끝
 			
-			matchArr[minMatchIdx] = RegularExpArr[minMatchIdx].exec(curAreaText);
-			
-			if(!matchArr[minMatchIdx]) {
-				if(thisPtr._isRegExpAllDone(matchArr)) {
-					break;
+			// 변경 이전것을 치환하지 못합니다.
+			for(var i = 0; i < RegularExpArr.length; i++) {
+				if(matchArr[i] &&
+					matchArr[i].index < replaceBeginPos) {
+					RegularExpArr[i].lastIndex = replaceBeginPos;
+					matchArr[i] = RegularExpArr[i].exec(curAreaText);
 				}
+			}
+			
+			if(thisPtr._isRegExpAllDone(matchArr)) {
+				break;
 			}
 			
 			loopCnt++;
