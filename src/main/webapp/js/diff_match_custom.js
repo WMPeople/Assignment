@@ -207,7 +207,8 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 		this.taskQueue.push(function recoverRegExp(thisPtr) {
 			var replace = thisPtr._replaceStack.pop();
 			var matchArr = replace.getTextMatchArr();
-			thisPtr.diffRtn = thisPtr.restore(thisPtr.diffRtn, matchArr[0], matchArr[1], replace.getReplacedChar());
+			const replacedStrArr = replace.getReplacedStrArr();
+			thisPtr.diffRtn = thisPtr.restore(thisPtr.diffRtn, matchArr[0], matchArr[1], replacedStrArr[0].length);
 		});
 	}
 	if(ignoreWhiteCharCnt &&
@@ -216,7 +217,8 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 		this.taskQueue.push(function recoverWhiteSpace(thisPtr) {
 			var replace = thisPtr._replaceStack.pop();
 			var matchArr = replace.getTextMatchArr();
-			thisPtr.diffRtn = thisPtr.restore(thisPtr.diffRtn, matchArr[0], matchArr[1], replace.getReplacedChar());
+			const replacedStrArr = replace.getReplacedStrArr();
+			thisPtr.diffRtn = thisPtr.restore(thisPtr.diffRtn, matchArr[0], matchArr[1], replacedStrArr[0].length);
 		});
 	}
 	// 사전 필터 복원 끝
