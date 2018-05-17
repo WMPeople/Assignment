@@ -115,49 +115,43 @@ Replace.prototype._doReplaceTask = function(thisPtr, matchArr, replaceBeginPos, 
 		matchArr[i] = regExp.exec(curAreaText);
 	}
 	
-	if(!thisPtr._isRegExpAllDone(matchArr)) {
-		while(true) {
-			var minMatchIdx = 0;
-			for(var i = 1; i < RegularExpArr.length; i++) {
-				const minReg = matchArr[minMatchIdx];
-				if( !minReg ||
-					(matchArr[i] && minReg.index > matchArr[i].index) ){
-					minMatchIdx = i;
-				}
-			}
-			
+	while(!thisPtr._isRegExpAllDone(matchArr)) {
+		var minMatchIdx = 0;
+		for(var i = 1; i < RegularExpArr.length; i++) {
 			const minReg = matchArr[minMatchIdx];
-			
-			const appendStr = curAreaText.substr(replaceBeginPos, minReg.index - replaceBeginPos);
-			thisPtr._replacedText[textIdx] += appendStr;
-			thisPtr._replacedText[textIdx] += thisPtr._replaceStrArr[minMatchIdx];
-			
-			replaceBeginPos = minReg.index + minReg[0].length;
-			
-			// 복원을 위한 위치 보정
-			minReg.index -= replaceDiffLength;
-			replaceDiffLength += (minReg[0].length - thisPtr._replaceStrArr[minMatchIdx].length);
-			thisPtr._textMatch[textIdx].push(minReg);
-			// 복원을 위한 위치 보정 끝
-			
-			// 변경 이전것을 치환하지 못합니다.
-			for(var i = 0; i < RegularExpArr.length; i++) {
-				if(matchArr[i] &&
-					matchArr[i].index < replaceBeginPos) {
-					RegularExpArr[i].lastIndex = replaceBeginPos;
-					matchArr[i] = RegularExpArr[i].exec(curAreaText);
-				}
+			if( !minReg ||
+				(matchArr[i] && minReg.index > matchArr[i].index) ){
+				minMatchIdx = i;
 			}
-			
-			if(thisPtr._isRegExpAllDone(matchArr)) {
-				break;
+		}
+		
+		const minReg = matchArr[minMatchIdx];
+		
+		const appendStr = curAreaText.substr(replaceBeginPos, minReg.index - replaceBeginPos);
+		thisPtr._replacedText[textIdx] += appendStr;
+		thisPtr._replacedText[textIdx] += thisPtr._replaceStrArr[minMatchIdx];
+		
+		replaceBeginPos = minReg.index + minReg[0].length;
+		
+		// 복원을 위한 위치 보정
+		minReg.index -= replaceDiffLength;
+		replaceDiffLength += (minReg[0].length - thisPtr._replaceStrArr[minMatchIdx].length);
+		thisPtr._textMatch[textIdx].push(minReg);
+		// 복원을 위한 위치 보정 끝
+		
+		// 변경 이전것을 치환하지 못합니다.
+		for(var i = 0; i < RegularExpArr.length; i++) {
+			if(matchArr[i] &&
+				matchArr[i].index < replaceBeginPos) {
+				RegularExpArr[i].lastIndex = replaceBeginPos;
+				matchArr[i] = RegularExpArr[i].exec(curAreaText);
 			}
-			
-			loopCnt++;
-			if(loopCnt > MAX_LOOP_CNT) {
-				window.setTimeout(thisPtr._doReplaceTask(thisPtr, matchArr, replaceBeginPos, replaceDiffLength, textIdx), 10);
-				return;
-			}
+		}
+		
+		loopCnt++;
+		if(loopCnt > MAX_LOOP_CNT) {
+			window.setTimeout(thisPtr._doReplaceTask(thisPtr, matchArr, replaceBeginPos, replaceDiffLength, textIdx), 10);
+			return;
 		}
 	}
 	
