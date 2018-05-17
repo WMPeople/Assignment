@@ -153,7 +153,7 @@ DiffMatchCustom.prototype.restore= function(diffs, text1Match, text2Match, repla
  * @param {Boolean} isWhitespaceFirst 공백 및 개행 무시 우선이면 true, 정규식 무시 우선이면 false 입니다.
  */
 DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCnt, regularExpArr, isWhitespaceFirst) {
-	this.ms_start = (new Date()).getTime();
+	this.ms_start = Date.now();
 	
 	// 변경 무시 옵션에 따른 무시 사전 필터 시작
 	if(ignoreWhiteCharCnt&&
@@ -236,7 +236,7 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 	this.taskQueue.push(function prettyAndPrint(thisPtr) {
 		var ds = thisPtr.dmp.diff_prettyHtml(thisPtr.diffRtn, '', thisPtr.originText2);
 		
-		var ms_end = (new Date()).getTime();
+		var ms_end = Date.now();
 		console.log("전체 소요 시간 : " + (ms_end - thisPtr.ms_start) / 1000);
 		
 		document.getElementById(thisPtr.leftOutputSelector).innerHTML = ds[0];
