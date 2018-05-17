@@ -1,7 +1,5 @@
 package com.worksmobile.assignment.bo;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -9,12 +7,11 @@ import java.util.HashMap;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NaverAPIService {
+public class NaverAPIService extends APIConnection {
 
 	public static final String clientId = "TFUBwdm3MrMuN3_1TYil";
 
@@ -37,26 +34,8 @@ public class NaverAPIService {
 			con.setRequestMethod("GET");
 			con.setRequestProperty("X-Naver-Client-Id", clientId);
 			con.setRequestProperty("X-Naver-Client-Secret", clientSecret);
-			int responseCode = con.getResponseCode();
-			BufferedReader br;
-			if (responseCode == 200) { // 정상 호출
-				br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			} else { // 에러 발생
-				br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
-			}
-			String inputLine;
-
-			StringBuffer response = new StringBuffer();
-			JSONParser parser = new JSONParser();
-
-			while ((inputLine = br.readLine()) != null) {
-				response.append(inputLine);
-			}
-			Object obj = parser.parse(response.toString());
-			JSONObject jsonObj = (JSONObject)obj;
-			JSONArray items;
-			items = (JSONArray)jsonObj.get("items");
-			br.close();
+			JSONObject jsonObj = (JSONObject)getObjectData(con);
+			JSONArray items = (JSONArray)jsonObj.get("items");
 			
 			HashMap<String, Object> param = new HashMap<>();
 			param.put("items", items);
