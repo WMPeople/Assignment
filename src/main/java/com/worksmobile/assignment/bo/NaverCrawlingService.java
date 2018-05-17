@@ -7,7 +7,6 @@ import java.util.HashMap;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.cache.annotation.Cacheable;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.worksmobile.assignment.util.JsoupUtils;
 
 /***
  * 브라우저 크롤링 서비스입니다.
@@ -22,23 +22,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  */
 @Service
-public class NaverCrawlingService implements HTMLParsing {
-
+public class NaverCrawlingService implements CrawlingService{
+	
+	@Override
 	@Cacheable(value="findCrawlingedCache", key="{#category, #text, #pageNo}")
-	public HashMap<String, Object> getNaverCrawlingResult(String category, String text, String pageNo) throws Exception {
+	public HashMap<String, Object> getCrawlingResult(String category, String text, String pageNo) throws Exception {
 		String encodedText = URLEncoder.encode(text, "UTF-8");
 		String url = "http://endic.naver.com/search.nhn?sLn=kr&searchOption=entry_idiom&query=" + encodedText + "&pageNo="
 			+ pageNo;
-		return getHashMapDataByJsoup(category, url);
+		String selector = "#content > div.word_num_nobor > h3 > span";
+		return getHashMapDataByJsoup(category, url, selector);
 	}
 	
-	private HashMap<String, Object> getHashMapDataByJsoup(String category, String url)
+	private HashMap<String, Object> getHashMapDataByJsoup(String category, String url, String selector)
 		throws IOException, JsonProcessingException, ParseException {
-		Document document = Jsoup.connect(url).userAgent(
-			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36")
-			.get();
+		Document document = JsoupUtils.getDocument(url);
 		if (null != document) {
-			long total = getCleanTotal(document);
+			long total = JsoupUtils.getCleanTotal(document, selector);
 			HashMap<String, Object> param = getDataByHTMLParsing(category, document, total);
 			return param;
 		} else {
@@ -47,8 +47,7 @@ public class NaverCrawlingService implements HTMLParsing {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Override
-	public HashMap<String, Object> getDataByHTMLParsing(String category, Document document, long total)
+	private HashMap<String, Object> getDataByHTMLParsing(String category, Document document, long total)
 		throws JsonProcessingException, ParseException {
 		Object obj;
 		JSONArray items = new JSONArray();
@@ -88,17 +87,6 @@ public class NaverCrawlingService implements HTMLParsing {
 		return param;
 	}
 
-	private long getCleanTotal(Document document) {
-		Elements totalCountElements = document.select("#content > div.word_num_nobor > h3 > span");
-		String dirtyTotal = totalCountElements.text();
-		String cleanTotal = dirtyTotal.replaceAll("[^0-9]", "");
-		long total = 0;
-		if ("".equals(cleanTotal)) {
-			total = 0;
-		} else {
-			total = Integer.parseInt(cleanTotal);
-		}
-		return total;
-	}
+
 
 }
