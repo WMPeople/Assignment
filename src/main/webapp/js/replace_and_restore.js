@@ -52,7 +52,7 @@ Replace.prototype.getRandomReplaceChar = function(redundancyCheckList, redundanc
 			}
 		}
 		for(i = 0; i < redundancyRegExpList.length; i++) {
-			const regExp = redundancyCheckList[i];
+			const regExp = redundancyRegExpList[i];
 			var found = char.match(regExp);
 			if(found != null && found.length != 0) {
 				continue;
