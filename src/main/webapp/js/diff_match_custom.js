@@ -141,8 +141,11 @@ DiffMatchCustom.prototype.applyTextAndPush = function(replace) {
 	this._replaceStack.push(replace);
 }
 
-DiffMatchCustom.prototype.restore= function(diffs, text1Match, text2Match, replacedStr) {
-	var restore = new Restore(text1Match, text2Match, diffs, replacedStr);
+DiffMatchCustom.prototype.restore= function(diffs, replace) {
+	var matchArr = replace.getTextMatchArr();
+	const replacedStrArr = replace.getReplacedStrArr();
+	var restore = new Restore(matchArr[0], matchArr[1], diffs, replacedStrArr[0].length);
+	restore.replacedStrArr = replacedStrArr;
 	return restore.doRestore();
 }
 
@@ -206,9 +209,7 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 		regularExpArr.length > 0) {
 		this.taskQueue.push(function recoverRegExp(thisPtr) {
 			var replace = thisPtr._replaceStack.pop();
-			var matchArr = replace.getTextMatchArr();
-			const replacedStrArr = replace.getReplacedStrArr();
-			thisPtr.diffRtn = thisPtr.restore(thisPtr.diffRtn, matchArr[0], matchArr[1], replacedStrArr[0].length);
+			thisPtr.diffRtn = thisPtr.restore(thisPtr.diffRtn, replace);
 		});
 	}
 	if(ignoreWhiteCharCnt &&
@@ -216,9 +217,7 @@ DiffMatchCustom.prototype.startAsync = function(cleanupOption, ignoreWhiteCharCn
 			isWhitespaceFirst) {
 		this.taskQueue.push(function recoverWhiteSpace(thisPtr) {
 			var replace = thisPtr._replaceStack.pop();
-			var matchArr = replace.getTextMatchArr();
-			const replacedStrArr = replace.getReplacedStrArr();
-			thisPtr.diffRtn = thisPtr.restore(thisPtr.diffRtn, matchArr[0], matchArr[1], replacedStrArr[0].length);
+			thisPtr.diffRtn = thisPtr.restore(thisPtr.diffRtn, replace);
 		});
 	}
 	// 사전 필터 복원 끝

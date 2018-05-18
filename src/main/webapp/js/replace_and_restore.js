@@ -125,13 +125,18 @@ Replace.prototype._doReplaceTask = function(thisPtr, matchArr, replaceBeginPos, 
 			}
 		}
 		
-		const minReg = matchArr[minMatchIdx];
+		var minReg = matchArr[minMatchIdx];
 		
 		const appendStr = curAreaText.substr(replaceBeginPos, minReg.index - replaceBeginPos);
 		thisPtr._replacedText[textIdx] += appendStr;
 		thisPtr._replacedText[textIdx] += thisPtr._replaceStrArr[minMatchIdx];
 		
 		replaceBeginPos = minReg.index + minReg[0].length;
+		for(var i = 0; i < RegularExpArr.length; i++) {
+			if(RegularExpArr[i].lastIndex < replaceBeginPos) {
+				RegularExpArr[i].lastIndex = replaceBeginPos;
+			}
+		}
 		
 		// 복원을 위한 위치 보정
 		minReg.index -= replaceDiffLength;
@@ -143,7 +148,6 @@ Replace.prototype._doReplaceTask = function(thisPtr, matchArr, replaceBeginPos, 
 		for(var i = 0; i < RegularExpArr.length; i++) {
 			if(matchArr[i] &&
 				matchArr[i].index < replaceBeginPos) {
-				RegularExpArr[i].lastIndex = replaceBeginPos;
 				matchArr[i] = RegularExpArr[i].exec(curAreaText);
 			}
 		}
@@ -190,20 +194,20 @@ Replace.prototype.doReplaceAsync = function() {
 	this.doQueueTask(this);
 }
 
+const DEBUG = true;
+
 function Restore(text1Match, text2Match, diffs, replacedStrLength) {
 	this._text1Match = text1Match;
 	this._text2Match = text2Match;
 	this._diffs = diffs;
 	this._diffsIdx;
+	this._rtnDiffs = [];
+	this._rtnDiffsIdx = 0;
 	this._replacedStrLength = replacedStrLength;
 }
 
 Restore.prototype.doRestore = function() {
-	if(this._replacedStrLength == 0) {
-		return this._resotreWithoutReplaceChar();
-	} else {
-		return this._resotreWithoutReplaceChar();
-	}
+	return this._resotreWithoutReplaceChar();
 }
 
 /**
@@ -223,39 +227,6 @@ Restore.prototype._isHaveChangePos = function(idx, matchArr, startPos, diffStr) 
 	} else {
 		return false;
 	}
-}
-
-/**
- * 이 함수 뒤에 matchIdx 를 1증가 시켜야 합니다.
- * curTextLength += return val;
- * diffs는 변경됩니다.
- * @param {!Array.<RegularExpMatchResult>} matchArr 치환하기 전의 값들이 들어 있는 배열입니다.
- * @param {Number} matchIdx matchArr의 idx 입니다.
- * @param {Number} curTextLength 현재 치환 진행중인 위치를 나타냅니다.
- * @param {Number} insertDiffStatus 비교 변환 결과 값이 들어 옵니다. (같다, 삭제, 삽입)
- * @return {Number} 현재 블럭에서 치환이 진행된 위치를 반환합니다. 
- */
-Restore.prototype._restoreWithReplaceCharHelper = function(matchArr, matchIdx, curTextLength) {
-	var diffStatus = this._diffs[this._diffsIdx][0];
-	var diffStr = this._diffs[this._diffsIdx][1];
-	
-	this._diffs.splice(this._diffsIdx, 1);
-	var matchBlock = matchArr[matchIdx];
-	var replacePos = matchBlock.index - curTextLength;
-	if(replacePos !== 0) {
-		var beforeReplaceStr = diffStr.substr(0, replacePos);
-		this._diffs.splice(this._diffsIdx++, 0, [ diffStatus, beforeReplaceStr ]);
-	}
-	
-	this._diffs.splice(this._diffsIdx++, 0, [ diffStatus, matchBlock[0] ]);
-	
-	var lastReplaceBeginPos = replacePos + this._replacedStrLength;
-	if(lastReplaceBeginPos !== diffStr.length) {
-		var afterReplacedStr = diffStr.substr(lastReplaceBeginPos);
-		this._diffs.splice(this._diffsIdx, 0, [ diffStatus, afterReplacedStr ]);
-	}
-	
-	return lastReplaceBeginPos;
 }
 
 /**
@@ -351,6 +322,23 @@ Restore.prototype._restoreWithReplaceChar = function() {
 	return this._diffs;
 }
 
+Restore.prototype._containReplaceChar = function() {
+	if(!DEBUG) {
+		return false;
+	}
+	const arr = this.replacedStrArr;
+	for(var i = 0; i < arr.length; i++) {
+		for(var j = 0; j < this._rtnDiffs.length; j++) {
+			const idx = this._rtnDiffs[j].indexOf(arr[i]);
+			if(idx != -1) {
+				throw "error";
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 /*
  * 이 함수 호출 후 text1MatchIdx와 text2MatchIdx를 1증가시켜야 합니다.
  * 반환되는 값을 증가시켜야 합니다.
@@ -360,36 +348,36 @@ Restore.prototype._restoreSameMatch = function(text1MatchIdx, text2MatchIdx, cur
 	const diffStatus = this._diffs[this._diffsIdx][0];
 	const diffStr = this._diffs[this._diffsIdx][1];
 
-	// 한개의 블럭에 대한 것이므로 블럭을 다시 만듦.
-	this._diffs.splice(this._diffsIdx, 1);
-
 	// 왼쪽 , 오른쪽 블럭이 같은 것을 치환하는 것이라는 가정입니다.
 	// 먼저 왼쪽 것이 대상입니다.
 	if(text1MatchIdx >= this._text1Match.length) {
 		throw "left Match Idx out of length";
 	}
 	var replacePos = this._text1Match[text1MatchIdx].index - curTextLengths[0];
-	if(replacePos !== 0) {
+	if(replacePos != 0) {
 		var beforeReplaceStr = diffStr.substr(0, replacePos);
-		this._diffs.splice(this._diffsIdx++, 0, [ diffStatus, beforeReplaceStr ]);
+		this._rtnDiffs.push([ diffStatus, beforeReplaceStr ]);
 	}
 	
-	this._diffs.splice(this._diffsIdx++, 0, [ window.DIFF_DELETE * 2, this._text1Match[text1MatchIdx][0] ]);
+	this._rtnDiffs.push([ window.DIFF_DELETE * 2, this._text1Match[text1MatchIdx][0] ]);
 	
 	// 오른쪽 거를 치환합시다.
 	if(text2MatchIdx >= this._text2Match.length) {
 		throw "오른쪽을 치환 할 차례인데 더이상 배열에 없네요.";
 	}
 	
-	this._diffs.splice(this._diffsIdx++, 0, [ window.DIFF_INSERT * 2, this._text2Match[text2MatchIdx][0] ]);
+	this._rtnDiffs.push([ window.DIFF_INSERT * 2, this._text2Match[text2MatchIdx][0] ]);
 	
 	var lastReplaceBeginPos = replacePos + this._replacedStrLength;
-	if(lastReplaceBeginPos !== diffStr.length) {
+	var curLength = lastReplaceBeginPos;
+	if(lastReplaceBeginPos != diffStr.length) {
 		var afterReplacedStr = diffStr.substr(lastReplaceBeginPos);
-		this._diffs.splice(this._diffsIdx, 0, [ diffStatus, afterReplacedStr ]);
+		this._diffs[this._diffsIdx][1] = afterReplacedStr;
+		this._diffsIdx--;
 	}
+	this._containReplaceChar();
 	
-	return lastReplaceBeginPos;
+	return curLength;
 }
 
 /**
@@ -406,29 +394,25 @@ Restore.prototype._restoreWithoutReplaceCharHelper = function(matchArr, matchIdx
 	var diffStatus = this._diffs[this._diffsIdx][0];
 	var diffStr = this._diffs[this._diffsIdx][1];
 	
-	this._diffs.splice(this._diffsIdx, 1);
 	var matchBlock = matchArr[matchIdx];
 	var replacePos = matchBlock.index - curTextLength;
-	if(replacePos !== 0) {
+	if(replacePos != 0) {
 		var beforeReplaceStr = diffStr.substr(0, replacePos);
-		this._diffs.splice(this._diffsIdx++, 0, [ diffStatus, beforeReplaceStr ]);
+		this._rtnDiffs.push([ diffStatus, beforeReplaceStr ]);
 	}
 	
-	// 공백치환의 경우 조건입니다. 무조껀 같다고 표시합니다.
-	if( this._replacedStrLength == 0 &&
-		Math.abs(insertDiffStatus) == 1) {
-		insertDiffStatus *= 2;
-	}
-
-	this._diffs.splice(this._diffsIdx++, 0, [ insertDiffStatus, matchBlock[0] ]);
+	this._rtnDiffs.push([ insertDiffStatus, matchBlock[0] ]);
 	
 	var lastReplaceBeginPos = replacePos + this._replacedStrLength;
-	if(lastReplaceBeginPos !== diffStr.length) {
+	var curLength = lastReplaceBeginPos;
+	if(lastReplaceBeginPos != diffStr.length) {
 		var afterReplacedStr = diffStr.substr(lastReplaceBeginPos);
-		this._diffs.splice(this._diffsIdx, 0, [ diffStatus, afterReplacedStr ]);
+		this._diffs[this._diffsIdx][1] = afterReplacedStr;
+		this._diffsIdx--;
 	}
+	this._containReplaceChar();
 	
-	return lastReplaceBeginPos;
+	return curLength;
 }
 
 /**
@@ -451,20 +435,28 @@ Restore.prototype._resotreWithoutReplaceChar = function() {
 		
 		if(	text1MatchIdx >= this._text1Match.length &&
 			text2MatchIdx >= this._text2Match.length) {
-				break;
+			
+			for(var i = this._diffsIdx; i < this._diffs.length; i++) {
+				this._rtnDiffs.push(this._diffs[i]);
+			}
+			break;
 		}
-
-		if(diffStatus == window.DIFF_EQUAL){ 
-			if(	!(this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr) ||
-				this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr)) ) {
+		
+		switch(diffStatus) {
+		case window.DIFF_EQUAL:
+		{
+			
+			const isLeftInside = this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr);
+			const isRightInside = this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr);
+			if(	!(isLeftInside || isRightInside) ) {
+				this._rtnDiffs.push(this._diffs[this._diffsIdx]);
+				this._containReplaceChar();
 				curTextLengths[0] += diffStr.length;
 				curTextLengths[1] += diffStr.length;
 			} else {
 				// 범위 벗어나지 않았고, 왼쪽이 포함이면 일단 왼쪽
 				// 범위 벗어나지 않았고, 오른쪽이 포함이면 일단 오른쪽
 				// 단 둘다 포함이면 가까운 쪽부터 하자.
-				var isLeftInside = this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr);
-				var isRightInside = this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr);
 				var isSame = false;
 				var isLeftTurn = false;
 				if(isLeftInside && isRightInside) {
@@ -499,29 +491,52 @@ Restore.prototype._resotreWithoutReplaceChar = function() {
 				}
 				curTextLengths[0] += length;
 				curTextLengths[1] += length;
-				this._diffsIdx--;		// 이전 블럭을 꺼낸다.
 			}
-		} else if(diffStatus == window.DIFF_INSERT ||
-				diffStatus == window.DIFF_INSERT * 2) {	// right 에 속하면
+			break;
+		}
+		// 왼쪽에 속하면
+		case window.DIFF_INSERT:
+			// 공백은 같다고 표시합니다.
+			if(this._replacedStrLength == 0) {
+				diffStatus *= 2;
+			}
+		case window.DIFF_INSERT * 2:
+		{
+			
 			if(!this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr)){
+				this._rtnDiffs.push(this._diffs[this._diffsIdx]);
+				this._containReplaceChar();
 				curTextLengths[1] += diffStr.length;
 			} else {
 				var length = this._restoreWithoutReplaceCharHelper(this._text2Match, text2MatchIdx, curTextLengths[1], diffStatus);
 				curTextLengths[1] += length;
-				this._diffsIdx--;
 				text2MatchIdx++;
 			}
-		} else if(diffStatus == window.DIFF_DELETE ||
-					diffStatus == window.DIFF_DELETE * 2) {	// left 에 속하면
+			
+			break;
+		}
+		// 오른쪽에 속하면
+		case window.DIFF_DELETE:
+			if(this._replacedStrLength == 0) {
+				diffStatus *= 2;
+			}
+		case window.DIFF_DELETE * 2:
+		{
+			
 			if(!this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr)) {
+				this._rtnDiffs.push(this._diffs[this._diffsIdx]);
+				this._containReplaceChar();
 				curTextLengths[0] += diffStr.length;
 			} else {
 				var length = this._restoreWithoutReplaceCharHelper(this._text1Match, text1MatchIdx, curTextLengths[0], diffStatus);
 				curTextLengths[0] += length;
-				this._diffsIdx--;
 				text1MatchIdx++;
 			}
+			
+			break;
+		}
+		
 		}
 	}
-	return this._diffs;
+	return this._rtnDiffs;
 }
