@@ -37,13 +37,16 @@ Replace.prototype.getReplacedStrArr = function() {
  * @param {Array<String>} redundancyCheckList 중복 검사를 할 텍스트 리스트
  * @return {Array<String>} 중복되지 않는 랜덤한 문자들
  */
-Replace.prototype.getRandomReplaceChar = function(redundancyCheckList, redundancyRegExpList) {
+Replace.prototype.getRandomReplaceChar = function(redundancyCheckList, redundancyRegExpList, strLength) {
 	const MAX_UTF_16_CODE = 65535;
 	var rtnReplaceStrArr = new Array(this._regularExpArr.length);
 	var curReplaceIdx = 0;
 	
 	while(curReplaceIdx < rtnReplaceStrArr.length) {
-		var str = String.fromCharCode(Math.floor(Math.random() * MAX_UTF_16_CODE));
+		var str = '';
+		for(var i = 0; i < strLength; i++) {
+			str += String.fromCharCode(Math.floor(Math.random() * MAX_UTF_16_CODE));
+		}
 		if(str.indexOf('\r') != -1 || str.indexOf('\n') != -1) {
 			continue;
 		}
@@ -171,7 +174,7 @@ Replace.prototype._doReplaceTask = function(thisPtr, matchArr, replaceBeginPos, 
  */
 Replace.prototype.doReplaceAsync = function() {
 	if(this._isHaveReplaceChar) {
-		this._replaceStrArr = this.getRandomReplaceChar(this._text, this._regularExpArr);
+		this._replaceStrArr = this.getRandomReplaceChar(this._text, this._regularExpArr, 2);
 	} else {
 		this._replaceStrArr = [];
 		for(var i = 0; i < this._regularExpArr.length; i++) {
