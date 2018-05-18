@@ -184,6 +184,9 @@ Replace.prototype.doReplaceAsync = function() {
 	
 	const makeFunc = function getReplaceTaskFunc(matchArr, textIdx) {
 		return function replaceOneSection(thisPtr) {
+			for(var i = 0; i < thisPtr._regularExpArr.length; i++) {
+				thisPtr._regularExpArr[i].lastIndex = 0;
+			}
 			thisPtr._doReplaceTask(thisPtr, matchArr, 0, 0, textIdx);
 		}
 	}
@@ -194,14 +197,14 @@ Replace.prototype.doReplaceAsync = function() {
 	this.doQueueTask(this);
 }
 
-const DEBUG = true;
+const DEBUG = false;
 
 function Restore(text1Match, text2Match, diffs, replacedStrLength) {
 	this._text1Match = text1Match;
 	this._text2Match = text2Match;
 	this._diffs = diffs;
 	this._diffsIdx;
-	this._rtnDiffs = [];
+	this._rtnDiffs = new Array(diffs.length);
 	this._rtnDiffsIdx = 0;
 	this._replacedStrLength = replacedStrLength;
 }
@@ -328,7 +331,7 @@ Restore.prototype._containReplaceChar = function() {
 	}
 	const arr = this.replacedStrArr;
 	for(var i = 0; i < arr.length; i++) {
-		for(var j = 0; j < this._rtnDiffs.length; j++) {
+		for(var j = 0; j < this._rtnDiffsIdx; j++) {
 			const idx = this._rtnDiffs[j].indexOf(arr[i]);
 			if(idx != -1) {
 				throw "error";
@@ -356,17 +359,17 @@ Restore.prototype._restoreSameMatch = function(text1MatchIdx, text2MatchIdx, cur
 	var replacePos = this._text1Match[text1MatchIdx].index - curTextLengths[0];
 	if(replacePos != 0) {
 		var beforeReplaceStr = diffStr.substr(0, replacePos);
-		this._rtnDiffs.push([ diffStatus, beforeReplaceStr ]);
+		this._rtnDiffs[this._rtnDiffsIdx++] = [ diffStatus, beforeReplaceStr ];
 	}
 	
-	this._rtnDiffs.push([ window.DIFF_DELETE * 2, this._text1Match[text1MatchIdx][0] ]);
+	this._rtnDiffs[this._rtnDiffsIdx++] = [ window.DIFF_DELETE * 2, this._text1Match[text1MatchIdx][0] ];
 	
 	// 오른쪽 거를 치환합시다.
 	if(text2MatchIdx >= this._text2Match.length) {
 		throw "오른쪽을 치환 할 차례인데 더이상 배열에 없네요.";
 	}
 	
-	this._rtnDiffs.push([ window.DIFF_INSERT * 2, this._text2Match[text2MatchIdx][0] ]);
+	this._rtnDiffs[this._rtnDiffsIdx++] = [ window.DIFF_INSERT * 2, this._text2Match[text2MatchIdx][0] ];
 	
 	var lastReplaceBeginPos = replacePos + this._replacedStrLength;
 	var curLength = lastReplaceBeginPos;
@@ -398,10 +401,10 @@ Restore.prototype._restoreWithoutReplaceCharHelper = function(matchArr, matchIdx
 	var replacePos = matchBlock.index - curTextLength;
 	if(replacePos != 0) {
 		var beforeReplaceStr = diffStr.substr(0, replacePos);
-		this._rtnDiffs.push([ diffStatus, beforeReplaceStr ]);
+		this._rtnDiffs[this._rtnDiffsIdx++] = [ diffStatus, beforeReplaceStr ];
 	}
 	
-	this._rtnDiffs.push([ insertDiffStatus, matchBlock[0] ]);
+	this._rtnDiffs[this._rtnDiffsIdx++] = [ insertDiffStatus, matchBlock[0] ];
 	
 	var lastReplaceBeginPos = replacePos + this._replacedStrLength;
 	var curLength = lastReplaceBeginPos;
@@ -437,7 +440,7 @@ Restore.prototype._resotreWithoutReplaceChar = function() {
 			text2MatchIdx >= this._text2Match.length) {
 			
 			for(var i = this._diffsIdx; i < this._diffs.length; i++) {
-				this._rtnDiffs.push(this._diffs[i]);
+				this._rtnDiffs[this._rtnDiffsIdx++] = this._diffs[i];
 			}
 			break;
 		}
@@ -449,7 +452,7 @@ Restore.prototype._resotreWithoutReplaceChar = function() {
 			const isLeftInside = this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr);
 			const isRightInside = this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr);
 			if(	!(isLeftInside || isRightInside) ) {
-				this._rtnDiffs.push(this._diffs[this._diffsIdx]);
+				this._rtnDiffs[this._rtnDiffsIdx++] = this._diffs[this._diffsIdx];
 				this._containReplaceChar();
 				curTextLengths[0] += diffStr.length;
 				curTextLengths[1] += diffStr.length;
@@ -504,7 +507,7 @@ Restore.prototype._resotreWithoutReplaceChar = function() {
 		{
 			
 			if(!this._isHaveChangePos(text2MatchIdx, this._text2Match, curTextLengths[1], diffStr)){
-				this._rtnDiffs.push(this._diffs[this._diffsIdx]);
+				this._rtnDiffs[this._rtnDiffsIdx++] = this._diffs[this._diffsIdx];
 				this._containReplaceChar();
 				curTextLengths[1] += diffStr.length;
 			} else {
@@ -524,7 +527,7 @@ Restore.prototype._resotreWithoutReplaceChar = function() {
 		{
 			
 			if(!this._isHaveChangePos(text1MatchIdx, this._text1Match, curTextLengths[0], diffStr)) {
-				this._rtnDiffs.push(this._diffs[this._diffsIdx]);
+				this._rtnDiffs[this._rtnDiffsIdx++] = this._diffs[this._diffsIdx];
 				this._containReplaceChar();
 				curTextLengths[0] += diffStr.length;
 			} else {
