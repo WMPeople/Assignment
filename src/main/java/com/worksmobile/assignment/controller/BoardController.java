@@ -180,9 +180,9 @@ public class BoardController {
 		}
 		board.setSubject(FilterUtils.dirtyToClean(board.getSubject()));
 		board.setContent(FilterUtils.dirtyToClean(board.getContent()));
-		versionManagementService.createArticle(board);
+		Board newBoard = versionManagementService.createArticle(board);
 		resultMap.put("result", "success");
-
+		resultMap.put("board",newBoard);
 		return resultMap;
 	}
 
@@ -195,6 +195,7 @@ public class BoardController {
 	public Map<String, Object> updateWithoutAttachment(Board board, MultipartHttpServletRequest attachment,
 		HttpServletRequest req) {
 		Map<String, Object> resultMap = new HashMap<>();
+		
 		File file = fileService.multiFileToFile(attachment);
 
 		if (file != null) {
@@ -213,6 +214,7 @@ public class BoardController {
 
 			resultMap.put("result", "success");
 			resultMap.put("updatedBoard", newNode);
+			resultMap.put("pastBoard", leapPtr);
 		}
 
 		return resultMap;
@@ -244,6 +246,7 @@ public class BoardController {
 			} else {
 				resultMap.put("result", "success");
 				resultMap.put("updatedBoard", newNode);
+				resultMap.put("pastBoard", pastBoard);
 			}
 
 		} catch (Exception e) {

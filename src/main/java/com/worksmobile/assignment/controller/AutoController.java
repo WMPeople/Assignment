@@ -80,6 +80,7 @@ public class AutoController {
 		boardTemp.setCookie_id((cookieService.getCookie(req).getValue()));
 		boardTempService.createTempArticleOverwrite(boardTemp, "withfile");
 		resultMap.put("result", "success");
+		resultMap.put("boardTemp", boardTemp);
 
 		return resultMap;
 	}
@@ -94,6 +95,7 @@ public class AutoController {
 		boardTemp.setContent(FilterUtils.dirtyToClean(boardTemp.getContent()));
 		boardTempService.createTempArticleOverwrite(boardTemp, "withoutfile");
 		resultMap.put("result", "success");
+		resultMap.put("boardTemp", boardTemp);
 
 		return resultMap;
 	}
