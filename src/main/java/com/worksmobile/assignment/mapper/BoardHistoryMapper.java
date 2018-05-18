@@ -23,8 +23,6 @@ public interface BoardHistoryMapper {
 
 	public int deleteHistory(NodePtr nodePtr);
 
-	public int deleteHistories(List<NodePtr> nodePtr);
-
 	public int createHistory(BoardHistory boardHistory);
 
 	public int updateHistoryParentAndRoot(BoardHistory boardHistory);

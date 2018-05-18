@@ -1,13 +1,11 @@
 package com.worksmobile.assignment.bo;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
 
-import org.awaitility.Awaitility;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,7 +19,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.worksmobile.assignment.mapper.BoardHistoryMapper;
 import com.worksmobile.assignment.model.Board;
-import com.worksmobile.assignment.model.BoardHistory;
 import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.BoardUtil;
 
@@ -65,7 +62,7 @@ public class TreeViewerServiceTest {
 		ObjectNode chart = mapper.createObjectNode();
 		chart.put("container", "#basic-example");
 		rootNode.set("chart", chart);
-
+		
 		ObjectNode connectors = mapper.createObjectNode();
 		connectors.put("type", "step");
 		rootNode.set("connectors", connectors);
@@ -87,10 +84,15 @@ public class TreeViewerServiceTest {
 	@Test
 	public void testGenerate() throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
-
+		
 		ObjectNode node = treeViewer.getTreeJson(article.getRoot_board_id());
 		
 		String out = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(node);
 		assertNotEquals("", out);
+	}
+	
+	@Test(expected=NotExistNodePtrException.class)
+	public void testNotExistNodePtr() {
+		treeViewer.getTreeJson(Integer.MIN_VALUE);
 	}
 }
