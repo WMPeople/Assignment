@@ -26,7 +26,7 @@ public class TreeViewerService {
 	private ServletContext servletContext;
 
 	// @return container, type, nodeStructure : <Node>
-	public ObjectNode getTreeJson(int rootBoardId) throws NotExistHistoryException{
+	public ObjectNode getTreeJson(int rootBoardId) throws NotExistNodePtrException{
 		ObjectMapper mapper = new ObjectMapper();
 		
 		NodePtr invisibleRootPtr = new NodePtr(rootBoardId, NodePtr.INVISIBLE_ROOT_VERSION, rootBoardId);

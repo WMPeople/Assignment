@@ -279,6 +279,14 @@ public class VersionManagementTest {
 		assertNull(newLeafNodePtr);
 	}
 	
+	@Test(expected=RuntimeException.class)
+	public void testDeleteInvisibleRootNode() {
+		BoardHistory boardHistory = boardHistoryMapper.selectHistory(defaultCreated);
+		NodePtr invisibleRootNode = boardHistory.getParentPtrAndRoot();
+		
+		versionManagementService.deleteVersion(invisibleRootNode);
+	}
+	
 	@Test
 	public void testDeleteArticle() throws JsonProcessingException, NotLeafNodeException {
 		NodePtr rootPtr = defaultCreated;
