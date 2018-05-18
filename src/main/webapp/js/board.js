@@ -10,7 +10,7 @@ $(function(){
 		    $('#textCount').text(textLength);
 		    // 제한된 길이보다 입력된 길이가 큰 경우 제한 길이만큼만 자르고 텍스트영역에 넣음
 		    if (textLength > textCountLimit) {
-		    	alertModal("Warning : 70만자 제한 ", true);
+		    	alert("Warning : 70만자 제한 ");
 		        $(this).val($(this).val().substr(0, textCountLimit));
 		    }
 		});
@@ -18,32 +18,6 @@ $(function(){
 	textCheck();
 	
 	// 5MB 이하 파일만 업로드 할 수 있게 하는 메쏘드
-	function fileCheck(file){
-	    var maxSize  = 5 * 1024 * 1024    //5MB
-	    var fileSize = 0;
-
-	    var browser=navigator.appName;
-
-	    // 익스플로러
-	    if (browser=="Microsoft Internet Explorer") {
-	        var oas = new ActiveXObject("Scripting.FileSystemObject");
-	        fileSize = oas.getFile( file.value ).size;
-	    } else{ // 익스플로러가 아닐경우
-	    	if (file.files[0] == null || file.files[0] == undefined) {
-	    		return true;
-	    	}else {
-	    		fileSize = file.files[0].size;
-	    	}
-	        
-	    }
-
-	    if(fileSize > maxSize) {
-	        alertModal("첨부파일 사이즈는 5MB 이내로 등록 가능합니다.    ", true);
-	        return false;
-	    }
-	    return true;
-	}
-	
 	
 	$("#btnCreate").click(function(){
 		var availableFile = fileCheck(this.form.fileUp);
@@ -52,7 +26,7 @@ $(function(){
 		}
 		
 		if ($('#subject').val() == '' || $('#content').val() == '') {
-			 alertModal("제목과 내용을 입력하세요.", true);
+			 alert("제목과 내용을 입력하세요.");
 			return;
 		}
 
@@ -70,18 +44,18 @@ $(function(){
 	               	makeFakeJson("create", new Date().toLocaleString(),result.board.board_id , result.board.version);
 	        	}
 	        	else{
-	        		alertModal('글 생성 실패',true,'times');
+	        		alert('글 생성 실패');
 	        	}
 	        },
 	    	error : function(xhr, status, error) {
-	    		alertModal('글 생성 실패',true,'times');
+	    		alert('글 생성 실패');
 	    	}
 	    });
 	});
 
 	$("#btnUpdate").click(function(){
 		if ($('#subject').val() == '' || $('#content').val() == '') {
-	        alertModal("제목과 내용을 입력하세요.",true);
+	        alert("제목과 내용을 입력하세요.");
 	        return;
 	    }
 		
@@ -118,11 +92,11 @@ $(function(){
 						location.href = "/assignment/";
 						makeFakeJson("update", new Date().toLocaleString(),result.pastBoard.board_id , result.pastBoard.version);
 					} else {
-						alertModal('글 수정 실패', true, 'times');
+						alert('글 수정 실패');
 					}
 				},
 				error : function(xhr, status, error) {
-					alertModal('글 수정 실패', true, 'times');
+					alert('글 수정 실패');
 				}
 			});
 		
@@ -146,18 +120,43 @@ function btnDelete(board_id,version){
 			        		makeFakeJson("delete", new Date().toLocaleString(),board_id , version);
 			        	}
 			        	else{
-			        		alertModal('글 삭제 실패', true, 'times');
-			        		location.href = "/assignment/";
+			        		alert('글 삭제 실패');
 			        	}
 			        },
 			        error : function(xhr, status, error) {
-			        	alertModal('글 삭제 실패', true, 'times');
+			        	alert('글 삭제 실패');
 			    	} 
 			    })	
 	    },
 	    closable : false
 	  }).modal('show');
 };
+
+function fileCheck(file){
+    var maxSize  = 5 * 1024 * 1024    //5MB
+    var fileSize = 0;
+
+    var browser=navigator.appName;
+
+    // 익스플로러
+    if (browser=="Microsoft Internet Explorer") {
+        var oas = new ActiveXObject("Scripting.FileSystemObject");
+        fileSize = oas.getFile( file.value ).size;
+    } else{ // 익스플로러가 아닐경우
+    	if (file.files[0] == null || file.files[0] == undefined) {
+    		return true;
+    	}else {
+    		fileSize = file.files[0].size;
+    	}
+        
+    }
+
+    if(fileSize > maxSize) {
+        alert("첨부파일 사이즈는 5MB 이내로 등록 가능합니다.    ");
+        return false;
+    }
+    return true;
+}
 
 function goPage(pages, lines) {
 	pages = Math.ceil(pages);
