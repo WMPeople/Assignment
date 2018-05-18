@@ -10,7 +10,7 @@ $(function(){
 		    $('#textCount').text(textLength);
 		    // 제한된 길이보다 입력된 길이가 큰 경우 제한 길이만큼만 자르고 텍스트영역에 넣음
 		    if (textLength > textCountLimit) {
-		    	alert("Warning : 70만자 제한 ");
+		    	alertModal("Warning : 70만자 제한 ", true);
 		        $(this).val($(this).val().substr(0, textCountLimit));
 		    }
 		});
@@ -38,7 +38,7 @@ $(function(){
 	    }
 
 	    if(fileSize > maxSize) {
-	        alert("첨부파일 사이즈는 5MB 이내로 등록 가능합니다.    ");
+	        alertModal("첨부파일 사이즈는 5MB 이내로 등록 가능합니다.    ", true);
 	        return false;
 	    }
 	    return true;
@@ -52,12 +52,11 @@ $(function(){
 		}
 		
 		if ($('#subject').val() == '' || $('#content').val() == '') {
-			alert("제목과 내용을 입력하세요.");
+			 alertModal("제목과 내용을 입력하세요.", true);
 			return;
 		}
 
 		var formData = new FormData($("#fileForm")[0]);
-		console.log(fileUp);
 	    $.ajax({                
 	        type: "post",
 	        contentType: false,
@@ -66,22 +65,23 @@ $(function(){
 	        data: formData,
 	        success: function(result){
 	        	if(result.result == "success"){
-	        		alert("보드 생성 완료");
+	        		alertModal("생성 완료",false);
 	               	location.href = "/assignment/";
+	               	makeFakeJson("create", new Date().toLocaleString(),result.board.board_id , result.board.version);
 	        	}
 	        	else{
-	        		alert(result.result);
+	        		alertModal('글 생성 실패',true,'times');
 	        	}
 	        },
 	    	error : function(xhr, status, error) {
-	    		alert(error);
+	    		alertModal('글 생성 실패',true,'times');
 	    	}
 	    });
 	});
 
 	$("#btnUpdate").click(function(){
 		if ($('#subject').val() == '' || $('#content').val() == '') {
-	        alert("제목과 내용을 입력하세요.");
+	        alertModal("제목과 내용을 입력하세요.",true);
 	        return;
 	    }
 		
@@ -114,14 +114,15 @@ $(function(){
 				url : urlStr,
 				success : function(result) {
 					if (result.result == "success") {
-						alert("보드 수정 완료");
+						alertModal("수정 완료", false);
 						location.href = "/assignment/";
+						makeFakeJson("update", new Date().toLocaleString(),result.pastBoard.board_id , result.pastBoard.version);
 					} else {
-						alert(result.result);
+						alertModal('글 수정 실패', true, 'times');
 					}
 				},
 				error : function(xhr, status, error) {
-					alert(error);
+					alertModal('글 수정 실패', true, 'times');
 				}
 			});
 		
@@ -133,29 +134,29 @@ $(function(){
 });
 
 function btnDelete(board_id,version){
-	var deleteConfirm;
-	deleteConfirm = confirm("leaf노드 삭제시 자동 저장 게시글도 모두 삭제됩니다. 동의하시나요?");
-	
-	if(deleteConfirm){
-		 $.ajax({
-		        type: "DELETE",
-		        url: "/assignment/boards/"+board_id+"/"+version,
-		        success: function(result){
-		        	if(result.result == 'success'){
-		        		alert("삭제완료");
-		        		location.href = "/assignment/";
-		        	}
-		        	else{
-		        		alert(result.result);
-		        		location.href = "/assignment/";
-		        	}
-		        },
-		        error : function(xhr, status, error) {
-		    		alert(error);
-		    	} 
-		    })	
-		
-	}
+	createConfirmModal("삭제하시겠습니까?");
+	$('.ui.large.basic.confirm.modal').modal({
+	    onApprove : function() {
+	    	 $.ajax({
+			        type: "DELETE",
+			        url: "/assignment/boards/"+board_id+"/"+version,
+			        success: function(result){
+			        	if(result.result == 'success'){
+			        		location.href = "/assignment/";
+			        		makeFakeJson("delete", new Date().toLocaleString(),board_id , version);
+			        	}
+			        	else{
+			        		alertModal('글 삭제 실패', true, 'times');
+			        		location.href = "/assignment/";
+			        	}
+			        },
+			        error : function(xhr, status, error) {
+			        	alertModal('글 삭제 실패', true, 'times');
+			    	} 
+			    })	
+	    },
+	    closable : false
+	  }).modal('show');
 };
 
 function goPage(pages, lines) {
@@ -171,6 +172,53 @@ function changeFileSize(fileSize) {
     var e = Math.floor(Math.log(fileSize) / Math.log(1024));
     var transformedFileSize = (fileSize / Math.pow(1024, e)).toFixed(2) + " " + s[e];
     return transformedFileSize;
+}
+
+function makeFakeJson(action, date, board_id, version) {
+	log = window.localStorage.getItem('log');
+	window.localStorage.setItem("logNameList","action,date,board_id,version");
+	var str = '{"action":"'+action+'" ,"date":"'+ date + '","board_id":"'+ board_id +'","version":"'+ version + '"}marker'
+	log += str;
+   	window.localStorage.setItem('log',log);
+}
+
+var modalCount = 0;
+function createConfirmModal (message) {
+	var div = parent.document.createElement("div");
+	div.id = "confirm_modal";
+	div.innerHTML = '<div class="ui large basic confirm modal">'
+	+'<div class="ui icon header">'
+		+'<i class="archive icon"></i>'
+		+message
+		+'</div>'
+		+'<div class="actions">'
+		+'<div class="ui green ok inverted button">OK</div>'
+		+' <div class="ui red basic cancel inverted button">Cancel</div>'
+		+'</div>'	
+		+'</div>';
+	
+	parent.document.getElementsByTagName("body")[0].appendChild(div);
+}
+
+function alertModal(message, avialableCancel, image) {
+	if (image == undefined) {
+		image = 'heart';}
+	var div = parent.document.createElement("div");
+	div.id = "alert_modal";
+	var str = '';
+	str += '<div class="ui large basic alert modal"><div class="ui icon header"><i class="'+image+' icon"></i>' +message +'</div>';
+	// avialableCancel가 true면 동작한다. 취소 버튼을 만들어준다.
+	if (avialableCancel){
+		str +=  '<div class="actions"><div class="ui red basic cancel inverted button">Cancel</div></div>';
+	}
+	str +='</div>';
+	div.innerHTML = str;
+	parent.document.getElementsByTagName("body")[0].appendChild(div);
+	
+	$('.ui.large.basic.alert.modal').modal({
+	    closable : false
+	}).modal('show');
+	
 }
 
 

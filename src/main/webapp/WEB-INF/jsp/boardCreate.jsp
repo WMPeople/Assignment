@@ -5,12 +5,16 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/jquery-ui-1.11.0.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/semantic.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/transition.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/common_ncs.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home_editor.min.css">
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js" type="text/javascript"> </script>
+<script src="${pageContext.request.contextPath}/js/semantic.js"></script>
+<script src="${pageContext.request.contextPath}/js/transition.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Insert title here</title>

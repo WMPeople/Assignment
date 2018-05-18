@@ -13,20 +13,18 @@ $(function(){
             url : "/assignment/autos/autosavewithfile",
             success : function(result) {
                 if (result.result == 'success') {
-                    console.log("자동 저장 성공");
                 } else {
                     alert("자동 저장 실패");
                 }
             },
             error : function(xhr, status, error) {
-                alert(error);
+            	alert("자동 저장 실패");
             }
         });
         
         fileUpOnChange();
     });
     
-
 });
 
 function fileUpOnChange () {
@@ -41,13 +39,12 @@ function fileUpOnChange () {
             url : "/assignment/autos/autosavewithfile",
             success : function(result) {
                 if (result.result == 'success') {
-                    console.log("자동 저장 성공");
                 } else {
-                    alert("자동 저장 실패");
+                	alert("자동 저장 실패");
                 }
             },
             error : function(xhr, status, error) {
-                alert(error);
+            	alert("자동 저장 실패");
             }
         });
     });

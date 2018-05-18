@@ -6,15 +6,13 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 
-<link rel="stylesheet"
-    href="${pageContext.request.contextPath}/css/jquery-ui-1.11.0.css">
-<link rel="stylesheet" type="text/css"
-    href="${pageContext.request.contextPath}/css/home.css">
-<link rel="stylesheet" type="text/css"
-    href="${pageContext.request.contextPath}/css/common_ncs.css">
-<link rel="stylesheet" type="text/css"
-    href="${pageContext.request.contextPath}/css/home_editor.min.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/jquery-ui-1.11.0.css">
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home.css">
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/common_ncs.css">
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home_editor.min.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/billboard.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/semantic.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/transition.css">
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
@@ -23,6 +21,8 @@
 <script src="${pageContext.request.contextPath}/js/auto_save.js"></script>
 <script src="${pageContext.request.contextPath}/js/diff_match_patch.js"></script>
 <script src = "${pageContext.request.contextPath}/js/billboard.js"></script>
+<script src="${pageContext.request.contextPath}/js/semantic.js"></script>
+<script src="${pageContext.request.contextPath}/js/transition.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>게시글 수정</title>
