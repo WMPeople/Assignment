@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,9 +35,8 @@ import com.worksmobile.assignment.util.JsonUtils;
  * @author khh
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = AssignmentApplication.class)
-@WebAppConfiguration
+@RunWith(SpringRunner.class)
+@SpringBootTest
 @Transactional
 public class BoardHistoryMapperTest {
 
@@ -89,7 +89,7 @@ public class BoardHistoryMapperTest {
 		article.setBoard_id(defaultNodePtr.getBoard_id());
 		article.setSubject("testInsert");
 		article.setContent("testContent");
-
+		article.setCreated_time("2018-05-18 00:00:00.0");
 		article.setNodePtr(defaultNodePtr);
 		BoardHistory createdHistory = BoardAdapter.from(article);
 		createdHistory.setStatus(BoardHistory.STATUS_CREATED);
@@ -152,33 +152,6 @@ public class BoardHistoryMapperTest {
 		BoardHistory deletedHistory = null;
 		deletedHistory = boardHistoryMapper.selectHistory(defaultNodePtr);
 		assertNull(deletedHistory);
-	}
-	
-	@Test
-	public void testDeleteMultipleWithParentLinked() throws JsonProcessingException {
-		int deleteCnt = 10;
-		List<NodePtr> historyList = new ArrayList<>(deleteCnt);
-		
-		boardHistory = createBoardHistoryIfNotExists();
-		historyList.add(boardHistory);
-		
-		for(int i = 0; i < deleteCnt; i++) {
-			BoardHistory cloned = boardHistory.clone();
-			cloned.setParentNodePtrAndRoot(cloned);
-			cloned.setBoard_id(cloned.getBoard_id() + 1);
-			
-			boardHistoryMapper.createHistory(cloned);
-			historyList.add(cloned);
-			boardHistory = cloned;
-		}
-		
-		boardHistoryMapper.deleteHistories(historyList);
-		
-		for(NodePtr ele : historyList) {
-			BoardHistory boardHistory = boardHistoryMapper.selectHistory(ele);
-			String json = JsonUtils.jsonStringFromObject(ele);
-			collector.checkThat(json, boardHistory, is(nullValue()));
-		}
 	}
 	
 	@Test
