@@ -185,13 +185,13 @@ function discriminateVersionUp(addCount, newLineCount, stringSizeDifference, add
 						document.getElementById('content').defaultValue = document.getElementById('content').value;
 						document.getElementById('currentBoard').innerText = 'board_id : '+ $('#board_id').val()+ ' version : '+ $('#version').val();
 						document.getElementById('notice').innerText = new Date().toGMTString()+ " 버전업 완료.";
-						makeFakeJson("update", new Date().toLocaleString(),result.pastBoard.board_id , result.pastBoard.version);
+						
 					} else {
-						alert'버전업 실패');
+						alert(result.result);
 					}
 				},
 				error : function(xhr, status, error) {
-					alert'버전업 실패');
+					alert('버전업 실패');
 				}
 			});
 
@@ -209,13 +209,12 @@ function discriminateVersionUp(addCount, newLineCount, stringSizeDifference, add
 				success : function(result) {
 					if (result.result == 'success') {
 						document.getElementById('notice').innerText = new Date().toGMTString()+ " 자동 저장 완료.";
-						makeFakeJson("autosave", new Date().toLocaleString(),result.boardTemp.board_id , result.boardTemp.version);
 					} else {
-						alert('자동 저장 실패');
+						alert("자동 저장 실패");
 					}
 				},
 				error : function(xhr, status, error) {
-					alert("자동 저장 실패");
+					alert('자동 저장 실패');
 				}
 			});
 		
@@ -234,7 +233,7 @@ function applyChange(){
 		stringSizeDifferenceCondition =sSDC;
 		addLengthCondition =  Math.floor(aLC);
 	} else {
-		alert('값을 확인해주세요.');
+		alert('값을 확인해주세요');
 	}
 	$('#addCountCondition').val(addCountCondition);
 	$('#newLineCountCondition').val(newLineCountCondition);

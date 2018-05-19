@@ -8,7 +8,6 @@
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js"></script>
-<script src="${pageContext.request.contextPath}/js/log.js"></script>
 <script src="${pageContext.request.contextPath}/js/semantic.js"></script>
 <script src="${pageContext.request.contextPath}/js/transition.js"></script>
 <head>
@@ -24,9 +23,6 @@
 </head>
 <body>
     <span id="title" style="float: left; margin-left: 10px; font-size: 30px;"> 게시물 목록</span>
-    <button id= "btnShowLog" class="btn btn-primary" style="float : right;" onclick="showLog()">로그</button>
-    <button id= "btnDeleteLog" class="btn btn-primary" style="float : right; margin-right: 0.5%;" onclick="deleteLog()">로그 삭제</button>
-    <div id="logDialog"></div>
     <br></br>
     <button class="btn btn-primary" style="float : right;" onclick="location.href='/assignment/boards'">글쓰기</button>
  

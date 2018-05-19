@@ -65,7 +65,6 @@ function btnVersionDelete(board_id, version) {
 			if (result.result == 'success') {
 				alert("삭제완료");
 				location.reload();
-				makeFakeJson("deleteVersion", new Date().toLocaleString(),board_id , version);
 			} else {
 				alert("삭제실패");
 			}
@@ -89,7 +88,6 @@ function btnRecover(board_id, version) {
 			if (result.result == 'success') {
 				alert("복원완료");
 				location.href = '/assignment/boards/management/' + result.board_id + '/' + result.version;
-				makeFakeJson("restore", new Date().toLocaleString(),board_id , version);
 			} else {
 				alert(result.result);
 			}

@@ -7,7 +7,6 @@ import java.net.HttpURLConnection;
 
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.springframework.aop.framework.adapter.ThrowsAdviceInterceptor;
 
 public class APIConnection {
 

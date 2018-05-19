@@ -27,7 +27,4 @@ public class JsoupUtils {
 		return document;
 	}
 
-	
-	
-
 }

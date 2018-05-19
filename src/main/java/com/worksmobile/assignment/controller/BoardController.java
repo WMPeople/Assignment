@@ -180,9 +180,8 @@ public class BoardController {
 		}
 		board.setSubject(FilterUtils.dirtyToClean(board.getSubject()));
 		board.setContent(FilterUtils.dirtyToClean(board.getContent()));
-		Board newBoard = versionManagementService.createArticle(board);
+		versionManagementService.createArticle(board);
 		resultMap.put("result", "success");
-		resultMap.put("board",newBoard);
 		return resultMap;
 	}
 
@@ -214,7 +213,6 @@ public class BoardController {
 
 			resultMap.put("result", "success");
 			resultMap.put("updatedBoard", newNode);
-			resultMap.put("pastBoard", leapPtr);
 		}
 
 		return resultMap;
@@ -246,7 +244,6 @@ public class BoardController {
 			} else {
 				resultMap.put("result", "success");
 				resultMap.put("updatedBoard", newNode);
-				resultMap.put("pastBoard", pastBoard);
 			}
 
 		} catch (Exception e) {

@@ -41,7 +41,6 @@ $(function(){
 	        	if(result.result == "success"){
 	        		alertModal("생성 완료",false);
 	               	location.href = "/assignment/";
-	               	makeFakeJson("create", new Date().toLocaleString(),result.board.board_id , result.board.version);
 	        	}
 	        	else{
 	        		alert('글 생성 실패');
@@ -90,7 +89,6 @@ $(function(){
 					if (result.result == "success") {
 						alertModal("수정 완료", false);
 						location.href = "/assignment/";
-						makeFakeJson("update", new Date().toLocaleString(),result.pastBoard.board_id , result.pastBoard.version);
 					} else {
 						alert('글 수정 실패');
 					}
@@ -117,7 +115,6 @@ function btnDelete(board_id,version){
 			        success: function(result){
 			        	if(result.result == 'success'){
 			        		location.href = "/assignment/";
-			        		makeFakeJson("delete", new Date().toLocaleString(),board_id , version);
 			        	}
 			        	else{
 			        		alert('글 삭제 실패');
@@ -173,19 +170,10 @@ function changeFileSize(fileSize) {
     return transformedFileSize;
 }
 
-function makeFakeJson(action, date, board_id, version) {
-	log = window.localStorage.getItem('log');
-	window.localStorage.setItem("logNameList","action,date,board_id,version");
-	var str = '{"action":"'+action+'" ,"date":"'+ date + '","board_id":"'+ board_id +'","version":"'+ version + '"}marker'
-	log += str;
-   	window.localStorage.setItem('log',log);
-}
-
-var modalCount = 0;
 function createConfirmModal (message) {
-	var div = parent.document.createElement("div");
-	div.id = "confirm_modal";
-	div.innerHTML = '<div class="ui large basic confirm modal">'
+	var cofirmDiv = parent.document.createElement("div");
+	cofirmDiv.id = "confirm_modal";
+	cofirmDiv.innerHTML = '<div class="ui large basic confirm modal">'
 	+'<div class="ui icon header">'
 		+'<i class="archive icon"></i>'
 		+message
@@ -196,28 +184,30 @@ function createConfirmModal (message) {
 		+'</div>'	
 		+'</div>';
 	
-	parent.document.getElementsByTagName("body")[0].appendChild(div);
+	parent.document.getElementsByTagName("body")[0].appendChild(cofirmDiv);
 }
 
 function alertModal(message, avialableCancel, image) {
 	if (image == undefined) {
 		image = 'heart';}
-	var div = parent.document.createElement("div");
-	div.id = "alert_modal";
-	var str = '';
-	str += '<div class="ui large basic alert modal"><div class="ui icon header"><i class="'+image+' icon"></i>' +message +'</div>';
+		var alertDiv = $('#alert_modal');
+		if (!alertDiv.length) {
+			alertDiv = parent.document.createElement("div");
+			alertDiv.id = "alert_modal";
+			parent.document.getElementsByTagName("body")[0].appendChild(alertDiv);
+		}
+	var htmlStr = '';
+	htmlStr += '<div id="modalAlert" class="ui large basic alert modal"><div class="ui icon header"><i class="'+image+' icon"></i>' +message +'</div>';
 	// avialableCancel가 true면 동작한다. 취소 버튼을 만들어준다.
 	if (avialableCancel){
-		str +=  '<div class="actions"><div class="ui red basic cancel inverted button">Cancel</div></div>';
+		htmlStr +=  '<div class="actions"><div class="ui red ok inverted button">Cancel</div></div>';
 	}
-	str +='</div>';
-	div.innerHTML = str;
-	parent.document.getElementsByTagName("body")[0].appendChild(div);
-	
-	$('.ui.large.basic.alert.modal').modal({
-	    closable : false
+	htmlStr +='</div>';
+	$(alertDiv).html(htmlStr);
+	$('#modalAlert').modal({
+	    closable : false,
+	    onApprove : function() {
+	    },
+	    silent: false
 	}).modal('show');
-	
 }
-
-
