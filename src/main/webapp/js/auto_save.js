@@ -184,7 +184,8 @@ function discriminateVersionUp(addCount, newLineCount, stringSizeDifference, add
 						$('#version').val(result.updatedBoard.version);
 						document.getElementById('content').defaultValue = document.getElementById('content').value;
 						document.getElementById('currentBoard').innerText = 'board_id : '+ $('#board_id').val()+ ' version : '+ $('#version').val();
-						document.getElementById('notice').innerText = new Date().toGMTString()+ " 버전업 완료.";
+						document.getElementById('notice').innerText = new Date().toLocaleString()+ " 버전업 완료.";
+						setTimeout(function() { document.getElementById('notice').innerText = '';}, 5000);
 						
 					} else {
 						alert(result.result);
@@ -208,7 +209,8 @@ function discriminateVersionUp(addCount, newLineCount, stringSizeDifference, add
 				url : "/assignment/autos/autosavewithoutfile",
 				success : function(result) {
 					if (result.result == 'success') {
-						document.getElementById('notice').innerText = new Date().toGMTString()+ " 자동 저장 완료.";
+						document.getElementById('notice').innerText = new Date().toLocaleString()+ " 자동 저장 완료.";
+						setTimeout(function() { document.getElementById('notice').innerText = '';}, 5000);
 					} else {
 						alert("자동 저장 실패");
 					}

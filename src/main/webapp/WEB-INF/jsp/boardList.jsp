@@ -8,17 +8,21 @@
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js"></script>
+<script src="${pageContext.request.contextPath}/js/semantic.js"></script>
+<script src="${pageContext.request.contextPath}/js/transition.js"></script>
 <head>
 <meta http-equiv="Content-Type" content= "text/html; charset=UTF-8">
 <!-- BootStrap CDN -->
 <link rel="stylesheet" href="css/jquery-ui-1.11.0.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/bootstrap.min.3.3.2.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/bootstrap-theme.min.3.3.2.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/semantic.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/transition.css">
+
 <title>게시물 목록</title>
 </head>
 <body>
-    <span id="title" style="float: left; margin-left: 10px; font-size: 30px;"> 게시물 목록</span>
-    <span id="cookie_id" style="float: right; margin-right: 10px; font-size: 20px;"> Cookie_id : ${cookie_id}</span>
+    <span id="title" style="float: left; margin-left: 10px; font-size: 30px; margin-top: 10px;"> 게시물 목록</span>
     <br></br>
     <button class="btn btn-primary" style="float : right;" onclick="location.href='/assignment/boards'">글쓰기</button>
  

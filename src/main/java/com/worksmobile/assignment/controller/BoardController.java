@@ -182,7 +182,6 @@ public class BoardController {
 		board.setContent(FilterUtils.dirtyToClean(board.getContent()));
 		versionManagementService.createArticle(board);
 		resultMap.put("result", "success");
-
 		return resultMap;
 	}
 
@@ -195,6 +194,7 @@ public class BoardController {
 	public Map<String, Object> updateWithoutAttachment(Board board, MultipartHttpServletRequest attachment,
 		HttpServletRequest req) {
 		Map<String, Object> resultMap = new HashMap<>();
+		
 		File file = fileService.multiFileToFile(attachment);
 
 		if (file != null) {

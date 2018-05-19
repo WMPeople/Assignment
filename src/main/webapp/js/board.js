@@ -18,32 +18,6 @@ $(function(){
 	textCheck();
 	
 	// 5MB 이하 파일만 업로드 할 수 있게 하는 메쏘드
-	function fileCheck(file){
-	    var maxSize  = 5 * 1024 * 1024    //5MB
-	    var fileSize = 0;
-
-	    var browser=navigator.appName;
-
-	    // 익스플로러
-	    if (browser=="Microsoft Internet Explorer") {
-	        var oas = new ActiveXObject("Scripting.FileSystemObject");
-	        fileSize = oas.getFile( file.value ).size;
-	    } else{ // 익스플로러가 아닐경우
-	    	if (file.files[0] == null || file.files[0] == undefined) {
-	    		return true;
-	    	}else {
-	    		fileSize = file.files[0].size;
-	    	}
-	        
-	    }
-
-	    if(fileSize > maxSize) {
-	        alert("첨부파일 사이즈는 5MB 이내로 등록 가능합니다.    ");
-	        return false;
-	    }
-	    return true;
-	}
-	
 	
 	$("#btnCreate").click(function(){
 		var availableFile = fileCheck(this.form.fileUp);
@@ -52,12 +26,11 @@ $(function(){
 		}
 		
 		if ($('#subject').val() == '' || $('#content').val() == '') {
-			alert("제목과 내용을 입력하세요.");
+			 alert("제목과 내용을 입력하세요.");
 			return;
 		}
 
 		var formData = new FormData($("#fileForm")[0]);
-		console.log(fileUp);
 	    $.ajax({                
 	        type: "post",
 	        contentType: false,
@@ -66,15 +39,15 @@ $(function(){
 	        data: formData,
 	        success: function(result){
 	        	if(result.result == "success"){
-	        		alert("보드 생성 완료");
+	        		alertModal("생성 완료",false);
 	               	location.href = "/assignment/";
 	        	}
 	        	else{
-	        		alert(result.result);
+	        		alert('글 생성 실패');
 	        	}
 	        },
 	    	error : function(xhr, status, error) {
-	    		alert(error);
+	    		alert('글 생성 실패');
 	    	}
 	    });
 	});
@@ -114,14 +87,14 @@ $(function(){
 				url : urlStr,
 				success : function(result) {
 					if (result.result == "success") {
-						alert("보드 수정 완료");
+						alertModal("수정 완료", false);
 						location.href = "/assignment/";
 					} else {
-						alert(result.result);
+						alert('글 수정 실패');
 					}
 				},
 				error : function(xhr, status, error) {
-					alert(error);
+					alert('글 수정 실패');
 				}
 			});
 		
@@ -133,30 +106,54 @@ $(function(){
 });
 
 function btnDelete(board_id,version){
-	var deleteConfirm;
-	deleteConfirm = confirm("leaf노드 삭제시 자동 저장 게시글도 모두 삭제됩니다. 동의하시나요?");
-	
-	if(deleteConfirm){
-		 $.ajax({
-		        type: "DELETE",
-		        url: "/assignment/boards/"+board_id+"/"+version,
-		        success: function(result){
-		        	if(result.result == 'success'){
-		        		alert("삭제완료");
-		        		location.href = "/assignment/";
-		        	}
-		        	else{
-		        		alert(result.result);
-		        		location.href = "/assignment/";
-		        	}
-		        },
-		        error : function(xhr, status, error) {
-		    		alert(error);
-		    	} 
-		    })	
-		
-	}
+	createConfirmModal("삭제하시겠습니까?");
+	$('.ui.large.basic.confirm.modal').modal({
+	    onApprove : function() {
+	    	 $.ajax({
+			        type: "DELETE",
+			        url: "/assignment/boards/"+board_id+"/"+version,
+			        success: function(result){
+			        	if(result.result == 'success'){
+			        		location.href = "/assignment/";
+			        	}
+			        	else{
+			        		alert('글 삭제 실패');
+			        	}
+			        },
+			        error : function(xhr, status, error) {
+			        	alert('글 삭제 실패');
+			    	} 
+			    })	
+	    },
+	    closable : false
+	  }).modal('show');
 };
+
+function fileCheck(file){
+    var maxSize  = 5 * 1024 * 1024    //5MB
+    var fileSize = 0;
+
+    var browser=navigator.appName;
+
+    // 익스플로러
+    if (browser=="Microsoft Internet Explorer") {
+        var oas = new ActiveXObject("Scripting.FileSystemObject");
+        fileSize = oas.getFile( file.value ).size;
+    } else{ // 익스플로러가 아닐경우
+    	if (file.files[0] == null || file.files[0] == undefined) {
+    		return true;
+    	}else {
+    		fileSize = file.files[0].size;
+    	}
+        
+    }
+
+    if(fileSize > maxSize) {
+        alert("첨부파일 사이즈는 5MB 이내로 등록 가능합니다.    ");
+        return false;
+    }
+    return true;
+}
 
 function goPage(pages, lines) {
 	pages = Math.ceil(pages);
@@ -173,4 +170,44 @@ function changeFileSize(fileSize) {
     return transformedFileSize;
 }
 
+function createConfirmModal (message) {
+	var cofirmDiv = parent.document.createElement("div");
+	cofirmDiv.id = "confirm_modal";
+	cofirmDiv.innerHTML = '<div class="ui large basic confirm modal">'
+	+'<div class="ui icon header">'
+		+'<i class="archive icon"></i>'
+		+message
+		+'</div>'
+		+'<div class="actions">'
+		+'<div class="ui green ok inverted button">OK</div>'
+		+' <div class="ui red basic cancel inverted button">Cancel</div>'
+		+'</div>'	
+		+'</div>';
+	
+	parent.document.getElementsByTagName("body")[0].appendChild(cofirmDiv);
+}
 
+function alertModal(message, avialableCancel, image) {
+	if (image == undefined) {
+		image = 'heart';}
+		var alertDiv = $('#alert_modal');
+		if (!alertDiv.length) {
+			alertDiv = parent.document.createElement("div");
+			alertDiv.id = "alert_modal";
+			parent.document.getElementsByTagName("body")[0].appendChild(alertDiv);
+		}
+	var htmlStr = '';
+	htmlStr += '<div id="modalAlert" class="ui large basic alert modal"><div class="ui icon header"><i class="'+image+' icon"></i>' +message +'</div>';
+	// avialableCancel가 true면 동작한다. 취소 버튼을 만들어준다.
+	if (avialableCancel){
+		htmlStr +=  '<div class="actions"><div class="ui red ok inverted button">Cancel</div></div>';
+	}
+	htmlStr +='</div>';
+	$(alertDiv).html(htmlStr);
+	$('#modalAlert').modal({
+	    closable : false,
+	    onApprove : function() {
+	    },
+	    silent: false
+	}).modal('show');
+}

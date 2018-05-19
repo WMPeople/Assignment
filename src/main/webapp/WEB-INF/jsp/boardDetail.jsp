@@ -11,12 +11,16 @@
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/common_ncs.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home_editor.min.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/context_info.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/semantic.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/transition.css">
 <script src="${pageContext.request.contextPath}/js/jquery-1.10.2.js"></script>
 <script src="${pageContext.request.contextPath}/js/jquery-ui-1.11.0.js"></script>
 <script src="${pageContext.request.contextPath}/js/board.js"></script>
 <script src="${pageContext.request.contextPath}/js/crawling.js"></script>
 <!-- 상품 정보에 관한 js -->
 <script src="${pageContext.request.contextPath}/js/clamp.js"></script>
+<script src="${pageContext.request.contextPath}/js/semantic.js"></script>
+<script src="${pageContext.request.contextPath}/js/transition.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>게시물 상세보기</title>
