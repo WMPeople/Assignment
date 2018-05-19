@@ -157,7 +157,8 @@ function doWhenDialogLoad(thisPtr, category, crawling_text) {
 				var max = $('#total')[0].innerText;
 				const NAVER_API_MAX_CNT = 1000;
 				
-				if(curCnt >= max || curCnt >= NAVER_API_MAX_CNT) {
+				if(curCnt >= max || curCnt >= NAVER_API_MAX_CNT ||
+					$('#loading').css('display') == 'block') {
 					return;
 				}
 				$('#loading').css('display', 'block');
@@ -171,8 +172,7 @@ function doWhenDialogLoad(thisPtr, category, crawling_text) {
 						event.preventDefault();
 					},
 					error: function(request, status, error) {
-						$('#loading').remove();
-						$('#dialog body').append(loadingHTML);
+						$('#loading').css('display', 'none');
 						alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
 					}
 				});
