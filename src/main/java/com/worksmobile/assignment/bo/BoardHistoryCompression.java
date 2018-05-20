@@ -6,13 +6,13 @@ import java.nio.charset.StandardCharsets;
 import com.worksmobile.assignment.model.BoardHistory;
 
 public class BoardHistoryCompression {
-	static Compression compress = CompressionMaker.getCompress();
+	static Compression compression = CompressionMaker.getCompress();
 	
 	public static BoardHistory setContent(BoardHistory boardHistory, String content) throws IOException {
 		BoardHistory rtn = boardHistory;
 		
 		byte[] unCompressed = content.getBytes(StandardCharsets.UTF_8);
-		byte[] compressed = compress.compress(unCompressed);
+		byte[] compressed = compression.compress(unCompressed);
 		
 		if(compressed.length > unCompressed.length) {
 			rtn.set_content_compressed(false);
@@ -29,7 +29,7 @@ public class BoardHistoryCompression {
 		byte[] decompressed;
 		if(boardHistory.is_content_compressed()) {
 			byte[] compressed = boardHistory.getHistory_content();
-			decompressed = compress.deCompress(compressed);
+			decompressed = compression.deCompress(compressed);
 			
 		} else {
 			decompressed = boardHistory.getHistory_content();

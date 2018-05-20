@@ -8,8 +8,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -198,6 +200,28 @@ public class DBIntegrityTest {
 				assertEquals(BoardHistory.INVISIALBE_ROOT_BOARD_ID, ele.getRoot_board_id());
 				assertEquals(true, ele.isInvisibleRoot());
 			}
+		}
+	}
+	
+	/*
+	 * 모든 노드들은 보이지 않는 루트를 가지고 있어야 합니다.
+	 */
+	@Test
+	public void testAllNodeHaveInvisibleRoot() {
+		List<BoardHistory> historyList = boardHistoryMapper.selectAllHistory();
+		Set<Integer> rootBoardIdSet = new HashSet<>();
+		for(BoardHistory eleHistory : historyList) {
+			rootBoardIdSet.add(eleHistory.getRoot_board_id());
+		}
+		
+		for(int rootBoardId : rootBoardIdSet) {
+			// 보이지 않는 루트의 루트 게시글 번호는 0 입니다.
+			if(rootBoardId == 0) {
+				continue;
+			}
+			NodePtr invisibleRootPtr = new NodePtr(rootBoardId, NodePtr.INVISIBLE_ROOT_VERSION, NodePtr.INVISIALBE_ROOT_BOARD_ID);
+			BoardHistory invisibleRootHistory = boardHistoryMapper.selectHistory(invisibleRootPtr);
+			collector.checkThat(invisibleRootPtr.toString(), invisibleRootHistory, is(notNullValue()));
 		}
 	}
 }
