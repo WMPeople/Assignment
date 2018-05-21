@@ -34,6 +34,16 @@ public class NaverCrawlingService implements CrawlingService{
 		return getHashMapDataByJsoup(category, url, selector);
 	}
 	
+	@Override
+	public HashMap<String, Object> getCrawlingResultNoCache(String category, String text, String pageNo)
+		throws Exception {
+		String encodedText = URLEncoder.encode(text, "UTF-8");
+		String url = "http://endic.naver.com/search.nhn?sLn=kr&searchOption=entry_idiom&query=" + encodedText + "&pageNo="
+			+ pageNo;
+		String selector = "#content > div.word_num_nobor > h3 > span";
+		return getHashMapDataByJsoup(category, url, selector);
+	}
+	
 	private HashMap<String, Object> getHashMapDataByJsoup(String category, String url, String selector)
 		throws IOException, JsonProcessingException, ParseException {
 		Document document = JsoupUtils.getDocument(url);
@@ -86,6 +96,8 @@ public class NaverCrawlingService implements CrawlingService{
 		param.put("type", category);
 		return param;
 	}
+
+
 
 
 

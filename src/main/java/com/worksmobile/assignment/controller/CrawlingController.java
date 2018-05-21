@@ -28,8 +28,17 @@ public class CrawlingController {
 	@RequestMapping(value = "api/browser/crawling/{category}/{text}/{pageNo}", method = RequestMethod.GET)
 	public ModelAndView naverCrawling(@PathVariable String category, @PathVariable String text, @PathVariable String pageNo) throws Exception {
 		HashMap<String, Object> param = null;
+		long noCacheStart = System.currentTimeMillis(); // 수행시간 측정
+		param = naverCrawlingService.getCrawlingResultNoCache(category, text, pageNo);
+		long noCacheEnd = System.currentTimeMillis();
+		System.out.println("NoCache 수행시간 : "+ Long.toString(noCacheEnd-noCacheStart));
 		
+		long CacheStart = System.currentTimeMillis(); // 수행시간 측정
 		param = naverCrawlingService.getCrawlingResult(category, text, pageNo);
+		long CacheEnd = System.currentTimeMillis();
+		System.out.println("Cache 수행시간 : "+ Long.toString(CacheEnd-CacheStart));
+		
+		
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.addObject("jsonArray", param.get("items"));
 		modelAndView.addObject("type", param.get("type"));
