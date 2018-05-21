@@ -31,7 +31,7 @@ $(function(){
 		}
 
 		var formData = new FormData($("#fileForm")[0]);
-	    $.ajax({                
+	    $.ajax({
 	        type: "post",
 	        contentType: false,
 	        processData: false,
@@ -63,8 +63,8 @@ $(function(){
 			    if (!availableFile) {
 			        return;
 			    }
-		} 
-	   
+		}
+	
 	   	var file_name = '<%=request.getParameter("file_name")%>';
 	   	if(file_name != ''){
 	   		file_name = '<%=request.getParameter("file_name")%>';
@@ -122,7 +122,7 @@ function btnDelete(board_id,version){
 			        },
 			        error : function(xhr, status, error) {
 			        	alert('글 삭제 실패');
-			    	} 
+			    	}
 			    })	
 	    },
 	    closable : false
@@ -145,7 +145,7 @@ function fileCheck(file){
     	}else {
     		fileSize = file.files[0].size;
     	}
-        
+
     }
 
     if(fileSize > maxSize) {
@@ -171,8 +171,14 @@ function changeFileSize(fileSize) {
 }
 
 function createConfirmModal (message) {
-	var cofirmDiv = parent.document.createElement("div");
-	cofirmDiv.id = "confirm_modal";
+	
+	var cofirmDiv = $('#confirm_modal');
+	if (!cofirmDiv.length) {
+		cofirmDiv = parent.document.createElement("div");
+		cofirmDiv.id = "confirm_modal";
+		parent.document.getElementsByTagName("body")[0].appendChild(cofirmDiv);
+	}
+	
 	cofirmDiv.innerHTML = '<div class="ui large basic confirm modal">'
 	+'<div class="ui icon header">'
 		+'<i class="archive icon"></i>'
@@ -184,7 +190,7 @@ function createConfirmModal (message) {
 		+'</div>'	
 		+'</div>';
 	
-	parent.document.getElementsByTagName("body")[0].appendChild(cofirmDiv);
+	
 }
 
 function alertModal(message, avialableCancel, image) {

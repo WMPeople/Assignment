@@ -28,27 +28,39 @@ public class CrawlingController {
 	@RequestMapping(value = "api/browser/crawling/{category}/{text}/{pageNo}", method = RequestMethod.GET)
 	public ModelAndView naverCrawling(@PathVariable String category, @PathVariable String text, @PathVariable String pageNo) throws Exception {
 		HashMap<String, Object> param = null;
-		long noCacheStart = System.currentTimeMillis(); // 수행시간 측정
-		param = naverCrawlingService.getCrawlingResultNoCache(category, text, pageNo);
-		long noCacheEnd = System.currentTimeMillis();
-		System.out.println("NoCache 수행시간 : "+ Long.toString(noCacheEnd-noCacheStart));
-		
-		long CacheStart = System.currentTimeMillis(); // 수행시간 측정
-		param = naverCrawlingService.getCrawlingResult(category, text, pageNo);
-		long CacheEnd = System.currentTimeMillis();
-		System.out.println("Cache 수행시간 : "+ Long.toString(CacheEnd-CacheStart));
-		
-		
-		ModelAndView modelAndView = new ModelAndView();
-		modelAndView.addObject("jsonArray", param.get("items"));
-		modelAndView.addObject("type", param.get("type"));
-		modelAndView.addObject("total", param.get("total"));
-		if ((Long)param.get("total") == 0) {
-			modelAndView.setViewName("noData");
-		} else {
-			modelAndView.setViewName("crawling");
+		long sum = 0;
+		for (int i = 0 ; i< 10 ; i ++) {
+			Integer temp = i + 1;
+			long CacheStart = System.currentTimeMillis(); // 수행시간 측정
+			naverCrawlingService.getCrawlingResult("dictionary","a",temp.toString());
+			long CacheEnd = System.currentTimeMillis();
+			sum += (CacheEnd-CacheStart);
 		}
-		return modelAndView;
+		System.out.println("Cache 수행시간 : "+ Long.toString(sum));
+		
+		sum = 0;
+		for (int i = 0 ; i< 10 ; i ++) {
+			Integer temp = i + 1;
+			long noCacheStart = System.currentTimeMillis(); // 수행시간 측정
+			naverCrawlingService.getCrawlingResultNoCache("dictionary","a",temp.toString());
+			long noCacheEnd = System.currentTimeMillis();
+			sum += (noCacheEnd-noCacheStart);
+		}
+		System.out.println("NoCache 수행시간 : "+ Long.toString(sum));
+		
+		return null;
+		
+		
+//		ModelAndView modelAndView = new ModelAndView();
+//		modelAndView.addObject("jsonArray", param.get("items"));
+//		modelAndView.addObject("type", param.get("type"));
+//		modelAndView.addObject("total", param.get("total"));
+//		if ((Long)param.get("total") == 0) {
+//			modelAndView.setViewName("noData");
+//		} else {
+//			modelAndView.setViewName("crawling");
+//		}
+//		return modelAndView;
 	}
 
 }
