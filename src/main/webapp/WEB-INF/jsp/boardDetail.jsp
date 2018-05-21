@@ -53,7 +53,7 @@
             <form action="/assignment/boards/update" method="post" style="display: inline;">
                 <input name="board_id" type="text" id="board_id" value="${board.board_id}" style="display:none;">
                 <input name="version" type="text" id="version" value="${board.version}" style="display:none;">
-                <input name="subject" type="text" id="subject" value="${board.subject}" style="display:none;">
+                <textarea name="subject" type="text" id="subject" style="display:none;"><c:out value="${board.subject}" escapeXml="true" /></textarea>
                 <input name="created_time" type="text" id="created_time" value="${board.created_time}" style="display:none;">
                 <textarea name="content" id="content"  style="display:none;"><c:out value="${board.content}" escapeXml="true" /></textarea>
                 <input name="file_id" type="text" id="file_id" value="${file.file_id}" style="display:none;">
