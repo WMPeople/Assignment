@@ -63,7 +63,8 @@ public class VersionManagementTest {
 	
 	@Rule
 	public ErrorCollector collector = new ErrorCollector();
-
+	
+	private NodePtr notExistPtr = new NodePtr(-1, -1, -1);
 	private Board defaultCreated;
 	private Comparator<NodePtr> compareNodePtr = Comparator.comparing(NodePtr::getRoot_board_id)
 			.thenComparing(NodePtr::getBoard_id).thenComparing(NodePtr::getVersion);
@@ -334,6 +335,21 @@ public class VersionManagementTest {
 		}
 		
 		versionManagementService.deleteArticle(generationList.get(0));
+	}
+	
+	@Test(expected=NotExistNodePtrException.class)
+	public void testModifyArticleShouldThrowExcpetion() {
+		versionManagementService.modifyVersion(defaultCreated, notExistPtr, null);
+	}
+	
+	@Test(expected=NotExistNodePtrException.class)
+	public void testRecoverArticleRecoverPtrShouldThrowException() {
+		versionManagementService.recoverVersion(notExistPtr, defaultCreated);
+	}
+
+	@Test(expected=NotExistNodePtrException.class)
+	public void testRecoverArticleLeafPtrShouldThrowException() {
+		versionManagementService.recoverVersion(defaultCreated, notExistPtr);
 	}
 	
 	@Test(expected=NotLeafNodeException.class)

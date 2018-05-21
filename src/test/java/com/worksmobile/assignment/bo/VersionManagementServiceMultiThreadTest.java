@@ -1,6 +1,10 @@
 package com.worksmobile.assignment.bo;
 
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -132,6 +136,7 @@ public class VersionManagementServiceMultiThreadTest {
 		generation.add(defaultCreated);
 		for(int i = 1; i < generationCnt; i++) {
 			NodePtr parentPtr = generation.get(i - 1);
+			await().untilAsserted(() -> assertThat(boardHistoryMapper.selectHistory(parentPtr), is(notNullValue())));
 			NodePtr child = boardUtil.makeChild(parentPtr);
 			generation.add(child);
 		}
