@@ -1,17 +1,23 @@
 package com.worksmobile.assignment.bo;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.worksmobile.assignment.bo.event.AttachmentChangedEvent;
 import com.worksmobile.assignment.mapper.BoardMapper;
 import com.worksmobile.assignment.mapper.BoardTempMapper;
 import com.worksmobile.assignment.model.Board;
 import com.worksmobile.assignment.model.BoardTemp;
+import com.worksmobile.assignment.model.NodePtr;
 import com.worksmobile.assignment.util.JsonUtils;
 
 @Service
@@ -123,5 +129,27 @@ public class BoardTempService {
 		
 		return true;
 
+	}
+	
+	public String selectAutoSaves(NodePtr nodePtr) throws JsonProcessingException {
+		List<BoardTemp> autoSaveList = boardTempMapper.getBoardTempList(nodePtr);
+		ObjectMapper mapper = new ObjectMapper();
+		
+		ObjectNode rootNode = mapper.createObjectNode();
+		
+		rootNode.put("cnt", autoSaveList.size());
+		
+		ArrayNode elements = mapper.createArrayNode();
+		for(BoardTemp autoSave : autoSaveList) {
+			ObjectNode eleNode = mapper.createObjectNode();
+			eleNode.put("nodePtr", autoSave.getNodePtrStr());
+			eleNode.put("subject", autoSave.getSubject());
+			eleNode.put("created", autoSave.getCreated_time());
+			eleNode.put("cookieId", autoSave.getCookie_id());
+			eleNode.put("fileId", autoSave.getFile_id());
+			elements.add(eleNode);
+		}
+		rootNode.set("elements", elements);
+		return mapper.writeValueAsString(rootNode);
 	}
 }

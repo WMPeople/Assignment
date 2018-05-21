@@ -12,10 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.worksmobile.assignment.bo.BoardTempService;
 import com.worksmobile.assignment.bo.CookieService;
 import com.worksmobile.assignment.bo.FileService;
@@ -272,5 +275,11 @@ public class BoardController {
 		}
 		return resultMap;
 	}
-
+	
+	@ResponseBody
+	@RequestMapping(value = "/api/autoSave/{board_id}/{version}")
+	public String getAutoSave(NodePtr nodePtr) throws JsonProcessingException {
+		String json = boardTempService.selectAutoSaves(nodePtr);
+		return json;
+	}
 }

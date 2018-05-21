@@ -17,7 +17,8 @@ function treeViewer() {
 	    if (this.readyState == 4) {
 	    	if(this.status == 200) {
 		    	var jsonObj = JSON.parse(this.responseText);
-		    	new Treant(jsonObj);	
+		    	new Treant(jsonObj);
+		    	treeViewerFinished();
 	    	} else {
 	    		alert("status : " + this.status);
 	    	}
