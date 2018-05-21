@@ -149,10 +149,22 @@ function onNodeMouseOver(event) {
 
 function treeViewerFinished() {
 	var nodes = document.getElementsByClassName("node");
+	var delay = function (elem, callback) {
+		var timeout = null;
+		var setTimeoutFunc = function() {
+			timeout = setTimeout(callback.bind(this), 500);
+		};
+		var clearTimeoutFunc = function() {
+			clearTimeout(timeout);
+		}
+		elem.addEventListener("mouseover", setTimeoutFunc);
+		elem.addEventListener("mouseleave", clearTimeoutFunc);
+		
+		return [setTimeoutFunc, clearTimeoutFunc];
+	};
 	for(var i = 0; i < nodes.length; i++) {
-		nodes[i].removeEventListener("mouseover", onNodeMouseOver);
-		nodes[i].addEventListener("mouseover", onNodeMouseOver);
-	}
+		var event = delay(nodes[i], onNodeMouseOver);
+}
 }
 </script>
 <body>
