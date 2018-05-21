@@ -30,6 +30,9 @@ $(function(){
 function fileUpOnChange () {
     $('#fileUp').on('change' , function(){ 
         formData = new FormData($("#fileForm")[0]);
+        if (!checkFile(formData.get("fileUp"))){
+        	return;
+        }
         $.ajax({
             type : "POST",
             contentType : "application/json; charset=UTF-8",
@@ -48,4 +51,25 @@ function fileUpOnChange () {
             }
         });
     });
+}
+
+function checkFile(file){
+    var maxSize  = 5 * 1024 * 1024    //5MB
+    var fileSize = 0;
+    var browser=navigator.appName;
+    if (browser=="Microsoft Internet Explorer") {
+        var oas = new ActiveXObject("Scripting.FileSystemObject");
+        fileSize = oas.getFile( file.value ).size;
+    } else{
+    	if (file == null || file == undefined) {
+    		return true;
+    	}else {
+    		fileSize = file.size;
+    	}
+    }
+    if(fileSize > maxSize) {
+        alert("첨부파일 사이즈는 5MB 이내로 등록 가능합니다.    ");
+        return false;
+    }
+    return true;
 }
