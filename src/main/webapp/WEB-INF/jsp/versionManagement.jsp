@@ -15,8 +15,8 @@
 <script src="${pageContext.request.contextPath}/js/transition.js"></script>
 <!-- BootStrap CDN -->
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/bootstrap.min.3.3.2.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/bootstrap-theme.min.3.3.2.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/common_ncs.css">
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/home_editor.min.css">

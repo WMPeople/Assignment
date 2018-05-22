@@ -58,21 +58,26 @@ function btnDiff() {
 
 // 버전 삭제 버튼입니다.
 function btnVersionDelete(board_id, version) {
-	$.ajax({
-		type : "DELETE",
-		url : "/assignment/boards/version/" + board_id + "/" + version,
-		success : function(result) {
-			if (result.result == 'success') {
-				alert("삭제완료");
-				location.reload();
-			} else {
-				alert("삭제실패");
-			}
-		},
-		error : function(xhr, status, error) {
-			alert(error);
-		}
-	})
+	createConfirmModal("삭제하시겠습니까?");
+	$('.ui.large.basic.confirm.modal').modal({
+	    onApprove : function() {
+	    	 $.ajax({
+			        type: "DELETE",
+			        url : "/assignment/boards/version/" + board_id + "/" + version,
+					success : function(result) {
+						if (result.result == 'success') {
+							location.reload();
+						} else {
+							alert("삭제실패");
+						}
+					},
+					error : function(xhr, status, error) {
+						alert(error);
+					}
+			    })	
+	    },
+	    closable : false
+	  }).modal('show');
 }
 
 // 버전 복구 버튼입니다.
@@ -86,7 +91,7 @@ function btnRecover(board_id, version) {
 		url : "/assignment/boards/recover/" + board_id + "/" + version + "/" + leafBoard_id + "/" + leafVersion,
 		success : function(result) {
 			if (result.result == 'success') {
-				alert("복원완료");
+				alertModal("복원 완료",false);
 				location.href = '/assignment/boards/management/' + result.board_id + '/' + result.version;
 			} else {
 				alert(result.result);

@@ -69,7 +69,7 @@
                     </li>
                 </ul>
                 <textarea name="content" id="content"
-                    style="resize: none; margin: 8px; min-height: 300px; min-width: 99%; padding: 0px;">${param.content}</textarea>
+                    style="margin: 8px; min-height: 100px; min-width: 99%; padding: 0px;">${param.content}</textarea>
                     <style>
                     .chart_container {
                         width: 25%;
