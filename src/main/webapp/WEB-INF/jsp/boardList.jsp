@@ -22,7 +22,7 @@
 <title>게시물 목록</title>
 </head>
 <body>
-    <span id="title" style="float: left; margin-left: 10px; font-size: 30px; margin-top: 10px;"> 게시물 목록</span>
+    <h1 style="float: left; margin-left: 10px; font-size: 30px; margin-top: 10px;">게시물 목록</h1>
     <br></br>
     <button class="btn btn-primary" style="float : right;" onclick="location.href='/assignment/boards'">글쓰기</button>
  

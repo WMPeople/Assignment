@@ -52,7 +52,7 @@
 	<br>
 	<label for="caseSensitive">대소문자 구분하기</label><input type="checkbox" id="caseSensitive" checked="checked" />
 	<br>
-	<label for="ignoreWhiteCharCnt">무시할 공백 및 개행의 최소 개수</label><input type="number" min="0" id="ignoreWhiteCharCnt" value="1" onchange="onIgnoreWhiteSpaceChagned()"/>
+	<label for="ignoreWhiteCharCnt">무시할 공백 및 개행의 최소 개수</label><input type="number" min="0" id="ignoreWhiteCharCnt" value="0" onchange="onIgnoreWhiteSpaceChagned()"/>
 	<br>
 	<div>
 	우선순위 옵션 <span class="toolTip">
