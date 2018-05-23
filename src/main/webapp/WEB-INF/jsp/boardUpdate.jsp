@@ -105,7 +105,7 @@
                 <div id="pre_set" style="display: none">
                     <label title = "사소한 변경, 즉  띄어쓰기나 3글자 이내에 변경은  카운트 하지 않고 변경된 부분을 카운트 합니다. 값범위 : 1 ~ 100" for="addCountCondition">수정된 부분 개수 : </label><input type="number" min="1" max="100" id="addCountCondition" name="addCountCondition" value="0" style="width: 50px">
                     <label title = "개행 수를 카운트합니다. 값범위 : 1 ~ 50" for="newLineCountCondition">추가된 개행개수 : </label><input type="number" min="1" max="50" id="newLineCountCondition" name="newLineCountCondition" value="0" style="width: 50px">
-                    <label title = "원본 내용의 크기에서 현재 내용의 크기를 뺀 값을 다시 원본 내용킈 크기로 나눕니다. 값이 낮을 수록 둔감하게 버전업이 됩니다. 값범위 : -2 ~ -0.2" for="stringSizeDifferenceCondition">(원본 내용 크기 - 현재 내용 크기) / 원본 내용 크기 : </label><input type="number" min="-2" max="-0.2" id="stringSizeDifferenceCondition" name="stringSizeDifferenceCondition" value="0" style="width: 50px">
+                    <label title = "현재 내용의 크기에서 원본 내용의 크기를 뺀 값을 다시 원본 내용킈 크기로 나눕니다. 값이 높을 수록 둔감하게 버전업이 됩니다. 값범위 : 0.2 ~ 2" for="stringSizeDifferenceCondition">(원본 내용 크기 - 현재 내용 크기) / 원본 내용 크기 : </label><input type="number" min="-2" max="-0.2" id="stringSizeDifferenceCondition" name="stringSizeDifferenceCondition" value="0" style="width: 50px">
                     <label title = "전체 문자열의 증가가 아닌 추가된 부분의 문자열 길이를 카운트 합니다. 값범위 : 100 ~ 1000" for="addLengthCondition">추가된 문자열길이 : </label><input type="number" min="100" max="1000" id="addLengthCondition" name="addLengthCondition" value="0" style="width: 50px">
                     <input type="button" id="btnCondition" name="btnCondition" value="적용" style="width: 30px" onClick="applyChange()" >
                 </div>

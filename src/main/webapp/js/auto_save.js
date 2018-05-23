@@ -14,7 +14,7 @@
 //기본 유의미함 판단 조건
 var addCountCondition = 6;
 var newLineCountCondition = 6;
-var stringSizeDifferenceCondition = -0.8;
+var stringSizeDifferenceCondition = 0.8;
 var addLengthCondition = 200;
 var chartList = ['chart1','chart2','chart3','chart4'];
 var chartConditionList = [addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition];
@@ -132,7 +132,7 @@ function getCurrentCount(diff, tempContent){
 	}
 	
 	var tempContentLength = tempContent.length;
-	var stringSizeDifference = (originalContentLength - tempContentLength)/ originalContentLength; // 문자열 크기
+	var stringSizeDifference = ((originalContentLength - tempContentLength)/ originalContentLength ) * -1; // 문자열 크기
 	for (var i = 0; i < diff.length; i++) {
 		if (diff[i][0] == 1) {
 			if (diff[i][1].length >= 3) {
@@ -155,7 +155,7 @@ function getCurrentCount(diff, tempContent){
 function discriminateVersionUp(addCount, newLineCount, stringSizeDifference, addLength,
 		addCountCondition, newLineCountCondition, stringSizeDifferenceCondition, addLengthCondition, urlData) {
 	if (addCount >= addCountCondition || newLineCount >= newLineCountCondition
-			|| stringSizeDifference <= stringSizeDifferenceCondition || addLength >= addLengthCondition) {
+			|| stringSizeDifference >= stringSizeDifferenceCondition || addLength >= addLengthCondition) {
 		var file_name = '<%=request.getParameter("file_name")%>';
 		if (file_name != '') {
 			file_name = '<%=request.getParameter("file_name")%>';
