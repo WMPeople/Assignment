@@ -249,7 +249,7 @@ function applyChange(){
 function isAvailableChange(aCC, nLCC, sSDC, aLC){
 	if ((aCC >= 1 && aCC <= 100) &&
 	(nLCC >= 1 && nLCC <= 50) &&
-	(sSDC >= -2 && sSDC <= -0.2) &&
+	(sSDC >= 0.2 && sSDC <= 2.2) &&
 	(aLC >= 100 && aLC <= 1000)){
 		return true;
 	} else {
